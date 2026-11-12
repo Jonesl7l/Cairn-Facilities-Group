@@ -1,0 +1,40 @@
+# OS and editors
+.DS_Store
+Thumbs.db
+.idea/
+*.iml
+.vscode/
+*.swp
+
+# Claude Code (local, per-user settings only)
+.claude/settings.local.json
+
+# Android / Gradle
+.gradle/
+.kotlin/
+build/
+local.properties
+captures/
+.externalNativeBuild/
+.cxx/
+*.apk
+*.aab
+*.keystore
+*.jks
+
+# Server (json-server)
+server/node_modules/
+server/db.json
+server/public/uploads/
+
+# Dashboard (Next.js)
+dashboard/node_modules/
+dashboard/.next/
+dashboard/out/
+dashboard/next-env.d.ts
+*.tsbuildinfo
+
+# Node / env
+node_modules/
+npm-debug.log*
+.env*.local
