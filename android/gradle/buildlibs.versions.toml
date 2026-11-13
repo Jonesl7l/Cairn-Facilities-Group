@@ -1,0 +1,24 @@
+[versions]
+agp = "9.2.1"
+kotlin = "2.4.21"
+ksp = "2.3.13"
+hilt = "2.60.1"
+room3 = "3.0.3"
+spotless = "8.11.0"
+ktlint = "1.8.0"
+composeRules = "0.6.8"
+kover = "0.9.11"
+
+[libraries]
+kotlin-gradle-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
+ktlint-compose-rules = { module = "io.nlopez.compose.rules:ktlint", version.ref = "composeRules" }
+
+[plugins]
+android-application = { id = "com.android.application", version.ref = "agp" }
+kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
+hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
+room3 = { id = "androidx.room3", version.ref = "room3" }
+spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }
+kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kover" }

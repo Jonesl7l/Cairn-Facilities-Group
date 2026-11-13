@@ -1,4 +1,16 @@
-// Top-level build file where you can add configuration options common to all sub-projects/modules.
+buildscript {
+    dependencies {
+        classpath(buildLibs.kotlin.gradle.plugin)
+    }
+}
+
 plugins {
-    alias(libs.plugins.android.application) apply false
+    alias(buildLibs.plugins.android.application) apply false
+    alias(buildLibs.plugins.kotlin.compose) apply false
+    alias(buildLibs.plugins.kotlin.serialization) apply false
+    alias(buildLibs.plugins.ksp) apply false
+    alias(buildLibs.plugins.hilt) apply false
+    alias(buildLibs.plugins.room3) apply false
+    alias(buildLibs.plugins.spotless) apply false
+    alias(buildLibs.plugins.kover) apply false
 }

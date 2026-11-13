@@ -20,6 +20,14 @@ dependencyResolutionManagement {
         google()
         mavenCentral()
     }
+    versionCatalogs {
+        create("buildLibs") {
+            from(files("gradle/buildlibs.versions.toml"))
+        }
+        create("testLibs") {
+            from(files("gradle/testlibs.versions.toml"))
+        }
+    }
 }
 
 rootProject.name = "carinfg"
