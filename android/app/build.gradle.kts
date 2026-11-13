@@ -68,7 +68,6 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.core.splashscreen)
     implementation(libs.androidx.exifinterface)
-    implementation(libs.material)
 
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.bundles.compose)
