@@ -132,6 +132,7 @@ dependencies {
 
     implementation(libs.bundles.coil)
     implementation(libs.play.services.location)
+    implementation(libs.timber)
 
     ktlintRuleset(buildLibs.ktlint.compose.rules)
 

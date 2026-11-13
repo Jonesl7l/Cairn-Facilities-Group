@@ -2,6 +2,12 @@ package com.jonesl7l.carinfg
 
 import android.app.Application
 import dagger.hilt.android.HiltAndroidApp
+import timber.log.Timber
 
 @HiltAndroidApp
-class CarinfgApp : Application()
+class CarinfgApp : Application() {
+    override fun onCreate() {
+        super.onCreate()
+        if (BuildConfig.DEBUG) Timber.plant(Timber.DebugTree())
+    }
+}
