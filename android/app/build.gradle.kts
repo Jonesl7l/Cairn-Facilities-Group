@@ -128,6 +128,7 @@ dependencies {
 
     implementation(libs.bundles.network)
     implementation(libs.kotlinx.coroutines.android)
+    implementation(libs.kotlinx.datetime)
 
     implementation(libs.bundles.coil)
     implementation(libs.play.services.location)
