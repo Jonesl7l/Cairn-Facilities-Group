@@ -11,6 +11,10 @@ plugins {
     alias(buildLibs.plugins.ksp) apply false
     alias(buildLibs.plugins.hilt) apply false
     alias(buildLibs.plugins.room3) apply false
-    alias(buildLibs.plugins.spotless) apply false
+    alias(buildLibs.plugins.ktlint)
     alias(buildLibs.plugins.kover) apply false
+}
+
+ktlint {
+    version.set(buildLibs.versions.ktlint)
 }

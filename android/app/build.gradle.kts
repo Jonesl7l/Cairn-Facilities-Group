@@ -7,6 +7,8 @@ plugins {
     alias(buildLibs.plugins.ksp)
     alias(buildLibs.plugins.hilt)
     alias(buildLibs.plugins.room3)
+    alias(buildLibs.plugins.ktlint)
+    alias(buildLibs.plugins.kover)
 }
 
 android {
@@ -45,6 +47,10 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
+    lint {
+        disable += "OldTargetApi"
+    }
+
     testOptions {
         unitTests {
             all {
@@ -62,6 +68,38 @@ kotlin {
 
 room3 {
     schemaDirectory("$projectDir/schemas")
+}
+
+ktlint {
+    version.set(buildLibs.versions.ktlint)
+}
+
+kover {
+    currentProject {
+        createVariant("app") {
+            add("debug")
+        }
+    }
+    reports {
+        filters {
+            excludes {
+                classes(
+                    "*.BuildConfig",
+                    "*Hilt_*",
+                    "*_HiltModules*",
+                    "*_Factory",
+                    "*_Factory\$*",
+                    "*_MembersInjector",
+                    "*_Impl",
+                    "*_Impl\$*",
+                    "*ComposableSingletons*",
+                    "dagger.hilt.internal.*",
+                    "hilt_aggregated_deps.*",
+                )
+                annotatedBy("androidx.compose.ui.tooling.preview.Preview")
+            }
+        }
+    }
 }
 
 dependencies {
@@ -93,6 +131,8 @@ dependencies {
 
     implementation(libs.bundles.coil)
     implementation(libs.play.services.location)
+
+    ktlintRuleset(buildLibs.ktlint.compose.rules)
 
     testImplementation(testLibs.bundles.unit.test)
 
