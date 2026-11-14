@@ -9,5 +9,6 @@ sealed interface PersonType {
 
     data object MemberOfPublic : PersonType
 
+    /** server value this app version doesnt know yet */
     data class Unknown(val raw: String) : PersonType
 }

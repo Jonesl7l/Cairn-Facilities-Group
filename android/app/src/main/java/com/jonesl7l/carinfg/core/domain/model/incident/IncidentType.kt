@@ -21,5 +21,6 @@ sealed interface IncidentType {
 
     data class Other(val description: String) : IncidentType
 
+    /** server value this app version doesnt know yet */
     data class Unknown(val raw: String) : IncidentType
 }

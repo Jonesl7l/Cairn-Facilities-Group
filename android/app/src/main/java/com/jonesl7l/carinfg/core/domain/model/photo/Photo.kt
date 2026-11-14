@@ -7,6 +7,7 @@ data class Photo(
     val incidentId: String,
     val position: Int,
     val caption: String?,
+    // local until uploaded, remote only when synced from elsewhere
     val localPath: String?,
     val remoteUrl: String?,
     val width: Int,

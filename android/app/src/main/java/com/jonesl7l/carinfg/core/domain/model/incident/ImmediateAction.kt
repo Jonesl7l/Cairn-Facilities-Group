@@ -17,5 +17,6 @@ sealed interface ImmediateAction {
 
     data class Other(val description: String) : ImmediateAction
 
+    /** server value this app version doesnt know yet */
     data class Unknown(val raw: String) : ImmediateAction
 }

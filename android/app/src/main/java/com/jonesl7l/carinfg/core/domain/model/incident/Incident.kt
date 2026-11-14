@@ -7,9 +7,12 @@ import kotlin.time.Instant
 
 data class Incident(
     val id: String,
+    /** set by the server on first sync */
     val referenceNumber: String?,
     val reporterId: String,
+    /** null while a draft, set on submit */
     val reportedAt: Instant?,
+    /** where the device was when reported, not where it happened */
     val gpsLocation: GpsLocation?,
     val details: IncidentDetails,
     val location: IncidentLocation,

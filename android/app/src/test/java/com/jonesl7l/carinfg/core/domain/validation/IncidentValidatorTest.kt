@@ -4,12 +4,12 @@ import assertk.assertThat
 import assertk.assertions.containsExactly
 import assertk.assertions.containsExactlyInAnyOrder
 import assertk.assertions.isEmpty
-import com.jonesl7l.carinfg.core.domain.IncidentTestHelper.NOW
 import com.jonesl7l.carinfg.core.domain.IncidentTestHelper.incident
 import com.jonesl7l.carinfg.core.domain.IncidentTestHelper.incidentDetails
 import com.jonesl7l.carinfg.core.domain.IncidentTestHelper.incidentLocation
 import com.jonesl7l.carinfg.core.domain.IncidentTestHelper.incidentSafety
 import com.jonesl7l.carinfg.core.domain.IncidentTestHelper.injuryDetails
+import com.jonesl7l.carinfg.core.domain.IncidentTestHelper.now
 import com.jonesl7l.carinfg.core.domain.IncidentTestHelper.person
 import com.jonesl7l.carinfg.core.domain.IncidentTestHelper.photo
 import com.jonesl7l.carinfg.core.domain.model.incident.ImmediateAction
@@ -77,11 +77,11 @@ class IncidentValidatorTest {
     fun `occurred at allows small clock skew but not the future`() {
         val withinSkew = incident(
             reportedAt = null,
-            details = incidentDetails(occurredAt = NOW + 5.minutes),
+            details = incidentDetails(occurredAt = now + 5.minutes),
         )
         val beyondSkew = incident(
             reportedAt = null,
-            details = incidentDetails(occurredAt = NOW + 6.minutes),
+            details = incidentDetails(occurredAt = now + 6.minutes),
         )
 
         assertThat(withinSkew.errors()).isEmpty()
@@ -90,7 +90,7 @@ class IncidentValidatorTest {
 
     @Test
     fun `occurred at cannot be after reported at`() {
-        assertThat(incident(details = incidentDetails(occurredAt = NOW + 1.minutes)).errors())
+        assertThat(incident(details = incidentDetails(occurredAt = now + 1.minutes)).errors())
             .containsExactly(FieldError(field = IncidentField.OccurredAt, reason = AfterReportedAt))
     }
 
@@ -223,7 +223,7 @@ class IncidentValidatorTest {
             )
     }
 
-    private fun Incident.errors(): List<FieldError> = IncidentValidator.validate(incident = this, now = NOW)
+    private fun Incident.errors(): List<FieldError> = IncidentValidator.validate(incident = this, now = now)
 
     private fun actionErrors(vararg actions: ImmediateAction): List<FieldError> =
         incident(safety = incidentSafety(immediateActions = actions.toSet())).errors()

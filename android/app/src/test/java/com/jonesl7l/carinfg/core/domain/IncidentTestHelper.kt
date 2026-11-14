@@ -27,7 +27,7 @@ import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 
 object IncidentTestHelper {
-    val NOW: Instant = Instant.parse("2026-11-13T12:00:00Z")
+    val now: Instant = Instant.parse("2026-11-13T12:00:00Z")
     const val INCIDENT_ID = "incident-1"
     const val REPORTER_ID = "tech1"
 
@@ -35,7 +35,7 @@ object IncidentTestHelper {
         id: String = INCIDENT_ID,
         referenceNumber: String? = "INC-2026-00001",
         reporterId: String = REPORTER_ID,
-        reportedAt: Instant? = NOW,
+        reportedAt: Instant? = now,
         gpsLocation: GpsLocation? = null,
         details: IncidentDetails = incidentDetails(),
         location: IncidentLocation = incidentLocation(),
@@ -66,7 +66,7 @@ object IncidentTestHelper {
     fun incidentDetails(
         title: String = "Leak in plant room",
         description: String = "Water pooling under the main boiler.",
-        occurredAt: Instant = NOW - 1.hours,
+        occurredAt: Instant = now - 1.hours,
         occurredTimeZone: TimeZone = TimeZone.UTC,
         type: IncidentType? = IncidentType.WaterLeak,
         severity: Severity? = Severity.Medium,
@@ -128,8 +128,8 @@ object IncidentTestHelper {
     )
 
     fun serverFields(
-        createdAt: Instant? = NOW,
-        updatedAt: Instant? = NOW,
+        createdAt: Instant? = now,
+        updatedAt: Instant? = now,
         deletedAt: Instant? = null,
         deletedBy: String? = null,
     ) = ServerFields(
@@ -195,7 +195,7 @@ object IncidentTestHelper {
         width: Int = 1600,
         height: Int = 1200,
         sizeBytes: Long = 250000,
-        takenAt: Instant = NOW,
+        takenAt: Instant = now,
         uploadState: PhotoUploadState = PhotoUploadState.UPLOADED,
     ) = Photo(
         id = id,

@@ -5,6 +5,7 @@ data class IncidentLocation(
     val buildingId: String?,
     val floorId: String?,
     val roomId: String?,
+    /** free text when the building isnt listed */
     val unlistedLocation: String?,
     val exactSpot: String?,
     val assetId: String?,

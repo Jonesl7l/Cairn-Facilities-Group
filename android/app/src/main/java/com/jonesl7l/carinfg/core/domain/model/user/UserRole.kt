@@ -5,5 +5,6 @@ sealed interface UserRole {
 
     data object Operator : UserRole
 
+    /** server value this app version doesnt know yet */
     data class Unknown(val raw: String) : UserRole
 }

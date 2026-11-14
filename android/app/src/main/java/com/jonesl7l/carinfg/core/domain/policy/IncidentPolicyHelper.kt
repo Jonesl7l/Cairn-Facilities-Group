@@ -5,6 +5,8 @@ import com.jonesl7l.carinfg.core.domain.model.incident.IncidentStatus
 
 object IncidentPolicyHelper {
     private val editableStatuses = setOf(IncidentStatus.Open, IncidentStatus.Assigned)
+
+    // photos can still be added once work starts
     private val photoStatuses = editableStatuses + IncidentStatus.InProgress
 
     fun canEdit(

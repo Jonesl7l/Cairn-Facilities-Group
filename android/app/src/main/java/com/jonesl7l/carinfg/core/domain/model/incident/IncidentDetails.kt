@@ -7,7 +7,9 @@ data class IncidentDetails(
     val title: String,
     val description: String,
     val occurredAt: Instant,
+    /** shows occurredAt in the local time of where it happened */
     val occurredTimeZone: TimeZone,
+    // nullable so drafts can save incomplete
     val type: IncidentType?,
     val severity: Severity?,
 )
