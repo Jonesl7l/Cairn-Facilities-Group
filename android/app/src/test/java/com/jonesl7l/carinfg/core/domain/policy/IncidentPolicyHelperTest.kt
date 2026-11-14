@@ -40,7 +40,11 @@ class IncidentPolicyHelperTest {
 
     @Test
     fun `nothing is allowed once resolved, closed or unknown`() {
-        val statuses = listOf(IncidentStatus.Resolved, IncidentStatus.Closed, IncidentStatus.Unknown(raw = "ARCHIVED"))
+        val statuses = listOf(
+            IncidentStatus.Resolved,
+            IncidentStatus.Closed,
+            IncidentStatus.Unknown(raw = "ARCHIVED"),
+        )
         statuses.forEach { status ->
             val incident = incidentWithStatus(status = status)
 

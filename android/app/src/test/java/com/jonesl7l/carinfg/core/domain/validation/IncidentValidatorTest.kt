@@ -44,9 +44,19 @@ class IncidentValidatorTest {
         assertThat(incident(details = incidentDetails(title = "   ")).errors())
             .containsExactly(FieldError(field = IncidentField.Title, reason = Required))
         assertThat(incident(details = incidentDetails(title = " ab ")).errors())
-            .containsExactly(FieldError(field = IncidentField.Title, reason = TooShort(min = 3)))
+            .containsExactly(
+                FieldError(
+                    field = IncidentField.Title,
+                    reason = TooShort(min = 3),
+                ),
+            )
         assertThat(incident(details = incidentDetails(title = "a".repeat(81))).errors())
-            .containsExactly(FieldError(field = IncidentField.Title, reason = TooLong(max = 80)))
+            .containsExactly(
+                FieldError(
+                    field = IncidentField.Title,
+                    reason = TooLong(max = 80),
+                ),
+            )
         assertThat(incident(details = incidentDetails(title = "a".repeat(80))).errors()).isEmpty()
     }
 
@@ -54,16 +64,28 @@ class IncidentValidatorTest {
     fun `description is required and at most 2000 characters`() {
         assertThat(incident(details = incidentDetails(description = "")).errors())
             .containsExactly(FieldError(field = IncidentField.Description, reason = Required))
-        assertThat(incident(details = incidentDetails(description = "a".repeat(2_001))).errors())
-            .containsExactly(FieldError(field = IncidentField.Description, reason = TooLong(max = 2_000)))
+        assertThat(incident(details = incidentDetails(description = "a".repeat(2001))).errors())
+            .containsExactly(
+                FieldError(
+                    field = IncidentField.Description,
+                    reason = TooLong(max = 2000),
+                ),
+            )
     }
 
     @Test
     fun `occurred at allows small clock skew but not the future`() {
-        assertThat(incident(reportedAt = null, details = incidentDetails(occurredAt = NOW + 5.minutes)).errors())
-            .isEmpty()
-        assertThat(incident(reportedAt = null, details = incidentDetails(occurredAt = NOW + 6.minutes)).errors())
-            .containsExactly(FieldError(field = IncidentField.OccurredAt, reason = InFuture))
+        val withinSkew = incident(
+            reportedAt = null,
+            details = incidentDetails(occurredAt = NOW + 5.minutes),
+        )
+        val beyondSkew = incident(
+            reportedAt = null,
+            details = incidentDetails(occurredAt = NOW + 6.minutes),
+        )
+
+        assertThat(withinSkew.errors()).isEmpty()
+        assertThat(beyondSkew.errors()).containsExactly(FieldError(field = IncidentField.OccurredAt, reason = InFuture))
     }
 
     @Test
@@ -123,10 +145,18 @@ class IncidentValidatorTest {
     fun `an injury needs an injured person`() {
         val safety = incidentSafety(injuryOccurred = true)
 
-        assertThat(incident(safety = safety, persons = listOf(person(role = PersonRole.Witness))).errors())
+        val witnessOnly = incident(
+            safety = safety,
+            persons = listOf(person(role = PersonRole.Witness)),
+        )
+        val withInjured = incident(
+            safety = safety,
+            persons = listOf(person(role = PersonRole.Injured)),
+        )
+
+        assertThat(witnessOnly.errors())
             .containsExactly(FieldError(field = IncidentField.InjuryOccurred, reason = InjuredPersonRequired))
-        assertThat(incident(safety = safety, persons = listOf(person(role = PersonRole.Injured))).errors())
-            .isEmpty()
+        assertThat(withInjured.errors()).isEmpty()
     }
 
     @Test
@@ -162,7 +192,11 @@ class IncidentValidatorTest {
         val missing = person(role = PersonRole.Injured, injury = null)
         val blank = person(
             role = PersonRole.Injured,
-            injury = injuryDetails(nature = "", bodyPart = "", treatment = Treatment.Unknown(raw = "SURGERY")),
+            injury = injuryDetails(
+                nature = "",
+                bodyPart = "",
+                treatment = Treatment.Unknown(raw = "SURGERY"),
+            ),
         )
 
         assertThat(incident(persons = listOf(missing)).errors()).containsExactlyInAnyOrder(
@@ -181,7 +215,12 @@ class IncidentValidatorTest {
     fun `at most five photos`() {
         assertThat(incident(photos = List(5) { photo(position = it) }).errors()).isEmpty()
         assertThat(incident(photos = List(6) { photo(position = it) }).errors())
-            .containsExactly(FieldError(field = IncidentField.Photos, reason = TooMany(max = 5)))
+            .containsExactly(
+                FieldError(
+                    field = IncidentField.Photos,
+                    reason = TooMany(max = 5),
+                ),
+            )
     }
 
     private fun Incident.errors(): List<FieldError> = IncidentValidator.validate(incident = this, now = NOW)
@@ -189,6 +228,12 @@ class IncidentValidatorTest {
     private fun actionErrors(vararg actions: ImmediateAction): List<FieldError> =
         incident(safety = incidentSafety(immediateActions = actions.toSet())).errors()
 
-    private fun personError(index: Int, field: PersonField, reason: ValidationReason) =
-        FieldError(field = IncidentField.Person(index = index, field = field), reason = reason)
+    private fun personError(
+        index: Int,
+        field: PersonField,
+        reason: ValidationReason,
+    ) = FieldError(
+        field = IncidentField.Person(index = index, field = field),
+        reason = reason,
+    )
 }

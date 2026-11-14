@@ -194,7 +194,7 @@ object IncidentTestHelper {
         remoteUrl: String? = "uploads/incidents/$incidentId/$id.jpg",
         width: Int = 1600,
         height: Int = 1200,
-        sizeBytes: Long = 250_000,
+        sizeBytes: Long = 250000,
         takenAt: Instant = NOW,
         uploadState: PhotoUploadState = PhotoUploadState.UPLOADED,
     ) = Photo(

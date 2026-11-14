@@ -27,34 +27,50 @@ import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Instant
 
 object IncidentValidator {
-    const val TITLE_MIN_LENGTH = 3
-    const val TITLE_MAX_LENGTH = 80
-    const val DESCRIPTION_MAX_LENGTH = 2_000
-    const val MAX_PHOTOS = 5
-    val ALLOWED_CLOCK_SKEW = 5.minutes
+    private const val TITLE_MIN_LENGTH = 3
+    private const val TITLE_MAX_LENGTH = 80
+    private const val DESCRIPTION_MAX_LENGTH = 2000
+    private const val MAX_PHOTOS = 5
+    private val allowedClockSkew = 5.minutes
 
-    fun validate(incident: Incident, now: Instant): List<FieldError> = buildList {
+    fun validate(
+        incident: Incident,
+        now: Instant,
+    ): List<FieldError> = buildList {
         validateDetails(details = incident.details, reportedAt = incident.reportedAt, now = now)
         validateLocation(location = incident.location)
         validateSafety(safety = incident.safety, persons = incident.persons)
         incident.persons.forEachIndexed { index, person -> validatePerson(index = index, person = person) }
         if (incident.photos.size > MAX_PHOTOS) {
-            addError(field = IncidentField.Photos, reason = TooMany(max = MAX_PHOTOS))
+            addError(
+                field = IncidentField.Photos,
+                reason = TooMany(max = MAX_PHOTOS),
+            )
         }
     }
 
-    private fun MutableList<FieldError>.validateDetails(details: IncidentDetails, reportedAt: Instant?, now: Instant) {
+    private fun MutableList<FieldError>.validateDetails(
+        details: IncidentDetails,
+        reportedAt: Instant?,
+        now: Instant,
+    ) {
         val title = details.title.trim()
         // title is required and 3-80 chars once trimmed
         when {
             title.isEmpty() -> addError(field = IncidentField.Title, reason = Required)
 
             title.length < TITLE_MIN_LENGTH -> {
-                addError(field = IncidentField.Title, reason = TooShort(min = TITLE_MIN_LENGTH))
+                addError(
+                    field = IncidentField.Title,
+                    reason = TooShort(min = TITLE_MIN_LENGTH),
+                )
             }
 
             title.length > TITLE_MAX_LENGTH -> {
-                addError(field = IncidentField.Title, reason = TooLong(max = TITLE_MAX_LENGTH))
+                addError(
+                    field = IncidentField.Title,
+                    reason = TooLong(max = TITLE_MAX_LENGTH),
+                )
             }
         }
 
@@ -64,13 +80,16 @@ object IncidentValidator {
             description.isEmpty() -> addError(field = IncidentField.Description, reason = Required)
 
             description.length > DESCRIPTION_MAX_LENGTH -> {
-                addError(field = IncidentField.Description, reason = TooLong(max = DESCRIPTION_MAX_LENGTH))
+                addError(
+                    field = IncidentField.Description,
+                    reason = TooLong(max = DESCRIPTION_MAX_LENGTH),
+                )
             }
         }
 
         // occurredAt cant be in the future (bar small clock skew) or after it was reported
         when {
-            details.occurredAt > now + ALLOWED_CLOCK_SKEW -> {
+            details.occurredAt > now + allowedClockSkew -> {
                 addError(field = IncidentField.OccurredAt, reason = InFuture)
             }
 
@@ -110,7 +129,10 @@ object IncidentValidator {
         }
     }
 
-    private fun MutableList<FieldError>.validateSafety(safety: IncidentSafety, persons: List<Person>) {
+    private fun MutableList<FieldError>.validateSafety(
+        safety: IncidentSafety,
+        persons: List<Person>,
+    ) {
         when (safety.injuryOccurred) {
             null -> addError(field = IncidentField.InjuryOccurred, reason = Required)
 
@@ -138,7 +160,10 @@ object IncidentValidator {
         }
     }
 
-    private fun MutableList<FieldError>.validatePerson(index: Int, person: Person) {
+    private fun MutableList<FieldError>.validatePerson(
+        index: Int,
+        person: Person,
+    ) {
         if (person.name.isBlank()) addPersonError(index = index, field = PersonField.NAME, reason = Required)
         if (person.type is PersonType.Unknown) {
             addPersonError(index = index, field = PersonField.TYPE, reason = UnknownValue)
@@ -149,7 +174,10 @@ object IncidentValidator {
         if (person.role == PersonRole.Injured) validateInjury(index = index, injury = person.injury)
     }
 
-    private fun MutableList<FieldError>.validateInjury(index: Int, injury: InjuryDetails?) {
+    private fun MutableList<FieldError>.validateInjury(
+        index: Int,
+        injury: InjuryDetails?,
+    ) {
         if (injury == null) {
             addPersonError(index = index, field = PersonField.INJURY_NATURE, reason = Required)
             addPersonError(index = index, field = PersonField.INJURY_BODY_PART, reason = Required)
@@ -167,11 +195,21 @@ object IncidentValidator {
         }
     }
 
-    private fun MutableList<FieldError>.addError(field: IncidentField, reason: ValidationReason) {
+    private fun MutableList<FieldError>.addError(
+        field: IncidentField,
+        reason: ValidationReason,
+    ) {
         add(FieldError(field = field, reason = reason))
     }
 
-    private fun MutableList<FieldError>.addPersonError(index: Int, field: PersonField, reason: ValidationReason) {
-        addError(field = IncidentField.Person(index = index, field = field), reason = reason)
+    private fun MutableList<FieldError>.addPersonError(
+        index: Int,
+        field: PersonField,
+        reason: ValidationReason,
+    ) {
+        addError(
+            field = IncidentField.Person(index = index, field = field),
+            reason = reason,
+        )
     }
 }
