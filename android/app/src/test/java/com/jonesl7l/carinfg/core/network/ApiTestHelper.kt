@@ -1,6 +1,11 @@
 package com.jonesl7l.carinfg.core.network
 
 import com.jonesl7l.carinfg.core.di.NetworkModule
+import com.jonesl7l.carinfg.core.network.dto.incident.GpsLocationDto
+import com.jonesl7l.carinfg.core.network.dto.incident.IncidentDto
+import com.jonesl7l.carinfg.core.network.dto.person.InjuryDto
+import com.jonesl7l.carinfg.core.network.dto.person.PersonDto
+import com.jonesl7l.carinfg.core.network.dto.photo.PhotoDto
 import com.jonesl7l.carinfg.core.network.dto.problem.ProblemDetailsDto
 import com.jonesl7l.carinfg.core.network.dto.problem.ProblemFieldErrorDto
 import com.jonesl7l.carinfg.core.network.dto.user.UserDto
@@ -8,7 +13,9 @@ import com.jonesl7l.carinfg.core.network.http.HttpHeaders
 import com.jonesl7l.carinfg.core.network.http.MediaTypes
 import com.jonesl7l.carinfg.core.network.result.ApiCallHandler
 import com.jonesl7l.carinfg.core.network.result.ProblemParser
+import kotlin.time.Duration.Companion.hours
 import kotlin.time.Instant
+import kotlinx.datetime.LocalDate
 import kotlinx.serialization.json.Json
 import mockwebserver3.MockResponse
 import mockwebserver3.MockWebServer
@@ -24,6 +31,7 @@ import retrofit2.converter.kotlinx.serialization.asConverterFactory
 object ApiTestHelper {
     val now: Instant = Instant.parse("2026-11-13T12:00:00Z")
     const val REPORTER_ID = "tech1"
+    const val INCIDENT_ID = "incident-1"
 
     val json: Json = NetworkModule.provideJson()
 
@@ -99,5 +107,142 @@ object ApiTestHelper {
         referenceNumber = referenceNumber,
         currentStatus = currentStatus,
         errors = errors,
+    )
+
+    fun incidentDto(
+        id: String = INCIDENT_ID,
+        referenceNumber: String = "INC-2026-00001",
+        reporterId: String = REPORTER_ID,
+        reportedAt: Instant = now,
+        gpsLocation: GpsLocationDto? = gpsLocationDto(),
+        title: String = "Wet floor in lobby",
+        description: String = "Water pooling by the main entrance.",
+        occurredAt: Instant = now - 1.hours,
+        occurredTimeZone: String = "Europe/London",
+        incidentType: String = "SLIP_TRIP_FALL",
+        incidentTypeOther: String? = null,
+        severity: String = "MEDIUM",
+        siteId: String = "site-1",
+        buildingId: String? = "building-1",
+        floorId: String? = "floor-1",
+        roomId: String? = "room-1",
+        unlistedLocation: String? = null,
+        exactSpot: String? = "By the revolving door",
+        assetId: String? = "asset-1",
+        equipmentOutOfService: Boolean = true,
+        injuryOccurred: Boolean = true,
+        hazardStillPresent: Boolean = false,
+        immediateActions: List<String> = listOf("FIRST_AID_GIVEN", "OTHER"),
+        immediateActionsOther: String? = "Mopped the floor",
+        persons: List<PersonDto> = listOf(personDto()),
+        photos: List<PhotoDto> = listOf(photoDto()),
+        additionalNotes: String? = "Cleaner informed",
+        status: String = "OPEN",
+        assignedTo: String? = "operator1",
+        dueDate: LocalDate? = LocalDate(year = 2026, month = 11, day = 20),
+        rootCause: String? = "Leaking roof",
+        correctiveActions: String? = "Roof repair booked",
+        regulatoryReportable: Boolean? = false,
+        supervisorAcknowledged: Boolean? = true,
+        createdAt: Instant = now,
+        updatedAt: Instant = now,
+        version: Int = 1,
+        changeSeq: Long = 1,
+        deletedAt: Instant? = null,
+        deletedBy: String? = null,
+    ) = IncidentDto(
+        id = id,
+        referenceNumber = referenceNumber,
+        reporterId = reporterId,
+        reportedAt = reportedAt,
+        gpsLocation = gpsLocation,
+        title = title,
+        description = description,
+        occurredAt = occurredAt,
+        occurredTimeZone = occurredTimeZone,
+        incidentType = incidentType,
+        incidentTypeOther = incidentTypeOther,
+        severity = severity,
+        siteId = siteId,
+        buildingId = buildingId,
+        floorId = floorId,
+        roomId = roomId,
+        unlistedLocation = unlistedLocation,
+        exactSpot = exactSpot,
+        assetId = assetId,
+        equipmentOutOfService = equipmentOutOfService,
+        injuryOccurred = injuryOccurred,
+        hazardStillPresent = hazardStillPresent,
+        immediateActions = immediateActions,
+        immediateActionsOther = immediateActionsOther,
+        persons = persons,
+        photos = photos,
+        additionalNotes = additionalNotes,
+        status = status,
+        assignedTo = assignedTo,
+        dueDate = dueDate,
+        rootCause = rootCause,
+        correctiveActions = correctiveActions,
+        regulatoryReportable = regulatoryReportable,
+        supervisorAcknowledged = supervisorAcknowledged,
+        createdAt = createdAt,
+        updatedAt = updatedAt,
+        version = version,
+        changeSeq = changeSeq,
+        deletedAt = deletedAt,
+        deletedBy = deletedBy,
+    )
+
+    fun gpsLocationDto(
+        lat: Double = 51.5074,
+        lng: Double = -0.1278,
+        accuracyMeters: Float = 12f,
+    ) = GpsLocationDto(
+        lat = lat,
+        lng = lng,
+        accuracyMeters = accuracyMeters,
+    )
+
+    fun personDto(
+        id: String = "person-1",
+        name: String = "Alex Smith",
+        personType: String = "EMPLOYEE",
+        role: String = "INJURED",
+        department: String? = "Facilities",
+        position: String? = "Cleaner",
+        company: String? = null,
+        contactNumber: String? = "07700900000",
+        injury: InjuryDto? = injuryDto(),
+    ) = PersonDto(
+        id = id,
+        name = name,
+        personType = personType,
+        role = role,
+        department = department,
+        position = position,
+        company = company,
+        contactNumber = contactNumber,
+        injury = injury,
+    )
+
+    fun injuryDto(
+        nature: String = "Sprain",
+        bodyPart: String = "Left ankle",
+        treatment: String = "FIRST_AID",
+        notes: String? = null,
+    ) = InjuryDto(
+        nature = nature,
+        bodyPart = bodyPart,
+        treatment = treatment,
+        notes = notes,
+    )
+
+    fun photoDto(
+        id: String = "photo-0",
+        incidentId: String = INCIDENT_ID,
+        url: String = "uploads/incidents/$incidentId/$id.jpg",
+    ) = PhotoDto(
+        id = id,
+        url = url,
     )
 }
