@@ -105,6 +105,7 @@ object PullRuleHelper {
         row: IncidentEntity,
         remote: IncidentDto,
     ): PullAction = when {
+        // the user wanted it gone, so a remote delete needs no attention
         remote.isTombstone -> PullAction.Delete(id = row.id, basedOnRevision = row.localRevision)
 
         remote.status != OPEN_STATUS -> {

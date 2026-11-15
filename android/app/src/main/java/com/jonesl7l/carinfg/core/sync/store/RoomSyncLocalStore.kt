@@ -126,6 +126,7 @@ class RoomSyncLocalStore @Inject constructor(
         }
     }
 
+    // the cursor still moves on; push's 412 retry reconciles a skipped change
     private suspend fun isUnchanged(
         id: String,
         basedOnRevision: Long?,

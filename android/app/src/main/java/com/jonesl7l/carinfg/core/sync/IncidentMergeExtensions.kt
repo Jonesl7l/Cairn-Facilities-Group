@@ -24,6 +24,7 @@ fun IncidentEntity.withServerFields(remote: IncidentDto): IncidentEntity = copy(
     updatedAt = remote.updatedAt,
     serverVersion = remote.version,
     changeSeq = remote.changeSeq,
+    // a live server copy keeps a pending delete's own fields
     deletedAt = remote.deletedAt ?: deletedAt,
     deletedBy = remote.deletedBy ?: deletedBy,
 )
