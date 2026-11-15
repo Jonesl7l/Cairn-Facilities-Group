@@ -2,6 +2,7 @@ package com.jonesl7l.carinfg.core.data.mapper
 
 import assertk.assertThat
 import assertk.assertions.isEqualTo
+import assertk.assertions.isNull
 import com.jonesl7l.carinfg.core.database.EntityTestHelper.incidentEntity
 import com.jonesl7l.carinfg.core.database.EntityTestHelper.now
 import com.jonesl7l.carinfg.core.database.EntityTestHelper.photoEntity
@@ -34,7 +35,10 @@ import com.jonesl7l.carinfg.core.domain.model.reference.Room
 import com.jonesl7l.carinfg.core.domain.model.reference.Site
 import com.jonesl7l.carinfg.core.domain.model.sync.ConflictReason
 import com.jonesl7l.carinfg.core.domain.model.sync.SyncState
+import com.jonesl7l.carinfg.core.network.ApiTestHelper.REPORTER_ID
+import com.jonesl7l.carinfg.core.network.ApiTestHelper.incidentWriteRequest
 import com.jonesl7l.carinfg.core.network.ApiTestHelper.referenceDataDto
+import com.jonesl7l.carinfg.core.network.dto.incident.DeleteIncidentRequest
 import kotlin.time.Duration.Companion.hours
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
@@ -137,6 +141,76 @@ class EntityExtensionsTest {
         val domain = toDomain(entity = entity)
 
         assertThat(domain.details.occurredTimeZone).isEqualTo(TimeZone.UTC)
+    }
+
+    @Test
+    fun `a complete incident maps to a write request`() {
+        val withPhotos =
+            IncidentWithPhotos(
+                incident = incidentEntity(reporterId = REPORTER_ID),
+                photos = listOf(photoEntity(position = 0)),
+            )
+
+        assertThat(withPhotos.toWriteRequest()).isEqualTo(incidentWriteRequest())
+    }
+
+    @Test
+    fun `an incident missing a required field gives no write request`() {
+        val incomplete =
+            listOf(
+                incidentEntity(reportedAt = null),
+                incidentEntity(incidentType = null),
+                incidentEntity(severity = null),
+                incidentEntity(siteId = null),
+                incidentEntity(injuryOccurred = null),
+                incidentEntity(hazardStillPresent = null),
+            )
+
+        incomplete.forEach { entity ->
+            assertThat(IncidentWithPhotos(incident = entity, photos = emptyList()).toWriteRequest()).isNull()
+        }
+    }
+
+    @Test
+    fun `only uploaded photos are sent, in position order`() {
+        val photos =
+            listOf(
+                photoEntity(position = 1),
+                photoEntity(position = 0),
+                photoEntity(
+                    position = 2,
+                    remoteUrl = null,
+                    uploadState = PhotoUploadState.PENDING,
+                ),
+            )
+
+        val request = IncidentWithPhotos(incident = incidentEntity(), photos = photos).toWriteRequest()
+
+        assertThat(request?.photos?.map { it.id }).isEqualTo(listOf("photo-0", "photo-1"))
+    }
+    // endregion
+
+    // region IncidentEntity
+    @Test
+    fun `a pending delete maps to a delete request`() {
+        val entity =
+            incidentEntity(
+                deletedAt = now,
+                deletedBy = REPORTER_ID,
+            )
+
+        val expected =
+            DeleteIncidentRequest(
+                deletedAt = now,
+                deletedBy = REPORTER_ID,
+            )
+        assertThat(entity.toDeleteRequest()).isEqualTo(expected)
+    }
+
+    @Test
+    fun `a delete without its time or user gives no delete request`() {
+        assertThat(incidentEntity(deletedAt = null, deletedBy = REPORTER_ID).toDeleteRequest()).isNull()
+        assertThat(incidentEntity(deletedAt = now, deletedBy = null).toDeleteRequest()).isNull()
     }
     // endregion
 

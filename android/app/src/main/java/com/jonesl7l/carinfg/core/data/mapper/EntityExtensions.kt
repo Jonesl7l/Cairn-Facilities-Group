@@ -27,6 +27,12 @@ import com.jonesl7l.carinfg.core.domain.model.reference.Floor
 import com.jonesl7l.carinfg.core.domain.model.reference.Room
 import com.jonesl7l.carinfg.core.domain.model.reference.Site
 import com.jonesl7l.carinfg.core.domain.model.sync.SyncStatus
+import com.jonesl7l.carinfg.core.network.dto.incident.DeleteIncidentRequest
+import com.jonesl7l.carinfg.core.network.dto.incident.GpsLocationDto
+import com.jonesl7l.carinfg.core.network.dto.incident.IncidentWriteRequest
+import com.jonesl7l.carinfg.core.network.dto.person.InjuryDto
+import com.jonesl7l.carinfg.core.network.dto.person.PersonDto
+import com.jonesl7l.carinfg.core.network.dto.photo.PhotoDto
 import kotlinx.datetime.IllegalTimeZoneException
 import kotlinx.datetime.TimeZone
 import timber.log.Timber
@@ -60,6 +66,43 @@ fun IncidentWithPhotos.toDomain(): Incident = Incident(
             lastError = incident.lastSyncError,
         ),
 )
+
+fun IncidentWithPhotos.toWriteRequest(): IncidentWriteRequest? {
+    val reportedAt = incident.reportedAt ?: return null
+    val incidentType = incident.incidentType ?: return null
+    val severity = incident.severity ?: return null
+    val siteId = incident.siteId ?: return null
+    val injuryOccurred = incident.injuryOccurred ?: return null
+    val hazardStillPresent = incident.hazardStillPresent ?: return null
+    return IncidentWriteRequest(
+        id = incident.id,
+        reporterId = incident.reporterId,
+        reportedAt = reportedAt,
+        gpsLocation = incident.gpsLocation?.toDto(),
+        title = incident.title,
+        description = incident.description,
+        occurredAt = incident.occurredAt,
+        occurredTimeZone = incident.occurredTimeZone,
+        incidentType = incidentType,
+        incidentTypeOther = incident.incidentTypeOther,
+        severity = severity,
+        siteId = siteId,
+        buildingId = incident.buildingId,
+        floorId = incident.floorId,
+        roomId = incident.roomId,
+        unlistedLocation = incident.unlistedLocation,
+        exactSpot = incident.exactSpot,
+        assetId = incident.assetId,
+        equipmentOutOfService = incident.equipmentOutOfService,
+        injuryOccurred = injuryOccurred,
+        hazardStillPresent = hazardStillPresent,
+        immediateActions = incident.immediateActions,
+        immediateActionsOther = incident.immediateActionsOther,
+        persons = incident.persons.map { it.toDto() },
+        photos = photos.sortedBy { it.position }.mapNotNull { it.toUploadedDto() },
+        additionalNotes = incident.additionalNotes,
+    )
+}
 // endregion
 
 // region IncidentEntity
@@ -117,12 +160,27 @@ private fun toTimeZone(id: String): TimeZone = try {
     Timber.w(error, "toTimeZone: unknown time zone %s, using UTC", id)
     TimeZone.UTC
 }
+
+fun IncidentEntity.toDeleteRequest(): DeleteIncidentRequest? {
+    val deletedAt = deletedAt ?: return null
+    val deletedBy = deletedBy ?: return null
+    return DeleteIncidentRequest(
+        deletedAt = deletedAt,
+        deletedBy = deletedBy,
+    )
+}
 // endregion
 
 // region GpsLocationColumns
 private fun GpsLocationColumns.toDomain() = GpsLocation(
     latitude = latitude,
     longitude = longitude,
+    accuracyMeters = accuracyMeters,
+)
+
+private fun GpsLocationColumns.toDto() = GpsLocationDto(
+    lat = latitude,
+    lng = longitude,
     accuracyMeters = accuracyMeters,
 )
 // endregion
@@ -139,6 +197,18 @@ private fun PersonColumn.toDomain() = Person(
     contactNumber = contactNumber,
     injury = injury?.toDomain(),
 )
+
+private fun PersonColumn.toDto() = PersonDto(
+    id = id,
+    name = name,
+    personType = personType,
+    role = role,
+    department = department,
+    position = position,
+    company = company,
+    contactNumber = contactNumber,
+    injury = injury?.toDto(),
+)
 // endregion
 
 // region InjuryColumn
@@ -146,6 +216,13 @@ private fun InjuryColumn.toDomain() = InjuryDetails(
     nature = nature,
     bodyPart = bodyPart,
     treatment = WireValueMapper.toTreatment(raw = treatment),
+    notes = notes,
+)
+
+private fun InjuryColumn.toDto() = InjuryDto(
+    nature = nature,
+    bodyPart = bodyPart,
+    treatment = treatment,
     notes = notes,
 )
 // endregion
@@ -159,6 +236,13 @@ fun PhotoEntity.toDomain() = Photo(
     remoteUrl = remoteUrl,
     uploadState = uploadState,
 )
+
+private fun PhotoEntity.toUploadedDto(): PhotoDto? = remoteUrl?.let {
+    PhotoDto(
+        id = id,
+        url = it,
+    )
+}
 // endregion
 
 // region SiteEntity
