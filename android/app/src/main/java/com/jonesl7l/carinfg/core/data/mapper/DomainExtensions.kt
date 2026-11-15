@@ -71,8 +71,7 @@ fun Incident.toEntity(
 // endregion
 
 // region ImmediateAction
-private fun Set<ImmediateAction>.otherText(): String? =
-    filterIsInstance<ImmediateAction.Other>().firstOrNull()?.description
+private fun Set<ImmediateAction>.otherText(): String? = filterIsInstance<ImmediateAction.Other>().firstOrNull()?.description
 // endregion
 
 // region GpsLocation

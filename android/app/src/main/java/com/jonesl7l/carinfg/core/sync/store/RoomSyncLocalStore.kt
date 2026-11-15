@@ -56,8 +56,7 @@ class RoomSyncLocalStore @Inject constructor(
         )
     }
 
-    override suspend fun getPendingIncidents(now: Instant): List<IncidentWithPhotos> =
-        incidentDao.getPendingIncidents(now = now)
+    override suspend fun getPendingIncidents(now: Instant): List<IncidentWithPhotos> = incidentDao.getPendingIncidents(now = now)
 
     override suspend fun markPhotoUploaded(
         photoId: String,

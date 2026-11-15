@@ -13,8 +13,7 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
 import timber.log.Timber
 
-class DataStoreUserPreferencesStore @Inject constructor(private val dataStore: DataStore<Preferences>) :
-    UserPreferencesStore {
+class DataStoreUserPreferencesStore @Inject constructor(private val dataStore: DataStore<Preferences>) : UserPreferencesStore {
     override val incidentSort: Flow<IncidentSort> = dataStore.data
         .catch { error ->
             if (error !is IOException) throw error

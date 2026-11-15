@@ -10,6 +10,5 @@ class ReferenceRemoteDataSourceImpl @Inject constructor(
     private val api: ReferenceApi,
     private val apiCallHandler: ApiCallHandler,
 ) : ReferenceRemoteDataSource {
-    override suspend fun getReferenceData(): ApiResult<ReferenceDataDto> =
-        apiCallHandler.execute(call = { api.getReferenceData() })
+    override suspend fun getReferenceData(): ApiResult<ReferenceDataDto> = apiCallHandler.execute(call = { api.getReferenceData() })
 }

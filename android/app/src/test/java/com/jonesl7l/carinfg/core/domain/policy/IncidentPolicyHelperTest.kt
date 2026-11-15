@@ -138,6 +138,5 @@ class IncidentPolicyHelperTest {
         ).isFalse()
     }
 
-    private fun incidentWithStatus(status: IncidentStatus): Incident =
-        incident(operatorFields = operatorFields(status = status))
+    private fun incidentWithStatus(status: IncidentStatus): Incident = incident(operatorFields = operatorFields(status = status))
 }

@@ -12,8 +12,7 @@ import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.flow.distinctUntilChanged
 
-class ConnectivityNetworkMonitor @Inject constructor(@ApplicationContext private val context: Context) :
-    NetworkMonitor {
+class ConnectivityNetworkMonitor @Inject constructor(@ApplicationContext private val context: Context) : NetworkMonitor {
     override val isOnline: Flow<Boolean> =
         callbackFlow {
             val connectivityManager = context.getSystemService(ConnectivityManager::class.java)
@@ -39,7 +38,6 @@ class ConnectivityNetworkMonitor @Inject constructor(@ApplicationContext private
         }.distinctUntilChanged()
             .conflate()
 
-    private fun NetworkCapabilities.hasInternet(): Boolean =
-        hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) &&
-            hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
+    private fun NetworkCapabilities.hasInternet(): Boolean = hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) &&
+        hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
 }

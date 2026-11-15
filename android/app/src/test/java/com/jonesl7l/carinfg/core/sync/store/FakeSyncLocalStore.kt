@@ -19,8 +19,7 @@ class FakeSyncLocalStore : SyncLocalStore {
 
     override suspend fun getSyncMeta(): SyncMetaEntity = meta
 
-    override suspend fun getIncidents(ids: List<String>): Map<String, IncidentWithPhotos> =
-        incidents.filterKeys { it in ids }
+    override suspend fun getIncidents(ids: List<String>): Map<String, IncidentWithPhotos> = incidents.filterKeys { it in ids }
 
     override suspend fun applyPullPage(
         actions: List<PullAction>,

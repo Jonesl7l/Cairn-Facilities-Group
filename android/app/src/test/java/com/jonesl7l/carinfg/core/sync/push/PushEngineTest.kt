@@ -414,8 +414,7 @@ class PushEngineTest {
         ),
     )
 
-    private fun versionConflict(current: IncidentDto?) =
-        ApiResult.Failure(error = ApiError.VersionConflict(current = current))
+    private fun versionConflict(current: IncidentDto?) = ApiResult.Failure(error = ApiError.VersionConflict(current = current))
 
     private companion object {
         val technician =

@@ -37,6 +37,5 @@ object DispatchersModule {
     @Provides
     @Singleton
     @ApplicationScope
-    fun provideApplicationScope(@DefaultDispatcher dispatcher: CoroutineDispatcher): CoroutineScope =
-        CoroutineScope(SupervisorJob() + dispatcher)
+    fun provideApplicationScope(@DefaultDispatcher dispatcher: CoroutineDispatcher): CoroutineScope = CoroutineScope(SupervisorJob() + dispatcher)
 }

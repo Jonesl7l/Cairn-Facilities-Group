@@ -33,8 +33,7 @@ class IncidentRemoteDataSourceImpl @Inject constructor(
         onSuccess = ::toChangesPage,
     )
 
-    override suspend fun getIncident(id: String): ApiResult<IncidentDto> =
-        apiCallHandler.execute(call = { api.getIncident(id = id) })
+    override suspend fun getIncident(id: String): ApiResult<IncidentDto> = apiCallHandler.execute(call = { api.getIncident(id = id) })
 
     override suspend fun createIncident(request: IncidentWriteRequest): ApiResult<IncidentDto> =
         apiCallHandler.execute(call = { api.createIncident(request = request) })
