@@ -9,10 +9,14 @@ import com.jonesl7l.carinfg.core.database.entity.reference.ReferenceEntities
 import com.jonesl7l.carinfg.core.database.entity.reference.RoomEntity
 import com.jonesl7l.carinfg.core.database.entity.reference.SiteEntity
 import com.jonesl7l.carinfg.core.database.entity.reference.TechnicianEntity
+import com.jonesl7l.carinfg.core.domain.model.user.User
+import com.jonesl7l.carinfg.core.domain.model.user.UserRole
 import com.jonesl7l.carinfg.core.network.ApiTestHelper.referenceDataDto
+import com.jonesl7l.carinfg.core.network.ApiTestHelper.userDto
 import org.junit.Test
 
-class ReferenceEntityMapperTest {
+class DtoExtensionsTest {
+    // region ReferenceDataDto
     @Test
     fun `every list and field is copied to its entity`() {
         val expected =
@@ -33,6 +37,27 @@ class ReferenceEntityMapperTest {
                 technicians = listOf(TechnicianEntity(id = "u1", username = "tech1", displayName = "Tech One")),
             )
 
-        assertThat(ReferenceEntityMapper.toEntities(dto = referenceDataDto())).isEqualTo(expected)
+        assertThat(referenceDataDto().toEntities()).isEqualTo(expected)
     }
+    // endregion
+
+    // region UserDto
+    @Test
+    fun `a user maps with its role`() {
+        val expected =
+            User(
+                id = "u1",
+                username = "tech1",
+                displayName = "Tech One",
+                role = UserRole.Technician,
+            )
+
+        assertThat(userDto().toDomain()).isEqualTo(expected)
+    }
+
+    @Test
+    fun `an unknown role is kept`() {
+        assertThat(userDto(role = "ADMIN").toDomain().role).isEqualTo(UserRole.Unknown(raw = "ADMIN"))
+    }
+    // endregion
 }

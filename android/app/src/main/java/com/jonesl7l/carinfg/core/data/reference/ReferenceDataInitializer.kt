@@ -1,7 +1,7 @@
 package com.jonesl7l.carinfg.core.data.reference
 
 import android.content.Context
-import com.jonesl7l.carinfg.core.data.mapper.ReferenceEntityMapper
+import com.jonesl7l.carinfg.core.data.mapper.toEntities
 import com.jonesl7l.carinfg.core.database.dao.ReferenceDao
 import com.jonesl7l.carinfg.core.di.IoDispatcher
 import com.jonesl7l.carinfg.core.network.dto.reference.ReferenceDataDto
@@ -25,7 +25,7 @@ class ReferenceDataInitializer @Inject constructor(
             // skips reading the asset on every launch; insertAllIfEmpty still guards the race
             if (!referenceDao.isEmpty()) return@withContext
             val dto = readBundledData() ?: return@withContext
-            referenceDao.insertAllIfEmpty(entities = ReferenceEntityMapper.toEntities(dto = dto))
+            referenceDao.insertAllIfEmpty(entities = dto.toEntities())
         }
     }
 
