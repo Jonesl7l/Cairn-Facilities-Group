@@ -1,6 +1,7 @@
 package com.jonesl7l.carinfg.core.network.datasource
 
 import assertk.assertThat
+import assertk.assertions.contains
 import assertk.assertions.doesNotContain
 import assertk.assertions.isEqualTo
 import assertk.assertions.isInstanceOf
@@ -15,6 +16,7 @@ import com.jonesl7l.carinfg.core.network.ApiTestHelper.incidentWriteRequest
 import com.jonesl7l.carinfg.core.network.ApiTestHelper.json
 import com.jonesl7l.carinfg.core.network.ApiTestHelper.jsonResponse
 import com.jonesl7l.carinfg.core.network.ApiTestHelper.now
+import com.jonesl7l.carinfg.core.network.ApiTestHelper.photoDto
 import com.jonesl7l.carinfg.core.network.ApiTestHelper.problemDetailsDto
 import com.jonesl7l.carinfg.core.network.ApiTestHelper.problemFieldErrorDto
 import com.jonesl7l.carinfg.core.network.ApiTestHelper.problemJson
@@ -22,8 +24,10 @@ import com.jonesl7l.carinfg.core.network.ApiTestHelper.retrofit
 import com.jonesl7l.carinfg.core.network.dto.incident.IncidentDto
 import com.jonesl7l.carinfg.core.network.http.HttpHeaders
 import com.jonesl7l.carinfg.core.network.http.HttpStatus
+import com.jonesl7l.carinfg.core.network.http.MediaTypes
 import com.jonesl7l.carinfg.core.network.result.ApiError
 import com.jonesl7l.carinfg.core.network.result.ApiResult
+import java.io.File
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
@@ -34,11 +38,17 @@ import mockwebserver3.MockResponse
 import mockwebserver3.MockWebServer
 import org.junit.After
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.TemporaryFolder
 import retrofit2.create
 
 class IncidentRemoteDataSourceImplTest {
     private val server = MockWebServer()
+
+    @get:Rule
+    val temporaryFolder = TemporaryFolder()
+
     private lateinit var dataSource: IncidentRemoteDataSourceImpl
 
     @Before
@@ -488,6 +498,89 @@ class IncidentRemoteDataSourceImplTest {
         }
     }
 
+    @Test
+    fun `uploadPhoto puts the jpeg as the file part`() = runTest {
+        val photo = photoFile()
+        server.enqueue(
+            jsonResponse(
+                code = HttpStatus.CREATED,
+                body = json.encodeToString(photoDto()),
+            ),
+        )
+
+        val result =
+            dataSource.uploadPhoto(
+                incidentId = INCIDENT_ID,
+                photoId = PHOTO_ID,
+                file = photo,
+            )
+
+        assertThat(result).isEqualTo(ApiResult.Success(value = photoDto()))
+        val recorded = server.takeRequest()
+        assertThat(recorded.method).isEqualTo("PUT")
+        assertThat(recorded.url.encodedPath).isEqualTo("/incidents/$INCIDENT_ID/photos/$PHOTO_ID")
+        val body = recorded.body!!.utf8()
+        assertThat(body).contains("name=\"file\"; filename=\"$PHOTO_ID.jpg\"")
+        assertThat(body).contains("Content-Type: ${MediaTypes.JPEG}")
+        assertThat(body).contains(PHOTO_CONTENT)
+    }
+
+    @Test
+    fun `uploadPhoto treats 200 for a replaced photo as success`() = runTest {
+        server.enqueue(jsonResponse(body = json.encodeToString(photoDto())))
+
+        val result =
+            dataSource.uploadPhoto(
+                incidentId = INCIDENT_ID,
+                photoId = PHOTO_ID,
+                file = photoFile(),
+            )
+
+        assertThat(result).isEqualTo(ApiResult.Success(value = photoDto()))
+    }
+
+    @Test
+    fun `uploadPhoto maps deleted, too large, not jpeg, photo limit and status lock`() = runTest {
+        val cases =
+            listOf(
+                problemDetailsDto(status = HttpStatus.GONE) to ApiError.IncidentDeleted(
+                    deletedAt = null,
+                    deletedBy = null,
+                    referenceNumber = null,
+                ),
+                problemDetailsDto(status = HttpStatus.PAYLOAD_TOO_LARGE) to ApiError.PayloadTooLarge,
+                problemDetailsDto(status = HttpStatus.UNSUPPORTED_MEDIA_TYPE) to ApiError.UnsupportedMediaType,
+                problemDetailsDto(
+                    status = HttpStatus.UNPROCESSABLE_CONTENT,
+                    code = "PHOTO_LIMIT_EXCEEDED",
+                ) to ApiError.PhotoLimitExceeded,
+                problemDetailsDto(
+                    status = HttpStatus.CONFLICT,
+                    currentStatus = "RESOLVED",
+                ) to ApiError.StatusLocked(currentStatus = "RESOLVED"),
+            )
+        val photo = photoFile()
+        cases.forEach { (problem, expected) ->
+            server.enqueue(
+                jsonResponse(
+                    code = problem.status!!,
+                    body = problemJson(problem = problem),
+                ),
+            )
+
+            val result =
+                dataSource.uploadPhoto(
+                    incidentId = INCIDENT_ID,
+                    photoId = PHOTO_ID,
+                    file = photo,
+                )
+
+            assertThat(result).isEqualTo(ApiResult.Failure(error = expected))
+        }
+    }
+
+    private fun photoFile(): File = temporaryFolder.newFile("$PHOTO_ID.jpg").apply { writeText(text = PHOTO_CONTENT) }
+
     private fun changesResponse(
         incidents: List<IncidentDto>,
         databaseId: String? = DATABASE_ID,
@@ -502,6 +595,9 @@ class IncidentRemoteDataSourceImplTest {
     ): JsonObject = JsonObject(content = json.encodeToJsonElement(incident).jsonObject - without)
 
     private companion object {
+        const val PHOTO_ID = "photo-0"
+        const val PHOTO_CONTENT = "jpeg-bytes"
+
         val optionalKeys =
             setOf(
                 "gpsLocation",

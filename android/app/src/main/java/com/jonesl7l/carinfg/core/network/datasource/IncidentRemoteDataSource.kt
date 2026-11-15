@@ -3,7 +3,9 @@ package com.jonesl7l.carinfg.core.network.datasource
 import com.jonesl7l.carinfg.core.network.dto.incident.DeleteIncidentRequest
 import com.jonesl7l.carinfg.core.network.dto.incident.IncidentDto
 import com.jonesl7l.carinfg.core.network.dto.incident.IncidentWriteRequest
+import com.jonesl7l.carinfg.core.network.dto.photo.PhotoDto
 import com.jonesl7l.carinfg.core.network.result.ApiResult
+import java.io.File
 
 interface IncidentRemoteDataSource {
     suspend fun getChanges(afterChangeSeq: Long): ApiResult<IncidentChangesPage>
@@ -23,4 +25,10 @@ interface IncidentRemoteDataSource {
         version: Int,
         request: DeleteIncidentRequest,
     ): ApiResult<IncidentDto>
+
+    suspend fun uploadPhoto(
+        incidentId: String,
+        photoId: String,
+        file: File,
+    ): ApiResult<PhotoDto>
 }

@@ -3,13 +3,18 @@ package com.jonesl7l.carinfg.core.network.api
 import com.jonesl7l.carinfg.core.network.dto.incident.DeleteIncidentRequest
 import com.jonesl7l.carinfg.core.network.dto.incident.IncidentDto
 import com.jonesl7l.carinfg.core.network.dto.incident.IncidentWriteRequest
+import com.jonesl7l.carinfg.core.network.dto.photo.PhotoDto
 import com.jonesl7l.carinfg.core.network.http.HttpHeaders
+import okhttp3.MultipartBody
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.Header
+import retrofit2.http.Multipart
 import retrofit2.http.PATCH
 import retrofit2.http.POST
+import retrofit2.http.PUT
+import retrofit2.http.Part
 import retrofit2.http.Path
 import retrofit2.http.Query
 
@@ -41,4 +46,12 @@ interface IncidentApi {
         @Header(HttpHeaders.IF_MATCH) ifMatch: String,
         @Body request: DeleteIncidentRequest,
     ): Response<IncidentDto>
+
+    @Multipart
+    @PUT("incidents/{id}/photos/{photoId}")
+    suspend fun uploadPhoto(
+        @Path("id") id: String,
+        @Path("photoId") photoId: String,
+        @Part file: MultipartBody.Part,
+    ): Response<PhotoDto>
 }
