@@ -5,6 +5,8 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStoreFile
+import com.jonesl7l.carinfg.core.data.incident.IncidentRepository
+import com.jonesl7l.carinfg.core.data.incident.IncidentRepositoryImpl
 import com.jonesl7l.carinfg.core.data.session.DataStoreSessionStore
 import com.jonesl7l.carinfg.core.data.session.SessionStore
 import dagger.Binds
@@ -20,6 +22,9 @@ import javax.inject.Singleton
 abstract class DataModule {
     @Binds
     abstract fun bindSessionStore(impl: DataStoreSessionStore): SessionStore
+
+    @Binds
+    abstract fun bindIncidentRepository(impl: IncidentRepositoryImpl): IncidentRepository
 
     companion object {
         private const val PREFERENCES_FILE_NAME = "carinfg"
