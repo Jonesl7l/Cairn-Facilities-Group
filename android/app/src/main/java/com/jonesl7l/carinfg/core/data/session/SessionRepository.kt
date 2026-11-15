@@ -20,6 +20,8 @@ class SessionRepository @Inject constructor(
 ) {
     fun observeUser(): Flow<User?> = sessionStore.session
 
+    fun observeSessionExpired(): Flow<Boolean> = sessionStore.isSessionExpired
+
     fun observeUnsyncedCount(): Flow<Int> = incidentDao.observeUnsyncedCount()
 
     suspend fun login(

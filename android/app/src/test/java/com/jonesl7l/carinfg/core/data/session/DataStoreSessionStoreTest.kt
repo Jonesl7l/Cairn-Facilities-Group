@@ -7,7 +7,9 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import assertk.assertThat
 import assertk.assertions.isEqualTo
+import assertk.assertions.isFalse
 import assertk.assertions.isNull
+import assertk.assertions.isTrue
 import com.jonesl7l.carinfg.core.domain.model.user.User
 import com.jonesl7l.carinfg.core.domain.model.user.UserRole
 import java.io.File
@@ -66,6 +68,37 @@ class DataStoreSessionStoreTest {
 
         assertThat(store.session.first()).isNull()
         assertThat(dataStore.data.first()[otherKey]).isEqualTo("kept")
+    }
+
+    @Test
+    fun `the session is not expired until marked`() = runTest {
+        val store = store(dataStore = dataStore())
+        store.save(user = user)
+
+        assertThat(store.isSessionExpired.first()).isFalse()
+        store.markSessionExpired()
+        assertThat(store.isSessionExpired.first()).isTrue()
+    }
+
+    @Test
+    fun `logging in again clears an expired session`() = runTest {
+        val store = store(dataStore = dataStore())
+        store.markSessionExpired()
+
+        store.save(user = user)
+
+        assertThat(store.isSessionExpired.first()).isFalse()
+    }
+
+    @Test
+    fun `clear also clears an expired session`() = runTest {
+        val store = store(dataStore = dataStore())
+        store.save(user = user)
+        store.markSessionExpired()
+
+        store.clear()
+
+        assertThat(store.isSessionExpired.first()).isFalse()
     }
 
     private fun TestScope.dataStore(): DataStore<Preferences> = PreferenceDataStoreFactory.create(

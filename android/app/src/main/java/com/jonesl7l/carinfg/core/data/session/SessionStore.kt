@@ -6,7 +6,11 @@ import kotlinx.coroutines.flow.Flow
 interface SessionStore {
     val session: Flow<User?>
 
+    val isSessionExpired: Flow<Boolean>
+
     suspend fun save(user: User)
+
+    suspend fun markSessionExpired()
 
     suspend fun clear()
 }

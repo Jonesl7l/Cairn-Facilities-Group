@@ -2,6 +2,7 @@ package com.jonesl7l.carinfg.core.data.session
 
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.core.stringPreferencesKey
@@ -15,12 +16,16 @@ import kotlinx.coroutines.flow.map
 import timber.log.Timber
 
 class DataStoreSessionStore @Inject constructor(private val dataStore: DataStore<Preferences>) : SessionStore {
-    override val session: Flow<User?> = dataStore.data
+    private val preferences: Flow<Preferences> = dataStore.data
         .catch { error ->
             if (error !is IOException) throw error
-            Timber.e(error, "session: could not read the session, treating it as logged out")
+            Timber.e(error, "preferences: could not read the session, treating it as logged out")
             emit(emptyPreferences())
-        }.map(::toUser)
+        }
+
+    override val session: Flow<User?> = preferences.map(::toUser)
+
+    override val isSessionExpired: Flow<Boolean> = preferences.map { it[sessionExpiredKey] ?: false }
 
     override suspend fun save(user: User) {
         dataStore.edit { preferences ->
@@ -28,7 +33,12 @@ class DataStoreSessionStore @Inject constructor(private val dataStore: DataStore
             preferences[usernameKey] = user.username
             preferences[displayNameKey] = user.displayName
             preferences[roleKey] = WireValueMapper.toWire(role = user.role)
+            preferences.remove(sessionExpiredKey)
         }
+    }
+
+    override suspend fun markSessionExpired() {
+        dataStore.edit { preferences -> preferences[sessionExpiredKey] = true }
     }
 
     override suspend fun clear() {
@@ -37,6 +47,7 @@ class DataStoreSessionStore @Inject constructor(private val dataStore: DataStore
             preferences.remove(usernameKey)
             preferences.remove(displayNameKey)
             preferences.remove(roleKey)
+            preferences.remove(sessionExpiredKey)
         }
     }
 
@@ -58,5 +69,6 @@ class DataStoreSessionStore @Inject constructor(private val dataStore: DataStore
         val usernameKey = stringPreferencesKey("session_username")
         val displayNameKey = stringPreferencesKey("session_display_name")
         val roleKey = stringPreferencesKey("session_role")
+        val sessionExpiredKey = booleanPreferencesKey("session_expired")
     }
 }
