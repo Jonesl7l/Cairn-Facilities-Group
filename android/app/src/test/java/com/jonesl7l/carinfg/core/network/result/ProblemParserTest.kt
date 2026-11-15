@@ -3,6 +3,7 @@ package com.jonesl7l.carinfg.core.network.result
 import assertk.assertThat
 import assertk.assertions.isEqualTo
 import com.jonesl7l.carinfg.core.network.ApiTestHelper.errorResponse
+import com.jonesl7l.carinfg.core.network.ApiTestHelper.incidentDto
 import com.jonesl7l.carinfg.core.network.ApiTestHelper.json
 import com.jonesl7l.carinfg.core.network.ApiTestHelper.now
 import com.jonesl7l.carinfg.core.network.ApiTestHelper.problemDetailsDto
@@ -23,7 +24,7 @@ class ProblemParserTest {
             HttpStatus.UNAUTHORIZED to ApiError.Unauthenticated,
             HttpStatus.FORBIDDEN to ApiError.Forbidden,
             HttpStatus.NOT_FOUND to ApiError.NotFound,
-            HttpStatus.PRECONDITION_FAILED to ApiError.VersionConflict,
+            HttpStatus.PRECONDITION_FAILED to ApiError.VersionConflict(current = null),
             HttpStatus.PAYLOAD_TOO_LARGE to ApiError.PayloadTooLarge,
             HttpStatus.UNSUPPORTED_MEDIA_TYPE to ApiError.UnsupportedMediaType,
             HttpStatus.PRECONDITION_REQUIRED to ApiError.PreconditionRequired,
@@ -65,6 +66,20 @@ class ProblemParserTest {
         val response = errorResponse(status = HttpStatus.CONFLICT, body = problemJson(problem = problem))
 
         assertThat(parser.parse(response = response)).isEqualTo(ApiError.StatusLocked(currentStatus = "IN_PROGRESS"))
+    }
+
+    @Test
+    fun `412 carries the current server copy`() {
+        val current = incidentDto(version = 5)
+        val problem =
+            problemDetailsDto(
+                status = HttpStatus.PRECONDITION_FAILED,
+                current = current,
+            )
+
+        val response = errorResponse(status = HttpStatus.PRECONDITION_FAILED, body = problemJson(problem = problem))
+
+        assertThat(parser.parse(response = response)).isEqualTo(ApiError.VersionConflict(current = current))
     }
 
     @Test

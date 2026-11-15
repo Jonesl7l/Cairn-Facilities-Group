@@ -3,6 +3,7 @@ package com.jonesl7l.carinfg.core.network
 import com.jonesl7l.carinfg.core.di.NetworkModule
 import com.jonesl7l.carinfg.core.network.dto.incident.GpsLocationDto
 import com.jonesl7l.carinfg.core.network.dto.incident.IncidentDto
+import com.jonesl7l.carinfg.core.network.dto.incident.IncidentWriteRequest
 import com.jonesl7l.carinfg.core.network.dto.person.InjuryDto
 import com.jonesl7l.carinfg.core.network.dto.person.PersonDto
 import com.jonesl7l.carinfg.core.network.dto.photo.PhotoDto
@@ -96,6 +97,7 @@ object ApiTestHelper {
         deletedBy: String? = null,
         referenceNumber: String? = null,
         currentStatus: String? = null,
+        current: IncidentDto? = null,
         errors: List<ProblemFieldErrorDto> = emptyList(),
     ) = ProblemDetailsDto(
         type = type,
@@ -107,6 +109,7 @@ object ApiTestHelper {
         deletedBy = deletedBy,
         referenceNumber = referenceNumber,
         currentStatus = currentStatus,
+        current = current,
         errors = errors,
     )
 
@@ -192,6 +195,72 @@ object ApiTestHelper {
         changeSeq = changeSeq,
         deletedAt = deletedAt,
         deletedBy = deletedBy,
+    )
+
+    fun problemFieldErrorDto(
+        field: String = "title",
+        code: String? = "TOO_SHORT",
+        message: String? = "Title must be at least 3 characters",
+    ) = ProblemFieldErrorDto(
+        field = field,
+        code = code,
+        message = message,
+    )
+
+    fun incidentWriteRequest(
+        id: String = INCIDENT_ID,
+        reporterId: String = REPORTER_ID,
+        reportedAt: Instant = now,
+        gpsLocation: GpsLocationDto? = gpsLocationDto(),
+        title: String = "Wet floor in lobby",
+        description: String = "Water pooling by the main entrance.",
+        occurredAt: Instant = now - 1.hours,
+        occurredTimeZone: String = "Europe/London",
+        incidentType: String = "SLIP_TRIP_FALL",
+        incidentTypeOther: String? = null,
+        severity: String = "MEDIUM",
+        siteId: String = "site-1",
+        buildingId: String? = "building-1",
+        floorId: String? = "floor-1",
+        roomId: String? = "room-1",
+        unlistedLocation: String? = null,
+        exactSpot: String? = "By the revolving door",
+        assetId: String? = "asset-1",
+        equipmentOutOfService: Boolean = true,
+        injuryOccurred: Boolean = true,
+        hazardStillPresent: Boolean = false,
+        immediateActions: List<String> = listOf("FIRST_AID_GIVEN", "OTHER"),
+        immediateActionsOther: String? = "Mopped the floor",
+        persons: List<PersonDto> = listOf(personDto()),
+        photos: List<PhotoDto> = listOf(photoDto()),
+        additionalNotes: String? = "Cleaner informed",
+    ) = IncidentWriteRequest(
+        id = id,
+        reporterId = reporterId,
+        reportedAt = reportedAt,
+        gpsLocation = gpsLocation,
+        title = title,
+        description = description,
+        occurredAt = occurredAt,
+        occurredTimeZone = occurredTimeZone,
+        incidentType = incidentType,
+        incidentTypeOther = incidentTypeOther,
+        severity = severity,
+        siteId = siteId,
+        buildingId = buildingId,
+        floorId = floorId,
+        roomId = roomId,
+        unlistedLocation = unlistedLocation,
+        exactSpot = exactSpot,
+        assetId = assetId,
+        equipmentOutOfService = equipmentOutOfService,
+        injuryOccurred = injuryOccurred,
+        hazardStillPresent = hazardStillPresent,
+        immediateActions = immediateActions,
+        immediateActionsOther = immediateActionsOther,
+        persons = persons,
+        photos = photos,
+        additionalNotes = additionalNotes,
     )
 
     fun gpsLocationDto(

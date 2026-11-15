@@ -32,7 +32,7 @@ class ProblemParser @Inject constructor(private val json: Json) {
                 referenceNumber = problem?.referenceNumber,
             )
 
-            HttpStatus.PRECONDITION_FAILED -> ApiError.VersionConflict
+            HttpStatus.PRECONDITION_FAILED -> ApiError.VersionConflict(current = problem?.current)
 
             HttpStatus.PAYLOAD_TOO_LARGE -> ApiError.PayloadTooLarge
 

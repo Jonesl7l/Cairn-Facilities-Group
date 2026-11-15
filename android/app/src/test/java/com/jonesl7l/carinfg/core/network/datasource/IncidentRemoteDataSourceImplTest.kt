@@ -1,6 +1,7 @@
 package com.jonesl7l.carinfg.core.network.datasource
 
 import assertk.assertThat
+import assertk.assertions.doesNotContain
 import assertk.assertions.isEqualTo
 import assertk.assertions.isInstanceOf
 import assertk.assertions.prop
@@ -8,10 +9,12 @@ import com.jonesl7l.carinfg.core.network.ApiTestHelper.DATABASE_ID
 import com.jonesl7l.carinfg.core.network.ApiTestHelper.INCIDENT_ID
 import com.jonesl7l.carinfg.core.network.ApiTestHelper.apiCallHandler
 import com.jonesl7l.carinfg.core.network.ApiTestHelper.incidentDto
+import com.jonesl7l.carinfg.core.network.ApiTestHelper.incidentWriteRequest
 import com.jonesl7l.carinfg.core.network.ApiTestHelper.json
 import com.jonesl7l.carinfg.core.network.ApiTestHelper.jsonResponse
 import com.jonesl7l.carinfg.core.network.ApiTestHelper.now
 import com.jonesl7l.carinfg.core.network.ApiTestHelper.problemDetailsDto
+import com.jonesl7l.carinfg.core.network.ApiTestHelper.problemFieldErrorDto
 import com.jonesl7l.carinfg.core.network.ApiTestHelper.problemJson
 import com.jonesl7l.carinfg.core.network.ApiTestHelper.retrofit
 import com.jonesl7l.carinfg.core.network.dto.incident.IncidentDto
@@ -20,6 +23,7 @@ import com.jonesl7l.carinfg.core.network.http.HttpStatus
 import com.jonesl7l.carinfg.core.network.result.ApiError
 import com.jonesl7l.carinfg.core.network.result.ApiResult
 import kotlinx.coroutines.test.runTest
+import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.encodeToJsonElement
@@ -239,6 +243,176 @@ class IncidentRemoteDataSourceImplTest {
             .isInstanceOf<ApiResult.Failure>()
             .prop(ApiResult.Failure::error)
             .isInstanceOf<ApiError.Network>()
+    }
+
+    @Test
+    fun `createIncident posts every app-owned field, including cleared ones as null`() = runTest {
+        val request = incidentWriteRequest(buildingId = null, unlistedLocation = "Portakabin")
+        server.enqueue(
+            jsonResponse(
+                code = HttpStatus.CREATED,
+                body = json.encodeToString(incidentDto()),
+            ),
+        )
+
+        val result = dataSource.createIncident(request = request)
+
+        assertThat(result).isEqualTo(ApiResult.Success(value = incidentDto()))
+        val recorded = server.takeRequest()
+        assertThat(recorded.method).isEqualTo("POST")
+        assertThat(recorded.url.encodedPath).isEqualTo("/incidents")
+        val body = json.parseToJsonElement(recorded.body!!.utf8()).jsonObject
+        assertThat(body).isEqualTo(json.encodeToJsonElement(request).jsonObject)
+        assertThat(body["buildingId"]).isEqualTo(JsonNull)
+    }
+
+    @Test
+    fun `createIncident treats 200 for an existing id as success`() = runTest {
+        server.enqueue(jsonResponse(body = json.encodeToString(incidentDto())))
+
+        assertThat(dataSource.createIncident(request = incidentWriteRequest()))
+            .isEqualTo(ApiResult.Success(value = incidentDto()))
+    }
+
+    @Test
+    fun `createIncident 422 carries the field errors`() = runTest {
+        val fieldError = problemFieldErrorDto()
+        val problem =
+            problemDetailsDto(
+                status = HttpStatus.UNPROCESSABLE_CONTENT,
+                errors = listOf(fieldError),
+            )
+        server.enqueue(
+            jsonResponse(
+                code = HttpStatus.UNPROCESSABLE_CONTENT,
+                body = problemJson(problem = problem),
+            ),
+        )
+
+        assertThat(dataSource.createIncident(request = incidentWriteRequest()))
+            .isEqualTo(ApiResult.Failure(error = ApiError.ValidationFailed(fieldErrors = listOf(fieldError))))
+    }
+
+    @Test
+    fun `createIncident 410 means the id was deleted`() = runTest {
+        val problem =
+            problemDetailsDto(
+                status = HttpStatus.GONE,
+                deletedAt = now,
+                deletedBy = "operator1",
+                referenceNumber = "INC-2026-00001",
+            )
+        server.enqueue(
+            jsonResponse(
+                code = HttpStatus.GONE,
+                body = problemJson(problem = problem),
+            ),
+        )
+
+        val expected =
+            ApiError.IncidentDeleted(
+                deletedAt = now,
+                deletedBy = "operator1",
+                referenceNumber = "INC-2026-00001",
+            )
+        assertThat(dataSource.createIncident(request = incidentWriteRequest()))
+            .isEqualTo(ApiResult.Failure(error = expected))
+    }
+
+    @Test
+    fun `updateIncident patches with the version as a quoted If-Match`() = runTest {
+        server.enqueue(jsonResponse(body = json.encodeToString(incidentDto(version = 4))))
+
+        val result =
+            dataSource.updateIncident(
+                id = INCIDENT_ID,
+                version = 3,
+                request = incidentWriteRequest(),
+            )
+
+        assertThat(result).isEqualTo(ApiResult.Success(value = incidentDto(version = 4)))
+        val recorded = server.takeRequest()
+        assertThat(recorded.method).isEqualTo("PATCH")
+        assertThat(recorded.url.encodedPath).isEqualTo("/incidents/$INCIDENT_ID")
+        assertThat(recorded.headers[HttpHeaders.IF_MATCH]).isEqualTo("\"3\"")
+        val bodyKeys = json.parseToJsonElement(recorded.body!!.utf8()).jsonObject.keys
+        assertThat(bodyKeys).doesNotContain("status")
+        assertThat(bodyKeys).doesNotContain("version")
+    }
+
+    @Test
+    fun `updateIncident 412 carries the current server copy`() = runTest {
+        val current = incidentDto(version = 5)
+        val problem =
+            problemDetailsDto(
+                status = HttpStatus.PRECONDITION_FAILED,
+                current = current,
+            )
+        server.enqueue(
+            jsonResponse(
+                code = HttpStatus.PRECONDITION_FAILED,
+                body = problemJson(problem = problem),
+            ),
+        )
+
+        val result =
+            dataSource.updateIncident(
+                id = INCIDENT_ID,
+                version = 3,
+                request = incidentWriteRequest(),
+            )
+
+        assertThat(result).isEqualTo(ApiResult.Failure(error = ApiError.VersionConflict(current = current)))
+    }
+
+    @Test
+    fun `updateIncident 409 carries the current status`() = runTest {
+        val problem =
+            problemDetailsDto(
+                status = HttpStatus.CONFLICT,
+                currentStatus = "IN_PROGRESS",
+            )
+        server.enqueue(
+            jsonResponse(
+                code = HttpStatus.CONFLICT,
+                body = problemJson(problem = problem),
+            ),
+        )
+
+        val result =
+            dataSource.updateIncident(
+                id = INCIDENT_ID,
+                version = 3,
+                request = incidentWriteRequest(),
+            )
+
+        assertThat(result).isEqualTo(ApiResult.Failure(error = ApiError.StatusLocked(currentStatus = "IN_PROGRESS")))
+    }
+
+    @Test
+    fun `updateIncident maps a missing record and a missing If-Match`() = runTest {
+        val cases =
+            listOf(
+                HttpStatus.NOT_FOUND to ApiError.NotFound,
+                HttpStatus.PRECONDITION_REQUIRED to ApiError.PreconditionRequired,
+            )
+        cases.forEach { (status, expected) ->
+            server.enqueue(
+                jsonResponse(
+                    code = status,
+                    body = problemJson(problem = problemDetailsDto(status = status)),
+                ),
+            )
+
+            val result =
+                dataSource.updateIncident(
+                    id = INCIDENT_ID,
+                    version = 3,
+                    request = incidentWriteRequest(),
+                )
+
+            assertThat(result).isEqualTo(ApiResult.Failure(error = expected))
+        }
     }
 
     private fun changesResponse(

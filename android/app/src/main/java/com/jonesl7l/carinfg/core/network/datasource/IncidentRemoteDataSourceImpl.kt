@@ -2,6 +2,7 @@ package com.jonesl7l.carinfg.core.network.datasource
 
 import com.jonesl7l.carinfg.core.network.api.IncidentApi
 import com.jonesl7l.carinfg.core.network.dto.incident.IncidentDto
+import com.jonesl7l.carinfg.core.network.dto.incident.IncidentWriteRequest
 import com.jonesl7l.carinfg.core.network.http.HttpHeaders
 import com.jonesl7l.carinfg.core.network.result.ApiCallHandler
 import com.jonesl7l.carinfg.core.network.result.ApiResult
@@ -28,6 +29,23 @@ class IncidentRemoteDataSourceImpl @Inject constructor(
     override suspend fun getIncident(id: String): ApiResult<IncidentDto> =
         apiCallHandler.execute(call = { api.getIncident(id = id) })
 
+    override suspend fun createIncident(request: IncidentWriteRequest): ApiResult<IncidentDto> =
+        apiCallHandler.execute(call = { api.createIncident(request = request) })
+
+    override suspend fun updateIncident(
+        id: String,
+        version: Int,
+        request: IncidentWriteRequest,
+    ): ApiResult<IncidentDto> = apiCallHandler.execute(
+        call = {
+            api.updateIncident(
+                id = id,
+                ifMatch = entityTag(version = version),
+                request = request,
+            )
+        },
+    )
+
     private fun toChangesPage(response: Response<List<IncidentDto>>): IncidentChangesPage? {
         val incidents = response.body() ?: return null
         val databaseId = response.headers()[HttpHeaders.DATABASE_ID] ?: return null
@@ -37,6 +55,8 @@ class IncidentRemoteDataSourceImpl @Inject constructor(
             isLastPage = incidents.size < PAGE_SIZE,
         )
     }
+
+    private fun entityTag(version: Int): String = "\"$version\""
 
     private companion object {
         const val PAGE_SIZE = 50

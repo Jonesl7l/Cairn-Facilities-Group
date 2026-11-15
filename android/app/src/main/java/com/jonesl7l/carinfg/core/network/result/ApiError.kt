@@ -1,5 +1,6 @@
 package com.jonesl7l.carinfg.core.network.result
 
+import com.jonesl7l.carinfg.core.network.dto.incident.IncidentDto
 import com.jonesl7l.carinfg.core.network.dto.problem.ProblemFieldErrorDto
 import java.io.IOException
 import kotlin.time.Duration
@@ -45,7 +46,7 @@ sealed interface ApiError {
         override val category = ErrorCategory.NEEDS_USER
     }
 
-    data object VersionConflict : ApiError {
+    data class VersionConflict(val current: IncidentDto?) : ApiError {
         override val category = ErrorCategory.RETRY
     }
 
