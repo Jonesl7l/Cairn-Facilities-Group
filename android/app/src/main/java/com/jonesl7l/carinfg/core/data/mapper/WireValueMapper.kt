@@ -49,6 +49,7 @@ object WireValueMapper {
     private const val TECHNICIAN = "TECHNICIAN"
     private const val OPERATOR = "OPERATOR"
 
+    // region IncidentType
     fun toWire(type: IncidentType): String = when (type) {
         IncidentType.SlipTripFall -> SLIP_TRIP_FALL
         IncidentType.EquipmentFailure -> EQUIPMENT_FAILURE
@@ -79,7 +80,9 @@ object WireValueMapper {
         OTHER -> IncidentType.Other(description = otherDescription.orEmpty())
         else -> IncidentType.Unknown(raw = raw)
     }
+    // endregion
 
+    // region Severity
     fun toWire(severity: Severity): String = when (severity) {
         Severity.Low -> LOW
         Severity.Medium -> MEDIUM
@@ -95,7 +98,9 @@ object WireValueMapper {
         CRITICAL -> Severity.Critical
         else -> Severity.Unknown(raw = raw)
     }
+    // endregion
 
+    // region IncidentStatus
     fun toWire(status: IncidentStatus): String = when (status) {
         IncidentStatus.Open -> OPEN
         IncidentStatus.Assigned -> ASSIGNED
@@ -113,7 +118,9 @@ object WireValueMapper {
         CLOSED -> IncidentStatus.Closed
         else -> IncidentStatus.Unknown(raw = raw)
     }
+    // endregion
 
+    // region PersonType
     fun toWire(type: PersonType): String = when (type) {
         PersonType.Employee -> EMPLOYEE
         PersonType.Contractor -> CONTRACTOR
@@ -129,7 +136,9 @@ object WireValueMapper {
         MEMBER_OF_PUBLIC -> PersonType.MemberOfPublic
         else -> PersonType.Unknown(raw = raw)
     }
+    // endregion
 
+    // region PersonRole
     fun toWire(role: PersonRole): String = when (role) {
         PersonRole.Injured -> INJURED
         PersonRole.Witness -> WITNESS
@@ -143,7 +152,9 @@ object WireValueMapper {
         INVOLVED -> PersonRole.Involved
         else -> PersonRole.Unknown(raw = raw)
     }
+    // endregion
 
+    // region Treatment
     fun toWire(treatment: Treatment): String = when (treatment) {
         Treatment.None -> NONE
         Treatment.FirstAid -> FIRST_AID
@@ -159,7 +170,9 @@ object WireValueMapper {
         HOSPITAL -> Treatment.Hospital
         else -> Treatment.Unknown(raw = raw)
     }
+    // endregion
 
+    // region ImmediateAction
     fun toWire(action: ImmediateAction): String = when (action) {
         ImmediateAction.None -> NONE
         ImmediateAction.AreaCordonedOff -> AREA_CORDONED_OFF
@@ -186,7 +199,9 @@ object WireValueMapper {
         OTHER -> ImmediateAction.Other(description = otherDescription.orEmpty())
         else -> ImmediateAction.Unknown(raw = raw)
     }
+    // endregion
 
+    // region UserRole
     fun toWire(role: UserRole): String = when (role) {
         UserRole.Technician -> TECHNICIAN
         UserRole.Operator -> OPERATOR
@@ -198,4 +213,5 @@ object WireValueMapper {
         OPERATOR -> UserRole.Operator
         else -> UserRole.Unknown(raw = raw)
     }
+    // endregion
 }
