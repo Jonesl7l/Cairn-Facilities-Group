@@ -8,6 +8,7 @@ import com.jonesl7l.carinfg.core.domain.model.user.UserRole
 import com.jonesl7l.carinfg.core.network.datasource.AuthRemoteDataSource
 import com.jonesl7l.carinfg.core.network.result.ApiError
 import com.jonesl7l.carinfg.core.network.result.ApiResult
+import com.jonesl7l.carinfg.core.sync.SyncScheduler
 import javax.inject.Inject
 import kotlinx.coroutines.flow.Flow
 import timber.log.Timber
@@ -17,6 +18,7 @@ class SessionRepository @Inject constructor(
     private val sessionStore: SessionStore,
     private val incidentDao: IncidentDao,
     private val syncMetaDao: SyncMetaDao,
+    private val syncScheduler: SyncScheduler,
 ) {
     fun observeUser(): Flow<User?> = sessionStore.session
 
@@ -39,6 +41,7 @@ class SessionRepository @Inject constructor(
 
     suspend fun logout() {
         // TODO: delete photo folders left by logged-out users after X days without a login
+        syncScheduler.cancelAll()
         incidentDao.deleteAll()
         syncMetaDao.reset()
         sessionStore.clear()
@@ -50,6 +53,7 @@ class SessionRepository @Inject constructor(
             return LoginResult.NotTechnician
         }
         sessionStore.save(user = user)
+        syncScheduler.requestSync()
         return LoginResult.Success(user = user)
     }
 }

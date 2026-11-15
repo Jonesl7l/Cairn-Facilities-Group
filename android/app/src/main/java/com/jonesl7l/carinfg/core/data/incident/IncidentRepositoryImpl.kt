@@ -11,6 +11,7 @@ import com.jonesl7l.carinfg.core.domain.model.incident.Incident
 import com.jonesl7l.carinfg.core.domain.model.sync.SyncState
 import com.jonesl7l.carinfg.core.domain.policy.IncidentPolicyHelper
 import com.jonesl7l.carinfg.core.domain.validation.IncidentValidator
+import com.jonesl7l.carinfg.core.sync.SyncScheduler
 import javax.inject.Inject
 import kotlin.time.Duration
 import kotlin.time.Instant
@@ -23,6 +24,7 @@ class IncidentRepositoryImpl @Inject constructor(
     private val database: AppDatabase,
     private val incidentDao: IncidentDao,
     private val sessionStore: SessionStore,
+    private val syncScheduler: SyncScheduler,
 ) : IncidentRepository {
     override fun observeIncident(id: String): Flow<Incident?> = incidentDao.observeIncident(id = id)
         .map { it?.toDomain() }
@@ -46,7 +48,7 @@ class IncidentRepositoryImpl @Inject constructor(
     ): SubmitResult {
         val errors = IncidentValidator.validate(incident = incident, now = now)
         if (errors.isNotEmpty()) return SubmitResult.Invalid(errors = errors)
-        return database.withWriteTransaction {
+        val result = database.withWriteTransaction {
             val stored = incidentDao.getIncident(id = incident.id)?.incident
             val submitted =
                 IncidentTransitionHelper.submit(
@@ -56,6 +58,8 @@ class IncidentRepositoryImpl @Inject constructor(
             incidentDao.upsertIncident(incident = submitted)
             SubmitResult.Submitted
         }
+        if (result == SubmitResult.Submitted) syncScheduler.requestSync()
+        return result
     }
 
     override suspend fun saveEdit(
@@ -65,7 +69,7 @@ class IncidentRepositoryImpl @Inject constructor(
         val userId = currentUserId() ?: return EditResult.NotAllowed
         val errors = IncidentValidator.validate(incident = incident, now = now)
         if (errors.isNotEmpty()) return EditResult.Invalid(errors = errors)
-        return database.withWriteTransaction {
+        val result = database.withWriteTransaction {
             val stored = incidentDao.getIncident(id = incident.id) ?: return@withWriteTransaction EditResult.NotAllowed
             if (!IncidentPolicyHelper.canEdit(incident = stored.toDomain(), userId = userId)) {
                 return@withWriteTransaction EditResult.NotAllowed
@@ -76,6 +80,8 @@ class IncidentRepositoryImpl @Inject constructor(
             incidentDao.upsertIncident(incident = edited)
             EditResult.Saved
         }
+        if (result == EditResult.Saved) syncScheduler.requestSync()
+        return result
     }
 
     override suspend fun delete(
@@ -84,7 +90,7 @@ class IncidentRepositoryImpl @Inject constructor(
         undoWindow: Duration,
     ): DeleteResult {
         val userId = currentUserId() ?: return DeleteResult.NotAllowed
-        return database.withWriteTransaction {
+        val result = database.withWriteTransaction {
             val stored = incidentDao.getIncident(id = id) ?: return@withWriteTransaction DeleteResult.NotAllowed
             if (!IncidentPolicyHelper.canDelete(incident = stored.toDomain(), userId = userId)) {
                 return@withWriteTransaction DeleteResult.NotAllowed
@@ -109,6 +115,8 @@ class IncidentRepositoryImpl @Inject constructor(
                 DeleteTransition.NotAllowed -> DeleteResult.NotAllowed
             }
         }
+        if (result is DeleteResult.PendingDelete) syncScheduler.requestSyncAfter(delay = undoWindow)
+        return result
     }
 
     override suspend fun undoDelete(
@@ -127,11 +135,16 @@ class IncidentRepositoryImpl @Inject constructor(
         id: String,
         now: Instant,
     ) {
-        database.withWriteTransaction {
-            val stored = incidentDao.getIncident(id = id)?.incident ?: return@withWriteTransaction
-            val sent = IncidentTransitionHelper.sendDeleteNow(entity = stored, now = now) ?: return@withWriteTransaction
-            incidentDao.upsertIncident(incident = sent)
-        }
+        val sent =
+            database.withWriteTransaction {
+                val stored = incidentDao.getIncident(id = id)?.incident ?: return@withWriteTransaction false
+                val entity =
+                    IncidentTransitionHelper.sendDeleteNow(entity = stored, now = now)
+                        ?: return@withWriteTransaction false
+                incidentDao.upsertIncident(incident = entity)
+                true
+            }
+        if (sent) syncScheduler.requestSync()
     }
 
     private suspend fun currentUserId(): String? = sessionStore.session.first()?.id

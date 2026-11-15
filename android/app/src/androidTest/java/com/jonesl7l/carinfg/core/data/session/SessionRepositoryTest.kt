@@ -5,6 +5,7 @@ import assertk.assertThat
 import assertk.assertions.isEqualTo
 import assertk.assertions.isFalse
 import assertk.assertions.isNull
+import assertk.assertions.isTrue
 import com.jonesl7l.carinfg.core.database.AppDatabase
 import com.jonesl7l.carinfg.core.database.DatabaseTestHelper.inMemoryDatabase
 import com.jonesl7l.carinfg.core.database.DatabaseTestHelper.incidentEntity
@@ -17,6 +18,7 @@ import com.jonesl7l.carinfg.core.network.datasource.FakeAuthRemoteDataSource
 import com.jonesl7l.carinfg.core.network.dto.user.UserDto
 import com.jonesl7l.carinfg.core.network.result.ApiError
 import com.jonesl7l.carinfg.core.network.result.ApiResult
+import com.jonesl7l.carinfg.core.sync.FakeSyncScheduler
 import java.io.IOException
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
@@ -28,6 +30,7 @@ import org.junit.runner.RunWith
 class SessionRepositoryTest {
     private val database: AppDatabase = inMemoryDatabase()
     private val sessionStore = FakeSessionStore()
+    private val syncScheduler = FakeSyncScheduler()
     private val authRemoteDataSource = FakeAuthRemoteDataSource(result = ApiResult.Success(value = technicianDto))
     private val repository =
         SessionRepository(
@@ -35,6 +38,7 @@ class SessionRepositoryTest {
             sessionStore = sessionStore,
             incidentDao = database.incidentDao(),
             syncMetaDao = database.syncMetaDao(),
+            syncScheduler = syncScheduler,
         )
 
     @After
@@ -48,6 +52,7 @@ class SessionRepositoryTest {
 
         assertThat(result).isEqualTo(LoginResult.Success(user = technician))
         assertThat(repository.observeUser().first()).isEqualTo(technician)
+        assertThat(syncScheduler.syncRequests).isEqualTo(1)
     }
 
     @Test
@@ -64,6 +69,7 @@ class SessionRepositoryTest {
 
         assertThat(repository.login(username = "operator", password = "password")).isEqualTo(LoginResult.NotTechnician)
         assertThat(repository.observeUser().first()).isNull()
+        assertThat(syncScheduler.syncRequests).isEqualTo(0)
     }
 
     @Test
@@ -100,6 +106,7 @@ class SessionRepositoryTest {
         assertThat(database.syncMetaDao().get()).isNull()
         assertThat(database.referenceDao().isEmpty()).isFalse()
         assertThat(repository.observeUser().first()).isNull()
+        assertThat(syncScheduler.cancelled).isTrue()
     }
 
     private companion object {

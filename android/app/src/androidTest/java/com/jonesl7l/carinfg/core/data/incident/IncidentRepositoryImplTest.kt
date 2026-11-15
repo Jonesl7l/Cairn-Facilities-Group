@@ -2,6 +2,8 @@ package com.jonesl7l.carinfg.core.data.incident
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import assertk.assertThat
+import assertk.assertions.containsExactly
+import assertk.assertions.isEmpty
 import assertk.assertions.isEqualTo
 import assertk.assertions.isInstanceOf
 import assertk.assertions.isNull
@@ -20,6 +22,7 @@ import com.jonesl7l.carinfg.core.domain.model.incident.Incident
 import com.jonesl7l.carinfg.core.domain.model.sync.SyncState
 import com.jonesl7l.carinfg.core.domain.model.user.User
 import com.jonesl7l.carinfg.core.domain.model.user.UserRole
+import com.jonesl7l.carinfg.core.sync.FakeSyncScheduler
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.test.runTest
 import org.junit.After
@@ -31,11 +34,13 @@ class IncidentRepositoryImplTest {
     private val database: AppDatabase = inMemoryDatabase()
     private val dao = database.incidentDao()
     private val sessionStore = FakeSessionStore(initial = reporter)
+    private val syncScheduler = FakeSyncScheduler()
     private val repository =
         IncidentRepositoryImpl(
             database = database,
             incidentDao = dao,
             sessionStore = sessionStore,
+            syncScheduler = syncScheduler,
         )
     private val undoWindow = 5.seconds
 
@@ -71,6 +76,7 @@ class IncidentRepositoryImplTest {
 
         assertThat(result).isInstanceOf<SubmitResult.Invalid>()
         assertThat(stored()).isNull()
+        assertThat(syncScheduler.syncRequests).isEqualTo(0)
     }
 
     @Test
@@ -83,6 +89,7 @@ class IncidentRepositoryImplTest {
         assertThat(result).isEqualTo(SubmitResult.Submitted)
         assertThat(stored()?.syncState).isEqualTo(SyncState.PENDING_CREATE)
         assertThat(stored()?.reportedAt).isEqualTo(now)
+        assertThat(syncScheduler.syncRequests).isEqualTo(1)
     }
     // endregion
 
@@ -99,6 +106,7 @@ class IncidentRepositoryImplTest {
         assertThat(stored()?.status).isEqualTo("ASSIGNED")
         assertThat(stored()?.serverVersion).isEqualTo(3)
         assertThat(stored()?.syncState).isEqualTo(SyncState.PENDING_UPDATE)
+        assertThat(syncScheduler.syncRequests).isEqualTo(1)
     }
 
     @Test
@@ -108,6 +116,7 @@ class IncidentRepositoryImplTest {
         val result = repository.saveEdit(incident = domain(entity = incidentEntity(reporterId = "u2")), now = now)
 
         assertThat(result).isEqualTo(EditResult.NotAllowed)
+        assertThat(syncScheduler.syncRequests).isEqualTo(0)
     }
 
     @Test
@@ -129,6 +138,7 @@ class IncidentRepositoryImplTest {
 
         assertThat(result).isEqualTo(DeleteResult.Removed)
         assertThat(stored()).isNull()
+        assertThat(syncScheduler.delayedRequests).isEmpty()
     }
 
     @Test
@@ -139,6 +149,7 @@ class IncidentRepositoryImplTest {
 
         assertThat(result).isEqualTo(DeleteResult.PendingDelete(undoDeadline = now + undoWindow))
         assertThat(stored()?.syncState).isEqualTo(SyncState.PENDING_DELETE)
+        assertThat(syncScheduler.delayedRequests).containsExactly(undoWindow)
 
         assertThat(repository.undoDelete(id = INCIDENT_ID, now = now)).isTrue()
         assertThat(stored()?.syncState).isEqualTo(SyncState.SYNCED)
@@ -153,6 +164,7 @@ class IncidentRepositoryImplTest {
         repository.sendDeleteNow(id = INCIDENT_ID, now = now)
 
         assertThat(stored()?.undoDeadline).isEqualTo(now)
+        assertThat(syncScheduler.syncRequests).isEqualTo(1)
     }
 
     @Test
