@@ -9,6 +9,8 @@ import com.jonesl7l.carinfg.core.data.incident.IncidentRepository
 import com.jonesl7l.carinfg.core.data.incident.IncidentRepositoryImpl
 import com.jonesl7l.carinfg.core.data.session.DataStoreSessionStore
 import com.jonesl7l.carinfg.core.data.session.SessionStore
+import com.jonesl7l.carinfg.core.sync.store.RoomSyncLocalStore
+import com.jonesl7l.carinfg.core.sync.store.SyncLocalStore
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
@@ -25,6 +27,9 @@ abstract class DataModule {
 
     @Binds
     abstract fun bindIncidentRepository(impl: IncidentRepositoryImpl): IncidentRepository
+
+    @Binds
+    abstract fun bindSyncLocalStore(impl: RoomSyncLocalStore): SyncLocalStore
 
     companion object {
         private const val PREFERENCES_FILE_NAME = "carinfg"
