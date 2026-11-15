@@ -1,5 +1,14 @@
 <resources>
     <string name="app_name">carinfg</string>
     <string name="session_expired">Session expired</string>
-    <string name="sign_in">Sign in</string>
+    <string name="log_in">Log in</string>
+    <string name="login_company">Cairn Facilities Group</string>
+    <string name="login_title">Field Incident Reporter</string>
+    <string name="login_subtitle">Sign in once. After that the app opens straight to your incidents, even offline.</string>
+    <string name="login_username">Username</string>
+    <string name="login_password">Password</string>
+    <string name="login_error_invalid_credentials">Wrong username or password</string>
+    <string name="login_error_not_technician">Only technicians can use this app</string>
+    <string name="login_error_offline">You need a connection to log in</string>
+    <string name="login_error_failed">Couldn\'t log in, try again</string>
 </resources>

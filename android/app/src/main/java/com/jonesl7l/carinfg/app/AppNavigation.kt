@@ -29,6 +29,7 @@ import com.jonesl7l.carinfg.app.navigation.IncidentDetailRoute
 import com.jonesl7l.carinfg.app.navigation.IncidentFormRoute
 import com.jonesl7l.carinfg.app.navigation.IncidentListRoute
 import com.jonesl7l.carinfg.app.navigation.LoginRoute
+import com.jonesl7l.carinfg.feature.auth.LoginScreen
 
 @Composable
 fun AppNavigation(viewModel: AppViewModel) {
@@ -71,7 +72,7 @@ private fun AppBackStack(
                 ),
             entryProvider =
                 entryProvider {
-                    entry<LoginRoute> { PlaceholderScreen(route = it) }
+                    entry<LoginRoute> { LoginScreen() }
                     entry<IncidentListRoute> { PlaceholderScreen(route = it) }
                     entry<IncidentDetailRoute> { PlaceholderScreen(route = it) }
                     entry<IncidentFormRoute> { PlaceholderScreen(route = it) }
@@ -94,7 +95,7 @@ private fun SessionExpiredEffect(
     snackbarHostState: SnackbarHostState,
 ) {
     val message = stringResource(R.string.session_expired)
-    val action = stringResource(R.string.sign_in)
+    val action = stringResource(R.string.log_in)
     LaunchedEffect(isSessionExpired) {
         if (!isSessionExpired) {
             if (backStack.size > 1 && backStack.last() == LoginRoute) backStack.removeLastOrNull()
