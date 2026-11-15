@@ -6,7 +6,7 @@ import assertk.assertions.isEqualTo
 import assertk.assertions.isNull
 import com.jonesl7l.carinfg.core.database.AppDatabase
 import com.jonesl7l.carinfg.core.database.DatabaseTestHelper.inMemoryDatabase
-import com.jonesl7l.carinfg.core.database.DatabaseTestHelper.syncMetaEntity
+import com.jonesl7l.carinfg.core.database.EntityTestHelper.syncMetaEntity
 import com.jonesl7l.carinfg.core.database.entity.sync.SyncMetaEntity
 import kotlinx.coroutines.test.runTest
 import org.junit.After

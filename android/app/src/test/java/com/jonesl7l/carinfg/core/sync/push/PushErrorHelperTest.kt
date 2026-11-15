@@ -17,18 +17,15 @@ class PushErrorHelperTest {
     }
 
     @Test
-    fun `network and server errors stop the pass to retry`() {
-        val expected = PushErrorAction.StopAndRetry(retryAfter = null)
+    fun `network errors, 5xx and 503 stop the pass to retry`() {
+        val errors =
+            listOf(
+                ApiError.Network(cause = IOException()),
+                ApiError.Server(status = 500),
+                ApiError.ServiceUnavailable(retryAfter = 30.seconds),
+            )
 
-        assertThat(decide(error = ApiError.Network(cause = IOException()))).isEqualTo(expected)
-        assertThat(decide(error = ApiError.Server(status = 500))).isEqualTo(expected)
-    }
-
-    @Test
-    fun `a 503 stops the pass and keeps its retry after`() {
-        val action = decide(error = ApiError.ServiceUnavailable(retryAfter = 30.seconds))
-
-        assertThat(action).isEqualTo(PushErrorAction.StopAndRetry(retryAfter = 30.seconds))
+        errors.forEach { error -> assertThat(decide(error = error)).isEqualTo(PushErrorAction.StopAndRetry) }
     }
 
     @Test

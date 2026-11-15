@@ -8,12 +8,12 @@ import assertk.assertions.isEqualTo
 import assertk.assertions.isNotNull
 import assertk.assertions.isNull
 import com.jonesl7l.carinfg.core.database.AppDatabase
-import com.jonesl7l.carinfg.core.database.DatabaseTestHelper.INCIDENT_ID
 import com.jonesl7l.carinfg.core.database.DatabaseTestHelper.inMemoryDatabase
-import com.jonesl7l.carinfg.core.database.DatabaseTestHelper.incidentEntity
-import com.jonesl7l.carinfg.core.database.DatabaseTestHelper.now
-import com.jonesl7l.carinfg.core.database.DatabaseTestHelper.photoEntity
-import com.jonesl7l.carinfg.core.database.DatabaseTestHelper.syncMetaEntity
+import com.jonesl7l.carinfg.core.database.EntityTestHelper.INCIDENT_ID
+import com.jonesl7l.carinfg.core.database.EntityTestHelper.incidentEntity
+import com.jonesl7l.carinfg.core.database.EntityTestHelper.now
+import com.jonesl7l.carinfg.core.database.EntityTestHelper.photoEntity
+import com.jonesl7l.carinfg.core.database.EntityTestHelper.syncMetaEntity
 import com.jonesl7l.carinfg.core.database.entity.sync.SyncMetaEntity
 import com.jonesl7l.carinfg.core.domain.model.photo.PhotoUploadState
 import com.jonesl7l.carinfg.core.domain.model.sync.ConflictReason

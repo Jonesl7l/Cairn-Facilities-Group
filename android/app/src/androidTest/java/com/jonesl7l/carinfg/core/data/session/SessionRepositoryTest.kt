@@ -8,9 +8,9 @@ import assertk.assertions.isNull
 import assertk.assertions.isTrue
 import com.jonesl7l.carinfg.core.database.AppDatabase
 import com.jonesl7l.carinfg.core.database.DatabaseTestHelper.inMemoryDatabase
-import com.jonesl7l.carinfg.core.database.DatabaseTestHelper.incidentEntity
-import com.jonesl7l.carinfg.core.database.DatabaseTestHelper.referenceEntities
-import com.jonesl7l.carinfg.core.database.DatabaseTestHelper.syncMetaEntity
+import com.jonesl7l.carinfg.core.database.EntityTestHelper.incidentEntity
+import com.jonesl7l.carinfg.core.database.EntityTestHelper.referenceEntities
+import com.jonesl7l.carinfg.core.database.EntityTestHelper.syncMetaEntity
 import com.jonesl7l.carinfg.core.domain.model.sync.SyncState
 import com.jonesl7l.carinfg.core.domain.model.user.User
 import com.jonesl7l.carinfg.core.domain.model.user.UserRole

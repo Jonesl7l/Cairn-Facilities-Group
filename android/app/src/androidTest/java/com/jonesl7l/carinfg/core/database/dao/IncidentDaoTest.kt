@@ -8,11 +8,11 @@ import assertk.assertions.isNotNull
 import assertk.assertions.isNull
 import assertk.assertions.prop
 import com.jonesl7l.carinfg.core.database.AppDatabase
-import com.jonesl7l.carinfg.core.database.DatabaseTestHelper.INCIDENT_ID
-import com.jonesl7l.carinfg.core.database.DatabaseTestHelper.draftIncidentEntity
 import com.jonesl7l.carinfg.core.database.DatabaseTestHelper.inMemoryDatabase
-import com.jonesl7l.carinfg.core.database.DatabaseTestHelper.incidentEntity
-import com.jonesl7l.carinfg.core.database.DatabaseTestHelper.photoEntity
+import com.jonesl7l.carinfg.core.database.EntityTestHelper.INCIDENT_ID
+import com.jonesl7l.carinfg.core.database.EntityTestHelper.draftIncidentEntity
+import com.jonesl7l.carinfg.core.database.EntityTestHelper.incidentEntity
+import com.jonesl7l.carinfg.core.database.EntityTestHelper.photoEntity
 import com.jonesl7l.carinfg.core.database.entity.incident.IncidentWithPhotos
 import com.jonesl7l.carinfg.core.domain.model.sync.SyncState
 import kotlinx.coroutines.flow.first

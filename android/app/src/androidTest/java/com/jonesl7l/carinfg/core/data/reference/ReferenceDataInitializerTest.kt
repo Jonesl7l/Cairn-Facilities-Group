@@ -7,8 +7,8 @@ import assertk.assertions.containsExactly
 import assertk.assertions.hasSize
 import com.jonesl7l.carinfg.core.database.AppDatabase
 import com.jonesl7l.carinfg.core.database.DatabaseTestHelper.inMemoryDatabase
-import com.jonesl7l.carinfg.core.database.DatabaseTestHelper.referenceEntities
-import com.jonesl7l.carinfg.core.database.DatabaseTestHelper.siteEntity
+import com.jonesl7l.carinfg.core.database.EntityTestHelper.referenceEntities
+import com.jonesl7l.carinfg.core.database.EntityTestHelper.siteEntity
 import com.jonesl7l.carinfg.core.di.NetworkModule
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.StandardTestDispatcher

@@ -10,9 +10,7 @@ object PushErrorHelper {
     ): PushErrorAction = when (error) {
         ApiError.Unauthenticated -> PushErrorAction.StopForSession
 
-        is ApiError.Network, is ApiError.Server -> PushErrorAction.StopAndRetry(retryAfter = null)
-
-        is ApiError.ServiceUnavailable -> PushErrorAction.StopAndRetry(retryAfter = error.retryAfter)
+        is ApiError.Network, is ApiError.Server, is ApiError.ServiceUnavailable -> PushErrorAction.StopAndRetry
 
         is ApiError.ValidationFailed,
         ApiError.PhotoLimitExceeded,

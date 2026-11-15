@@ -27,6 +27,7 @@ import com.jonesl7l.carinfg.core.network.datasource.FakeIncidentRemoteDataSource
 import com.jonesl7l.carinfg.core.network.dto.incident.IncidentDto
 import com.jonesl7l.carinfg.core.network.result.ApiError
 import com.jonesl7l.carinfg.core.network.result.ApiResult
+import com.jonesl7l.carinfg.core.sync.SyncRunResult
 import com.jonesl7l.carinfg.core.sync.store.FakeSyncLocalStore
 import java.io.IOException
 import kotlin.time.Duration.Companion.minutes
@@ -53,7 +54,7 @@ class PushEngineTest {
                 sessionStore = FakeSessionStore(),
             )
 
-        assertThat(noSessionEngine.push(now = now)).isEqualTo(PushResult.NoSession)
+        assertThat(noSessionEngine.push(now = now)).isEqualTo(SyncRunResult.Done)
     }
 
     @Test
@@ -63,7 +64,7 @@ class PushEngineTest {
 
         val result = engine.push(now = now)
 
-        assertThat(result).isEqualTo(PushResult.Success)
+        assertThat(result).isEqualTo(SyncRunResult.Done)
         assertThat(row()?.syncState).isEqualTo(SyncState.SYNCED)
         assertThat(row()?.serverVersion).isEqualTo(1)
     }
@@ -139,7 +140,7 @@ class PushEngineTest {
 
         val result = engine.push(now = now)
 
-        assertThat(result).isEqualTo(PushResult.Success)
+        assertThat(result).isEqualTo(SyncRunResult.Done)
         assertThat(row()?.syncState).isEqualTo(SyncState.PENDING_UPDATE)
         assertThat(store.failures).isEmpty()
     }
@@ -226,7 +227,7 @@ class PushEngineTest {
 
         val result = engine.push(now = now)
 
-        assertThat(result).isEqualTo(PushResult.Success)
+        assertThat(result).isEqualTo(SyncRunResult.Done)
         assertThat(row(id = "first")?.conflictReason).isEqualTo(ConflictReason.VALIDATION)
         assertThat(row(id = "first")?.lastSyncError).isEqualTo("ValidationFailed")
         assertThat(row(id = "second")?.syncState).isEqualTo(SyncState.SYNCED)
@@ -272,17 +273,17 @@ class PushEngineTest {
 
         val result = engine.push(now = now)
 
-        assertThat(result).isEqualTo(PushResult.Retry(retryAfter = null))
+        assertThat(result).isEqualTo(SyncRunResult.RetryWithBackoff)
         assertThat(store.failures).containsExactly("first" to "Network")
         assertThat(remote.updateVersions.size).isEqualTo(1)
     }
 
     @Test
-    fun `a 503 stops the pass with its retry after`() = runTest {
+    fun `a 503 stops the pass to retry with backoff`() = runTest {
         stored(row = incidentEntity(syncState = SyncState.PENDING_UPDATE))
         remote.updateResults += ApiResult.Failure(error = ApiError.ServiceUnavailable(retryAfter = 30.seconds))
 
-        assertThat(engine.push(now = now)).isEqualTo(PushResult.Retry(retryAfter = 30.seconds))
+        assertThat(engine.push(now = now)).isEqualTo(SyncRunResult.RetryWithBackoff)
     }
 
     @Test
@@ -290,7 +291,7 @@ class PushEngineTest {
         stored(row = incidentEntity(syncState = SyncState.PENDING_UPDATE))
         remote.updateResults += ApiResult.Failure(error = ApiError.Unauthenticated)
 
-        assertThat(engine.push(now = now)).isEqualTo(PushResult.SessionExpired)
+        assertThat(engine.push(now = now)).isEqualTo(SyncRunResult.SessionExpired)
         assertThat(row()?.syncState).isEqualTo(SyncState.PENDING_UPDATE)
     }
 

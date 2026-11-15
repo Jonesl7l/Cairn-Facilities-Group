@@ -33,54 +33,54 @@ class IncidentRepositoryImpl @Inject constructor(
     override suspend fun saveDraft(
         incident: Incident,
         now: Instant,
-    ): DraftResult = database.withWriteTransaction {
+    ): SaveResult = database.withWriteTransaction {
         val stored = incidentDao.getIncident(id = incident.id)?.incident
         val draft =
             IncidentTransitionHelper.saveDraft(entity = incident.mergeOnto(stored = stored, now = now))
-                ?: return@withWriteTransaction DraftResult.NotADraft
+                ?: return@withWriteTransaction SaveResult.NotAllowed
         incidentDao.upsertIncident(incident = draft)
-        DraftResult.Saved
+        SaveResult.Saved
     }
 
     override suspend fun submit(
         incident: Incident,
         now: Instant,
-    ): SubmitResult {
+    ): SaveResult {
         val errors = IncidentValidator.validate(incident = incident, now = now)
-        if (errors.isNotEmpty()) return SubmitResult.Invalid(errors = errors)
+        if (errors.isNotEmpty()) return SaveResult.Invalid(errors = errors)
         val result = database.withWriteTransaction {
             val stored = incidentDao.getIncident(id = incident.id)?.incident
             val submitted =
                 IncidentTransitionHelper.submit(
                     entity = incident.mergeOnto(stored = stored, now = now),
                     now = now,
-                ) ?: return@withWriteTransaction SubmitResult.NotADraft
+                ) ?: return@withWriteTransaction SaveResult.NotAllowed
             incidentDao.upsertIncident(incident = submitted)
-            SubmitResult.Submitted
+            SaveResult.Saved
         }
-        if (result == SubmitResult.Submitted) syncScheduler.requestSync()
+        if (result == SaveResult.Saved) syncScheduler.requestSync()
         return result
     }
 
     override suspend fun saveEdit(
         incident: Incident,
         now: Instant,
-    ): EditResult {
-        val userId = currentUserId() ?: return EditResult.NotAllowed
+    ): SaveResult {
+        val userId = currentUserId() ?: return SaveResult.NotAllowed
         val errors = IncidentValidator.validate(incident = incident, now = now)
-        if (errors.isNotEmpty()) return EditResult.Invalid(errors = errors)
+        if (errors.isNotEmpty()) return SaveResult.Invalid(errors = errors)
         val result = database.withWriteTransaction {
-            val stored = incidentDao.getIncident(id = incident.id) ?: return@withWriteTransaction EditResult.NotAllowed
+            val stored = incidentDao.getIncident(id = incident.id) ?: return@withWriteTransaction SaveResult.NotAllowed
             if (!IncidentPolicyHelper.canEdit(incident = stored.toDomain(), userId = userId)) {
-                return@withWriteTransaction EditResult.NotAllowed
+                return@withWriteTransaction SaveResult.NotAllowed
             }
             val edited =
                 IncidentTransitionHelper.edit(entity = incident.mergeOnto(stored = stored.incident, now = now))
-                    ?: return@withWriteTransaction EditResult.NotAllowed
+                    ?: return@withWriteTransaction SaveResult.NotAllowed
             incidentDao.upsertIncident(incident = edited)
-            EditResult.Saved
+            SaveResult.Saved
         }
-        if (result == EditResult.Saved) syncScheduler.requestSync()
+        if (result == SaveResult.Saved) syncScheduler.requestSync()
         return result
     }
 
@@ -90,7 +90,7 @@ class IncidentRepositoryImpl @Inject constructor(
         undoWindow: Duration,
     ): DeleteResult {
         val userId = currentUserId() ?: return DeleteResult.NotAllowed
-        val result = database.withWriteTransaction {
+        return database.withWriteTransaction {
             val stored = incidentDao.getIncident(id = id) ?: return@withWriteTransaction DeleteResult.NotAllowed
             if (!IncidentPolicyHelper.canDelete(incident = stored.toDomain(), userId = userId)) {
                 return@withWriteTransaction DeleteResult.NotAllowed
@@ -115,8 +115,6 @@ class IncidentRepositoryImpl @Inject constructor(
                 DeleteTransition.NotAllowed -> DeleteResult.NotAllowed
             }
         }
-        if (result is DeleteResult.PendingDelete) syncScheduler.requestSyncAfter(delay = undoWindow)
-        return result
     }
 
     override suspend fun undoDelete(

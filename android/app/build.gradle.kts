@@ -12,6 +12,8 @@ plugins {
     alias(buildLibs.plugins.kover)
 }
 
+val sharedTestDir = "src/sharedTest/java"
+
 val releaseKey: Properties? =
     rootProject.file("keystore.properties").takeIf { it.isFile }?.let { file ->
         Properties().apply { file.inputStream().use { load(it) } }
@@ -68,6 +70,11 @@ android {
 
     lint {
         disable += "OldTargetApi"
+    }
+
+    sourceSets {
+        getByName("test").kotlin.directories.add(sharedTestDir)
+        getByName("androidTest").kotlin.directories.add(sharedTestDir)
     }
 
     testOptions {

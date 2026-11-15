@@ -11,11 +11,11 @@ import assertk.assertions.isTrue
 import com.jonesl7l.carinfg.core.data.mapper.toDomain
 import com.jonesl7l.carinfg.core.data.session.FakeSessionStore
 import com.jonesl7l.carinfg.core.database.AppDatabase
-import com.jonesl7l.carinfg.core.database.DatabaseTestHelper.INCIDENT_ID
-import com.jonesl7l.carinfg.core.database.DatabaseTestHelper.draftIncidentEntity
 import com.jonesl7l.carinfg.core.database.DatabaseTestHelper.inMemoryDatabase
-import com.jonesl7l.carinfg.core.database.DatabaseTestHelper.incidentEntity
-import com.jonesl7l.carinfg.core.database.DatabaseTestHelper.now
+import com.jonesl7l.carinfg.core.database.EntityTestHelper.INCIDENT_ID
+import com.jonesl7l.carinfg.core.database.EntityTestHelper.draftIncidentEntity
+import com.jonesl7l.carinfg.core.database.EntityTestHelper.incidentEntity
+import com.jonesl7l.carinfg.core.database.EntityTestHelper.now
 import com.jonesl7l.carinfg.core.database.entity.incident.IncidentEntity
 import com.jonesl7l.carinfg.core.database.entity.incident.IncidentWithPhotos
 import com.jonesl7l.carinfg.core.domain.model.incident.Incident
@@ -54,7 +54,7 @@ class IncidentRepositoryImplTest {
     fun aNewIncidentIsSavedAsADraft() = runTest {
         val result = repository.saveDraft(incident = domain(entity = draftIncidentEntity()), now = now)
 
-        assertThat(result).isEqualTo(DraftResult.Saved)
+        assertThat(result).isEqualTo(SaveResult.Saved)
         assertThat(stored()?.syncState).isEqualTo(SyncState.DRAFT)
         assertThat(stored()?.localRevision).isEqualTo(1L)
     }
@@ -65,7 +65,7 @@ class IncidentRepositoryImplTest {
 
         val result = repository.saveDraft(incident = domain(entity = incidentEntity()), now = now)
 
-        assertThat(result).isEqualTo(DraftResult.NotADraft)
+        assertThat(result).isEqualTo(SaveResult.NotAllowed)
     }
     // endregion
 
@@ -74,7 +74,7 @@ class IncidentRepositoryImplTest {
     fun anIncompleteIncidentIsNotSubmitted() = runTest {
         val result = repository.submit(incident = domain(entity = draftIncidentEntity()), now = now)
 
-        assertThat(result).isInstanceOf<SubmitResult.Invalid>()
+        assertThat(result).isInstanceOf<SaveResult.Invalid>()
         assertThat(stored()).isNull()
         assertThat(syncScheduler.syncRequests).isEqualTo(0)
     }
@@ -86,7 +86,7 @@ class IncidentRepositoryImplTest {
 
         val result = repository.submit(incident = domain(entity = draft), now = now)
 
-        assertThat(result).isEqualTo(SubmitResult.Submitted)
+        assertThat(result).isEqualTo(SaveResult.Saved)
         assertThat(stored()?.syncState).isEqualTo(SyncState.PENDING_CREATE)
         assertThat(stored()?.reportedAt).isEqualTo(now)
         assertThat(syncScheduler.syncRequests).isEqualTo(1)
@@ -101,7 +101,7 @@ class IncidentRepositoryImplTest {
 
         val result = repository.saveEdit(incident = staleCopy, now = now)
 
-        assertThat(result).isEqualTo(EditResult.Saved)
+        assertThat(result).isEqualTo(SaveResult.Saved)
         assertThat(stored()?.title).isEqualTo("Edited title")
         assertThat(stored()?.status).isEqualTo("ASSIGNED")
         assertThat(stored()?.serverVersion).isEqualTo(3)
@@ -115,7 +115,7 @@ class IncidentRepositoryImplTest {
 
         val result = repository.saveEdit(incident = domain(entity = incidentEntity(reporterId = "u2")), now = now)
 
-        assertThat(result).isEqualTo(EditResult.NotAllowed)
+        assertThat(result).isEqualTo(SaveResult.NotAllowed)
         assertThat(syncScheduler.syncRequests).isEqualTo(0)
     }
 
@@ -125,7 +125,7 @@ class IncidentRepositoryImplTest {
 
         val result = repository.saveEdit(incident = domain(entity = incidentEntity()), now = now)
 
-        assertThat(result).isEqualTo(EditResult.NotAllowed)
+        assertThat(result).isEqualTo(SaveResult.NotAllowed)
     }
     // endregion
 
@@ -138,7 +138,7 @@ class IncidentRepositoryImplTest {
 
         assertThat(result).isEqualTo(DeleteResult.Removed)
         assertThat(stored()).isNull()
-        assertThat(syncScheduler.delayedRequests).isEmpty()
+        assertThat(syncScheduler.syncRequests).isEqualTo(0)
     }
 
     @Test
@@ -149,7 +149,7 @@ class IncidentRepositoryImplTest {
 
         assertThat(result).isEqualTo(DeleteResult.PendingDelete(undoDeadline = now + undoWindow))
         assertThat(stored()?.syncState).isEqualTo(SyncState.PENDING_DELETE)
-        assertThat(syncScheduler.delayedRequests).containsExactly(undoWindow)
+        assertThat(syncScheduler.syncRequests).isEqualTo(0)
 
         assertThat(repository.undoDelete(id = INCIDENT_ID, now = now)).isTrue()
         assertThat(stored()?.syncState).isEqualTo(SyncState.SYNCED)

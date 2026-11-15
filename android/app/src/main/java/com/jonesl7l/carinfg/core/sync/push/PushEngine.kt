@@ -13,6 +13,7 @@ import com.jonesl7l.carinfg.core.network.datasource.IncidentRemoteDataSource
 import com.jonesl7l.carinfg.core.network.dto.incident.IncidentDto
 import com.jonesl7l.carinfg.core.network.result.ApiError
 import com.jonesl7l.carinfg.core.network.result.ApiResult
+import com.jonesl7l.carinfg.core.sync.SyncRunResult
 import com.jonesl7l.carinfg.core.sync.store.SyncLocalStore
 import java.io.File
 import javax.inject.Inject
@@ -25,13 +26,13 @@ class PushEngine @Inject constructor(
     private val syncLocalStore: SyncLocalStore,
     private val sessionStore: SessionStore,
 ) {
-    suspend fun push(now: Instant): PushResult {
-        val userId = sessionStore.session.first()?.id ?: return PushResult.NoSession
+    suspend fun push(now: Instant): SyncRunResult {
+        val userId = sessionStore.session.first()?.id ?: return SyncRunResult.Done
         for (local in syncLocalStore.getPendingIncidents(now = now)) {
             val outcome = pushIncident(local = local, userId = userId)
             if (outcome is IncidentPushOutcome.Stop) return outcome.result
         }
-        return PushResult.Success
+        return SyncRunResult.Done
     }
 
     private suspend fun pushIncident(
@@ -235,11 +236,11 @@ class PushEngine @Inject constructor(
             IncidentPushOutcome.Done
         }
 
-        PushErrorAction.StopForSession -> IncidentPushOutcome.Stop(result = PushResult.SessionExpired)
+        PushErrorAction.StopForSession -> IncidentPushOutcome.Stop(result = SyncRunResult.SessionExpired)
 
-        is PushErrorAction.StopAndRetry -> {
+        PushErrorAction.StopAndRetry -> {
             syncLocalStore.recordFailure(id = local.incident.id, error = error.name)
-            IncidentPushOutcome.Stop(result = PushResult.Retry(retryAfter = action.retryAfter))
+            IncidentPushOutcome.Stop(result = SyncRunResult.RetryWithBackoff)
         }
     }
 

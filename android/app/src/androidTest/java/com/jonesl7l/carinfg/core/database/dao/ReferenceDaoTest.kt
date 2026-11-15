@@ -7,10 +7,10 @@ import assertk.assertions.isEqualTo
 import assertk.assertions.isFalse
 import assertk.assertions.isTrue
 import com.jonesl7l.carinfg.core.database.AppDatabase
-import com.jonesl7l.carinfg.core.database.DatabaseTestHelper.buildingEntity
 import com.jonesl7l.carinfg.core.database.DatabaseTestHelper.inMemoryDatabase
-import com.jonesl7l.carinfg.core.database.DatabaseTestHelper.referenceEntities
-import com.jonesl7l.carinfg.core.database.DatabaseTestHelper.siteEntity
+import com.jonesl7l.carinfg.core.database.EntityTestHelper.buildingEntity
+import com.jonesl7l.carinfg.core.database.EntityTestHelper.referenceEntities
+import com.jonesl7l.carinfg.core.database.EntityTestHelper.siteEntity
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.After

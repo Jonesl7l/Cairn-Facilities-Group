@@ -13,16 +13,9 @@ class SyncWorker @AssistedInject constructor(
     @Assisted context: Context,
     @Assisted params: WorkerParameters,
     private val syncRunner: SyncRunner,
-    private val syncScheduler: SyncScheduler,
 ) : CoroutineWorker(context, params) {
-    override suspend fun doWork(): Result = when (val result = syncRunner.run(clock = Clock.System)) {
+    override suspend fun doWork(): Result = when (syncRunner.run(clock = Clock.System)) {
         SyncRunResult.RetryWithBackoff -> Result.retry()
-
         SyncRunResult.Done, SyncRunResult.SessionExpired -> Result.success()
-
-        is SyncRunResult.RetryAfter -> {
-            syncScheduler.requestSyncAfter(delay = result.delay)
-            Result.success()
-        }
     }
 }

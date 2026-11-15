@@ -15,6 +15,7 @@ import com.jonesl7l.carinfg.core.network.datasource.IncidentChangesPage
 import com.jonesl7l.carinfg.core.network.dto.incident.IncidentDto
 import com.jonesl7l.carinfg.core.network.result.ApiError
 import com.jonesl7l.carinfg.core.network.result.ApiResult
+import com.jonesl7l.carinfg.core.sync.SyncRunResult
 import com.jonesl7l.carinfg.core.sync.store.FakeSyncLocalStore
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
@@ -37,7 +38,7 @@ class PullEngineTest {
 
         val result = engine.pull(now = now)
 
-        assertThat(result).isEqualTo(PullResult.Success)
+        assertThat(result).isEqualTo(SyncRunResult.Done)
         assertThat(remote.changeRequests).containsExactly(0L, 10L)
         assertThat(store.meta.lastChangeSeq).isEqualTo(11L)
         assertThat(store.incidents.keys.toList()).containsExactly("a", "b")
@@ -71,7 +72,7 @@ class PullEngineTest {
         val error = ApiError.ServiceUnavailable(retryAfter = null)
         remote.changePages += ApiResult.Failure(error = error)
 
-        assertThat(engine.pull(now = now)).isEqualTo(PullResult.Failed(error = error))
+        assertThat(engine.pull(now = now)).isEqualTo(SyncRunResult.RetryWithBackoff)
         assertThat(store.meta.lastChangeSeq).isEqualTo(5L)
         assertThat(store.prunes).isEmpty()
     }
@@ -80,7 +81,7 @@ class PullEngineTest {
     fun `without a session nothing is pulled`() = runTest {
         sessionStore.clear()
 
-        assertThat(engine.pull(now = now)).isEqualTo(PullResult.NoSession)
+        assertThat(engine.pull(now = now)).isEqualTo(SyncRunResult.Done)
         assertThat(remote.changeRequests).isEmpty()
     }
 

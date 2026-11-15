@@ -1,16 +1,11 @@
 package com.jonesl7l.carinfg.core.sync
 
 import com.jonesl7l.carinfg.core.data.session.SessionStore
-import com.jonesl7l.carinfg.core.network.result.ApiError
-import com.jonesl7l.carinfg.core.network.result.ErrorCategory
 import com.jonesl7l.carinfg.core.sync.pull.PullEngine
-import com.jonesl7l.carinfg.core.sync.pull.PullResult
 import com.jonesl7l.carinfg.core.sync.push.PushEngine
-import com.jonesl7l.carinfg.core.sync.push.PushResult
 import com.jonesl7l.carinfg.core.sync.store.SyncLocalStore
 import javax.inject.Inject
 import kotlin.time.Clock
-import kotlin.time.Duration
 import kotlin.time.Instant
 import kotlinx.coroutines.flow.first
 import timber.log.Timber
@@ -38,9 +33,9 @@ class SyncRunner @Inject constructor(
     }
 
     private suspend fun runPass(now: Instant): SyncRunResult {
-        val pushed = pushEngine.push(now = now).toRunResult()
+        val pushed = pushEngine.push(now = now)
         if (pushed != SyncRunResult.Done) return pushed
-        return pullEngine.pull(now = now).toRunResult()
+        return pullEngine.pull(now = now)
     }
 
     private suspend fun hasWorkLeft(now: Instant): Boolean {
@@ -48,26 +43,6 @@ class SyncRunner @Inject constructor(
         return meta.lastChangeSeq < meta.announcedChangeSeq ||
             syncLocalStore.getPendingIncidents(now = now).isNotEmpty()
     }
-
-    private fun PushResult.toRunResult(): SyncRunResult = when (this) {
-        PushResult.Success, PushResult.NoSession -> SyncRunResult.Done
-        PushResult.SessionExpired -> SyncRunResult.SessionExpired
-        is PushResult.Retry -> retry(retryAfter = retryAfter)
-    }
-
-    private fun PullResult.toRunResult(): SyncRunResult = when (this) {
-        PullResult.Success, PullResult.NoSession -> SyncRunResult.Done
-
-        is PullResult.Failed -> when {
-            error == ApiError.Unauthenticated -> SyncRunResult.SessionExpired
-            error is ApiError.ServiceUnavailable -> retry(retryAfter = error.retryAfter)
-            error.category == ErrorCategory.RETRY -> SyncRunResult.RetryWithBackoff
-            else -> SyncRunResult.Done
-        }
-    }
-
-    private fun retry(retryAfter: Duration?): SyncRunResult =
-        retryAfter?.let { SyncRunResult.RetryAfter(delay = it) } ?: SyncRunResult.RetryWithBackoff
 
     private companion object {
         const val MAX_PASSES = 3

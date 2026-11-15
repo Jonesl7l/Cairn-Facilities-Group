@@ -9,7 +9,6 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
-import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.toJavaDuration
 
@@ -32,26 +31,12 @@ class WorkManagerSyncScheduler @Inject constructor(@ApplicationContext private v
         )
     }
 
-    override fun requestSyncAfter(delay: Duration) {
-        val request =
-            OneTimeWorkRequestBuilder<SyncRequestWorker>()
-                .setInitialDelay(delay.toJavaDuration())
-                .build()
-        workManager.enqueueUniqueWork(
-            uniqueWorkName = DELAYED_SYNC_WORK_NAME,
-            existingWorkPolicy = ExistingWorkPolicy.REPLACE,
-            request = request,
-        )
-    }
-
     override fun cancelAll() {
-        workManager.cancelUniqueWork(uniqueWorkName = DELAYED_SYNC_WORK_NAME)
         workManager.cancelUniqueWork(uniqueWorkName = SYNC_WORK_NAME)
     }
 
     companion object {
         const val SYNC_WORK_NAME = "sync"
-        const val DELAYED_SYNC_WORK_NAME = "delayed_sync"
 
         private val backoffDelay = 30.seconds
         private val networkConstraints = Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()

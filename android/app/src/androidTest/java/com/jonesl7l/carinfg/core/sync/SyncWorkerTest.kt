@@ -8,8 +8,6 @@ import androidx.work.WorkerFactory
 import androidx.work.WorkerParameters
 import androidx.work.testing.TestListenableWorkerBuilder
 import assertk.assertThat
-import assertk.assertions.containsExactly
-import assertk.assertions.isEmpty
 import assertk.assertions.isEqualTo
 import com.jonesl7l.carinfg.core.data.session.FakeSessionStore
 import com.jonesl7l.carinfg.core.database.AppDatabase
@@ -24,7 +22,6 @@ import com.jonesl7l.carinfg.core.sync.pull.PullEngine
 import com.jonesl7l.carinfg.core.sync.push.PushEngine
 import com.jonesl7l.carinfg.core.sync.store.RoomSyncLocalStore
 import java.io.IOException
-import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Test
@@ -36,7 +33,6 @@ class SyncWorkerTest {
     private val database: AppDatabase = inMemoryDatabase()
     private val remote = FakeIncidentRemoteDataSource()
     private val sessionStore = FakeSessionStore(initial = technician)
-    private val syncScheduler = FakeSyncScheduler()
 
     @After
     fun tearDown() {
@@ -48,7 +44,6 @@ class SyncWorkerTest {
         remote.changePages += lastPage()
 
         assertThat(worker().doWork()).isEqualTo(ListenableWorker.Result.success())
-        assertThat(syncScheduler.delayedRequests).isEmpty()
     }
 
     @Test
@@ -59,14 +54,6 @@ class SyncWorkerTest {
     }
 
     @Test
-    fun aRetryAfterSucceedsAndAsksForADelayedSync() = runTest {
-        remote.changePages += ApiResult.Failure(error = ApiError.ServiceUnavailable(retryAfter = 30.seconds))
-
-        assertThat(worker().doWork()).isEqualTo(ListenableWorker.Result.success())
-        assertThat(syncScheduler.delayedRequests).containsExactly(30.seconds)
-    }
-
-    @Test
     fun anExpiredSessionSucceedsWithoutRetrying() = runTest {
         remote.changePages += ApiResult.Failure(error = ApiError.Unauthenticated)
 
@@ -74,7 +61,7 @@ class SyncWorkerTest {
     }
 
     private fun worker(): SyncWorker = TestListenableWorkerBuilder<SyncWorker>(context)
-        .setWorkerFactory(SyncWorkerFactory(syncRunner = syncRunner(), syncScheduler = syncScheduler))
+        .setWorkerFactory(SyncWorkerFactory(syncRunner = syncRunner()))
         .build()
 
     private fun syncRunner(): SyncRunner {
@@ -111,10 +98,7 @@ class SyncWorkerTest {
             ),
     )
 
-    private class SyncWorkerFactory(
-        private val syncRunner: SyncRunner,
-        private val syncScheduler: SyncScheduler,
-    ) : WorkerFactory() {
+    private class SyncWorkerFactory(private val syncRunner: SyncRunner) : WorkerFactory() {
         override fun createWorker(
             appContext: Context,
             workerClassName: String,
@@ -123,7 +107,6 @@ class SyncWorkerTest {
             context = appContext,
             params = workerParameters,
             syncRunner = syncRunner,
-            syncScheduler = syncScheduler,
         )
     }
 

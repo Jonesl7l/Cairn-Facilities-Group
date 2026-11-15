@@ -137,15 +137,8 @@ class SyncRunnerTest {
     }
 
     @Test
-    fun `a 503 from pull retries after its delay`() = runTest {
+    fun `a 503 from pull retries with backoff`() = runTest {
         remote.changePages += ApiResult.Failure(error = ApiError.ServiceUnavailable(retryAfter = 30.seconds))
-
-        assertThat(runner.run(clock = clock)).isEqualTo(SyncRunResult.RetryAfter(delay = 30.seconds))
-    }
-
-    @Test
-    fun `a 503 from pull without a delay retries with backoff`() = runTest {
-        remote.changePages += ApiResult.Failure(error = ApiError.ServiceUnavailable(retryAfter = null))
 
         assertThat(runner.run(clock = clock)).isEqualTo(SyncRunResult.RetryWithBackoff)
     }

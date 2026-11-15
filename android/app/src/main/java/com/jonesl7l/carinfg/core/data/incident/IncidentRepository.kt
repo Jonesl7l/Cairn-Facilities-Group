@@ -11,17 +11,17 @@ interface IncidentRepository {
     suspend fun saveDraft(
         incident: Incident,
         now: Instant,
-    ): DraftResult
+    ): SaveResult
 
     suspend fun submit(
         incident: Incident,
         now: Instant,
-    ): SubmitResult
+    ): SaveResult
 
     suspend fun saveEdit(
         incident: Incident,
         now: Instant,
-    ): EditResult
+    ): SaveResult
 
     suspend fun delete(
         id: String,
