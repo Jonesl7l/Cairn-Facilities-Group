@@ -1,12 +1,15 @@
 package com.jonesl7l.carinfg.core.data.incident
 
 import com.jonesl7l.carinfg.core.domain.model.incident.Incident
+import com.jonesl7l.carinfg.core.domain.model.incident.IncidentListItem
 import kotlin.time.Duration
 import kotlin.time.Instant
 import kotlinx.coroutines.flow.Flow
 
 interface IncidentRepository {
     fun observeIncident(id: String): Flow<Incident?>
+
+    fun observeIncidentList(): Flow<List<IncidentListItem>>
 
     suspend fun saveDraft(
         incident: Incident,

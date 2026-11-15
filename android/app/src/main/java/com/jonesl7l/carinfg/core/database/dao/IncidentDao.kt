@@ -5,6 +5,7 @@ import androidx.room3.Query
 import androidx.room3.Transaction
 import androidx.room3.Upsert
 import com.jonesl7l.carinfg.core.database.entity.incident.IncidentEntity
+import com.jonesl7l.carinfg.core.database.entity.incident.IncidentListRow
 import com.jonesl7l.carinfg.core.database.entity.incident.IncidentWithPhotos
 import com.jonesl7l.carinfg.core.database.entity.photo.PhotoEntity
 import com.jonesl7l.carinfg.core.domain.model.sync.ConflictReason
@@ -97,4 +98,13 @@ interface IncidentDao {
         id: String,
         error: String,
     )
+
+    // pending deletes are hidden: the row collapses while the undo snackbar shows
+    @Query(
+        "SELECT i.id, i.title, i.referenceNumber, i.reporterId, i.status, i.severity, i.syncState, " +
+            "i.syncAttempts, i.occurredAt, i.localUpdatedAt, s.name AS siteName, b.name AS buildingName " +
+            "FROM incidents i LEFT JOIN sites s ON s.id = i.siteId LEFT JOIN buildings b ON b.id = i.buildingId " +
+            "WHERE i.syncState != 'PENDING_DELETE'",
+    )
+    fun observeIncidentList(): Flow<List<IncidentListRow>>
 }

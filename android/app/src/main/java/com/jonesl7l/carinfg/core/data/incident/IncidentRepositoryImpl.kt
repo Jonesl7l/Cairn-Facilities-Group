@@ -8,6 +8,7 @@ import com.jonesl7l.carinfg.core.database.AppDatabase
 import com.jonesl7l.carinfg.core.database.dao.IncidentDao
 import com.jonesl7l.carinfg.core.database.entity.incident.IncidentEntity
 import com.jonesl7l.carinfg.core.domain.model.incident.Incident
+import com.jonesl7l.carinfg.core.domain.model.incident.IncidentListItem
 import com.jonesl7l.carinfg.core.domain.model.sync.SyncState
 import com.jonesl7l.carinfg.core.domain.policy.IncidentPolicyHelper
 import com.jonesl7l.carinfg.core.domain.validation.IncidentValidator
@@ -29,6 +30,10 @@ class IncidentRepositoryImpl @Inject constructor(
     override fun observeIncident(id: String): Flow<Incident?> = incidentDao.observeIncident(id = id)
         .map { it?.toDomain() }
         .distinctUntilChanged()
+
+    override fun observeIncidentList(): Flow<List<IncidentListItem>> = incidentDao
+        .observeIncidentList()
+        .map { rows -> rows.map { it.toDomain() } }
 
     override suspend fun saveDraft(
         incident: Incident,

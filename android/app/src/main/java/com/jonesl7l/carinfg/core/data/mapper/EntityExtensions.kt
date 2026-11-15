@@ -2,6 +2,7 @@ package com.jonesl7l.carinfg.core.data.mapper
 
 import com.jonesl7l.carinfg.core.database.entity.incident.GpsLocationColumns
 import com.jonesl7l.carinfg.core.database.entity.incident.IncidentEntity
+import com.jonesl7l.carinfg.core.database.entity.incident.IncidentListRow
 import com.jonesl7l.carinfg.core.database.entity.incident.IncidentWithPhotos
 import com.jonesl7l.carinfg.core.database.entity.incident.InjuryColumn
 import com.jonesl7l.carinfg.core.database.entity.incident.PersonColumn
@@ -14,6 +15,7 @@ import com.jonesl7l.carinfg.core.database.entity.reference.SiteEntity
 import com.jonesl7l.carinfg.core.domain.model.incident.GpsLocation
 import com.jonesl7l.carinfg.core.domain.model.incident.Incident
 import com.jonesl7l.carinfg.core.domain.model.incident.IncidentDetails
+import com.jonesl7l.carinfg.core.domain.model.incident.IncidentListItem
 import com.jonesl7l.carinfg.core.domain.model.incident.IncidentLocation
 import com.jonesl7l.carinfg.core.domain.model.incident.IncidentSafety
 import com.jonesl7l.carinfg.core.domain.model.incident.OperatorFields
@@ -169,6 +171,23 @@ fun IncidentEntity.toDeleteRequest(): DeleteIncidentRequest? {
         deletedBy = deletedBy,
     )
 }
+// endregion
+
+// region IncidentListRow
+fun IncidentListRow.toDomain() = IncidentListItem(
+    id = id,
+    title = title,
+    referenceNumber = referenceNumber,
+    reporterId = reporterId,
+    status = WireValueMapper.toIncidentStatus(raw = status),
+    severity = severity?.let(WireValueMapper::toSeverity),
+    syncState = syncState,
+    syncAttempts = syncAttempts,
+    occurredAt = occurredAt,
+    localUpdatedAt = localUpdatedAt,
+    siteName = siteName,
+    buildingName = buildingName,
+)
 // endregion
 
 // region GpsLocationColumns
