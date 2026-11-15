@@ -7,6 +7,7 @@ import androidx.room3.Upsert
 import com.jonesl7l.carinfg.core.database.entity.incident.IncidentEntity
 import com.jonesl7l.carinfg.core.database.entity.incident.IncidentWithPhotos
 import com.jonesl7l.carinfg.core.database.entity.photo.PhotoEntity
+import com.jonesl7l.carinfg.core.domain.model.sync.ConflictReason
 import kotlin.time.Instant
 import kotlinx.coroutines.flow.Flow
 
@@ -58,5 +59,42 @@ interface IncidentDao {
         userId: String,
         closedStatuses: List<String>,
         updatedBefore: Instant,
+    )
+
+    @Transaction
+    @Query(
+        "SELECT * FROM incidents WHERE syncState IN ('PENDING_CREATE', 'PENDING_UPDATE') " +
+            "OR (syncState = 'PENDING_DELETE' AND (undoDeadline IS NULL OR undoDeadline <= :now)) " +
+            "ORDER BY localUpdatedAt",
+    )
+    suspend fun getPendingIncidents(now: Instant): List<IncidentWithPhotos>
+
+    @Query("UPDATE photos SET remoteUrl = :remoteUrl, uploadState = 'UPLOADED' WHERE id = :photoId")
+    suspend fun markPhotoUploaded(
+        photoId: String,
+        remoteUrl: String,
+    )
+
+    @Query("DELETE FROM incidents WHERE id = :id AND localRevision = :basedOnRevision")
+    suspend fun deleteIfUnchanged(
+        id: String,
+        basedOnRevision: Long,
+    ): Int
+
+    @Query(
+        "UPDATE incidents SET syncState = 'NEEDS_ATTENTION', conflictReason = :reason, lastSyncError = :error " +
+            "WHERE id = :id AND localRevision = :basedOnRevision",
+    )
+    suspend fun markNeedsAttentionIfUnchanged(
+        id: String,
+        reason: ConflictReason,
+        error: String,
+        basedOnRevision: Long,
+    ): Int
+
+    @Query("UPDATE incidents SET syncAttempts = syncAttempts + 1, lastSyncError = :error WHERE id = :id")
+    suspend fun recordSyncFailure(
+        id: String,
+        error: String,
     )
 }
