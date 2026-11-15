@@ -9,6 +9,8 @@ import com.jonesl7l.carinfg.core.data.incident.IncidentRepository
 import com.jonesl7l.carinfg.core.data.incident.IncidentRepositoryImpl
 import com.jonesl7l.carinfg.core.data.session.DataStoreSessionStore
 import com.jonesl7l.carinfg.core.data.session.SessionStore
+import com.jonesl7l.carinfg.core.sync.SyncScheduler
+import com.jonesl7l.carinfg.core.sync.WorkManagerSyncScheduler
 import com.jonesl7l.carinfg.core.sync.store.RoomSyncLocalStore
 import com.jonesl7l.carinfg.core.sync.store.SyncLocalStore
 import dagger.Binds
@@ -30,6 +32,9 @@ abstract class DataModule {
 
     @Binds
     abstract fun bindSyncLocalStore(impl: RoomSyncLocalStore): SyncLocalStore
+
+    @Binds
+    abstract fun bindSyncScheduler(impl: WorkManagerSyncScheduler): SyncScheduler
 
     companion object {
         private const val PREFERENCES_FILE_NAME = "carinfg"
