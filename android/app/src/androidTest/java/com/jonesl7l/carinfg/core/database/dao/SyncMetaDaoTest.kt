@@ -8,7 +8,6 @@ import com.jonesl7l.carinfg.core.database.AppDatabase
 import com.jonesl7l.carinfg.core.database.DatabaseTestHelper.inMemoryDatabase
 import com.jonesl7l.carinfg.core.database.DatabaseTestHelper.syncMetaEntity
 import com.jonesl7l.carinfg.core.database.entity.sync.SyncMetaEntity
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Test
@@ -27,7 +26,6 @@ class SyncMetaDaoTest {
     @Test
     fun isNullBeforeTheFirstWrite() = runTest {
         assertThat(dao.get()).isNull()
-        assertThat(dao.observe().first()).isNull()
     }
 
     @Test
@@ -38,7 +36,6 @@ class SyncMetaDaoTest {
         dao.upsert(meta = next)
 
         assertThat(dao.get()).isEqualTo(next)
-        assertThat(dao.observe().first()).isEqualTo(next)
     }
 
     @Test

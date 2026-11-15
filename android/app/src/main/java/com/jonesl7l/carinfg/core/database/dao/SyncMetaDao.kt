@@ -5,13 +5,9 @@ import androidx.room3.Query
 import androidx.room3.Transaction
 import androidx.room3.Upsert
 import com.jonesl7l.carinfg.core.database.entity.sync.SyncMetaEntity
-import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface SyncMetaDao {
-    @Query("SELECT * FROM sync_meta LIMIT 1")
-    fun observe(): Flow<SyncMetaEntity?>
-
     @Query("SELECT * FROM sync_meta LIMIT 1")
     suspend fun get(): SyncMetaEntity?
 
