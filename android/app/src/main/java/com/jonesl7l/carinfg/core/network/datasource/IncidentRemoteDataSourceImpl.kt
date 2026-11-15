@@ -1,6 +1,7 @@
 package com.jonesl7l.carinfg.core.network.datasource
 
 import com.jonesl7l.carinfg.core.network.api.IncidentApi
+import com.jonesl7l.carinfg.core.network.dto.incident.DeleteIncidentRequest
 import com.jonesl7l.carinfg.core.network.dto.incident.IncidentDto
 import com.jonesl7l.carinfg.core.network.dto.incident.IncidentWriteRequest
 import com.jonesl7l.carinfg.core.network.http.HttpHeaders
@@ -39,6 +40,20 @@ class IncidentRemoteDataSourceImpl @Inject constructor(
     ): ApiResult<IncidentDto> = apiCallHandler.execute(
         call = {
             api.updateIncident(
+                id = id,
+                ifMatch = entityTag(version = version),
+                request = request,
+            )
+        },
+    )
+
+    override suspend fun deleteIncident(
+        id: String,
+        version: Int,
+        request: DeleteIncidentRequest,
+    ): ApiResult<IncidentDto> = apiCallHandler.execute(
+        call = {
+            api.deleteIncident(
                 id = id,
                 ifMatch = entityTag(version = version),
                 request = request,

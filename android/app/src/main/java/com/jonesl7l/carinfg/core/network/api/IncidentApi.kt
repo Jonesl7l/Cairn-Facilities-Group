@@ -1,5 +1,6 @@
 package com.jonesl7l.carinfg.core.network.api
 
+import com.jonesl7l.carinfg.core.network.dto.incident.DeleteIncidentRequest
 import com.jonesl7l.carinfg.core.network.dto.incident.IncidentDto
 import com.jonesl7l.carinfg.core.network.dto.incident.IncidentWriteRequest
 import com.jonesl7l.carinfg.core.network.http.HttpHeaders
@@ -32,5 +33,12 @@ interface IncidentApi {
         @Path("id") id: String,
         @Header(HttpHeaders.IF_MATCH) ifMatch: String,
         @Body request: IncidentWriteRequest,
+    ): Response<IncidentDto>
+
+    @PATCH("incidents/{id}")
+    suspend fun deleteIncident(
+        @Path("id") id: String,
+        @Header(HttpHeaders.IF_MATCH) ifMatch: String,
+        @Body request: DeleteIncidentRequest,
     ): Response<IncidentDto>
 }

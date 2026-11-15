@@ -1,6 +1,7 @@
 package com.jonesl7l.carinfg.core.network
 
 import com.jonesl7l.carinfg.core.di.NetworkModule
+import com.jonesl7l.carinfg.core.network.dto.incident.DeleteIncidentRequest
 import com.jonesl7l.carinfg.core.network.dto.incident.GpsLocationDto
 import com.jonesl7l.carinfg.core.network.dto.incident.IncidentDto
 import com.jonesl7l.carinfg.core.network.dto.incident.IncidentWriteRequest
@@ -261,6 +262,14 @@ object ApiTestHelper {
         persons = persons,
         photos = photos,
         additionalNotes = additionalNotes,
+    )
+
+    fun deleteIncidentRequest(
+        deletedAt: Instant = now,
+        deletedBy: String = REPORTER_ID,
+    ) = DeleteIncidentRequest(
+        deletedAt = deletedAt,
+        deletedBy = deletedBy,
     )
 
     fun gpsLocationDto(

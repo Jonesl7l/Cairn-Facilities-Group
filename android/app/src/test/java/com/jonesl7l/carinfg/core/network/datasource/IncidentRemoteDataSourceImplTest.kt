@@ -7,7 +7,9 @@ import assertk.assertions.isInstanceOf
 import assertk.assertions.prop
 import com.jonesl7l.carinfg.core.network.ApiTestHelper.DATABASE_ID
 import com.jonesl7l.carinfg.core.network.ApiTestHelper.INCIDENT_ID
+import com.jonesl7l.carinfg.core.network.ApiTestHelper.REPORTER_ID
 import com.jonesl7l.carinfg.core.network.ApiTestHelper.apiCallHandler
+import com.jonesl7l.carinfg.core.network.ApiTestHelper.deleteIncidentRequest
 import com.jonesl7l.carinfg.core.network.ApiTestHelper.incidentDto
 import com.jonesl7l.carinfg.core.network.ApiTestHelper.incidentWriteRequest
 import com.jonesl7l.carinfg.core.network.ApiTestHelper.json
@@ -409,6 +411,77 @@ class IncidentRemoteDataSourceImplTest {
                     id = INCIDENT_ID,
                     version = 3,
                     request = incidentWriteRequest(),
+                )
+
+            assertThat(result).isEqualTo(ApiResult.Failure(error = expected))
+        }
+    }
+
+    @Test
+    fun `deleteIncident patches only the deletion fields with a quoted If-Match`() = runTest {
+        val request = deleteIncidentRequest()
+        val tombstone =
+            incidentDto(
+                version = 4,
+                deletedAt = now,
+                deletedBy = REPORTER_ID,
+            )
+        server.enqueue(jsonResponse(body = json.encodeToString(tombstone)))
+
+        val result =
+            dataSource.deleteIncident(
+                id = INCIDENT_ID,
+                version = 3,
+                request = request,
+            )
+
+        assertThat(result).isEqualTo(ApiResult.Success(value = tombstone))
+        val recorded = server.takeRequest()
+        assertThat(recorded.method).isEqualTo("PATCH")
+        assertThat(recorded.url.encodedPath).isEqualTo("/incidents/$INCIDENT_ID")
+        assertThat(recorded.headers[HttpHeaders.IF_MATCH]).isEqualTo("\"3\"")
+        val body = json.parseToJsonElement(recorded.body!!.utf8()).jsonObject
+        assertThat(body).isEqualTo(json.encodeToJsonElement(request).jsonObject)
+        assertThat(body.keys).isEqualTo(setOf("deletedAt", "deletedBy"))
+    }
+
+    @Test
+    fun `deleteIncident maps conflict, already deleted and status lock`() = runTest {
+        val current = incidentDto(version = 5)
+        val cases =
+            listOf(
+                problemDetailsDto(
+                    status = HttpStatus.PRECONDITION_FAILED,
+                    current = current,
+                ) to ApiError.VersionConflict(current = current),
+                problemDetailsDto(
+                    status = HttpStatus.GONE,
+                    deletedAt = now,
+                    deletedBy = "operator1",
+                    referenceNumber = "INC-2026-00001",
+                ) to ApiError.IncidentDeleted(
+                    deletedAt = now,
+                    deletedBy = "operator1",
+                    referenceNumber = "INC-2026-00001",
+                ),
+                problemDetailsDto(
+                    status = HttpStatus.CONFLICT,
+                    currentStatus = "ASSIGNED",
+                ) to ApiError.StatusLocked(currentStatus = "ASSIGNED"),
+            )
+        cases.forEach { (problem, expected) ->
+            server.enqueue(
+                jsonResponse(
+                    code = problem.status!!,
+                    body = problemJson(problem = problem),
+                ),
+            )
+
+            val result =
+                dataSource.deleteIncident(
+                    id = INCIDENT_ID,
+                    version = 3,
+                    request = deleteIncidentRequest(),
                 )
 
             assertThat(result).isEqualTo(ApiResult.Failure(error = expected))
