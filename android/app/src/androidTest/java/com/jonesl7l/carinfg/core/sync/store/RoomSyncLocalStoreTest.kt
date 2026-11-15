@@ -46,7 +46,7 @@ class RoomSyncLocalStoreTest {
 
     @Test
     fun syncMetaIsTheInitialRowUntilWritten() = runTest {
-        assertThat(store.getSyncMeta()).isEqualTo(SyncMetaEntity.initial)
+        assertThat(store.getSyncMeta()).isEqualTo(SyncMetaEntity())
     }
 
     @Test
@@ -193,7 +193,7 @@ class RoomSyncLocalStoreTest {
 
         assertThat(incidentDao.getIncident(id = "synced")).isNull()
         assertThat(incidentDao.getIncident(id = "pending")).isNotNull()
-        assertThat(store.getSyncMeta()).isEqualTo(SyncMetaEntity.initial.copy(databaseId = "db-2"))
+        assertThat(store.getSyncMeta()).isEqualTo(SyncMetaEntity(databaseId = "db-2"))
     }
 
     @Test

@@ -17,7 +17,7 @@ interface SyncMetaDao {
     // read-then-write in a transaction: API 29's SQLite has no ON CONFLICT DO UPDATE
     @Transaction
     suspend fun raiseAnnouncedChangeSeq(changeSeq: Long) {
-        val current = get() ?: SyncMetaEntity.initial
+        val current = get() ?: SyncMetaEntity()
         if (changeSeq > current.announcedChangeSeq) {
             upsert(meta = current.copy(announcedChangeSeq = changeSeq))
         }

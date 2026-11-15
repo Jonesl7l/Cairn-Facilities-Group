@@ -45,7 +45,7 @@ class SyncMetaDaoTest {
     fun raiseAnnouncedChangeSeqStartsFromTheInitialRowWhenEmpty() = runTest {
         dao.raiseAnnouncedChangeSeq(changeSeq = 5)
 
-        assertThat(dao.get()).isEqualTo(SyncMetaEntity.initial.copy(announcedChangeSeq = 5))
+        assertThat(dao.get()).isEqualTo(SyncMetaEntity(announcedChangeSeq = 5))
     }
 
     @Test

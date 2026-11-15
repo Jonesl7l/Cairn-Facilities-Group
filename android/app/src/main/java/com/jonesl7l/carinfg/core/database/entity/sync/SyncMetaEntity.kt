@@ -6,18 +6,11 @@ import androidx.room3.PrimaryKey
 @Entity(tableName = "sync_meta")
 data class SyncMetaEntity(
     @PrimaryKey val id: Int = SINGLE_ROW_ID,
-    val lastChangeSeq: Long,
-    val databaseId: String?,
-    val announcedChangeSeq: Long,
+    val lastChangeSeq: Long = 0,
+    val databaseId: String? = null,
+    val announcedChangeSeq: Long = 0,
 ) {
     companion object {
         const val SINGLE_ROW_ID = 0
-
-        val initial =
-            SyncMetaEntity(
-                lastChangeSeq = 0,
-                databaseId = null,
-                announcedChangeSeq = 0,
-            )
     }
 }

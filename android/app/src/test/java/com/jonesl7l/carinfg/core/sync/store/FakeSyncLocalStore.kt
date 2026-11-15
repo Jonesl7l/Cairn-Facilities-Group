@@ -14,12 +14,12 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 
 class FakeSyncLocalStore : SyncLocalStore {
-    var meta = SyncMetaEntity.initial
+    var meta = SyncMetaEntity()
     val incidents = mutableMapOf<String, IncidentWithPhotos>()
     val resets = mutableListOf<String>()
     val prunes = mutableListOf<Pair<String, Instant>>()
     val failures = mutableListOf<Pair<String, String>>()
-    val syncCounts = MutableStateFlow(SyncCounts.none)
+    val syncCounts = MutableStateFlow(SyncCounts())
 
     override suspend fun getSyncMeta(): SyncMetaEntity = meta
 
@@ -51,7 +51,7 @@ class FakeSyncLocalStore : SyncLocalStore {
 
     override suspend fun resetForNewDatabase(databaseId: String) {
         resets += databaseId
-        meta = SyncMetaEntity.initial.copy(databaseId = databaseId)
+        meta = SyncMetaEntity(databaseId = databaseId)
     }
 
     override suspend fun raiseAnnouncedChangeSeq(changeSeq: Long) {

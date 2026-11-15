@@ -21,7 +21,7 @@ class RoomSyncLocalStore @Inject constructor(
     private val incidentDao: IncidentDao,
     private val syncMetaDao: SyncMetaDao,
 ) : SyncLocalStore {
-    override suspend fun getSyncMeta(): SyncMetaEntity = syncMetaDao.get() ?: SyncMetaEntity.initial
+    override suspend fun getSyncMeta(): SyncMetaEntity = syncMetaDao.get() ?: SyncMetaEntity()
 
     override fun observeSyncCounts(): Flow<SyncCounts> = incidentDao.observeSyncCounts()
 
@@ -41,7 +41,7 @@ class RoomSyncLocalStore @Inject constructor(
     override suspend fun resetForNewDatabase(databaseId: String) {
         database.withWriteTransaction {
             incidentDao.deleteSynced()
-            syncMetaDao.upsert(meta = SyncMetaEntity.initial.copy(databaseId = databaseId))
+            syncMetaDao.upsert(meta = SyncMetaEntity(databaseId = databaseId))
         }
     }
 
