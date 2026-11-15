@@ -1,6 +1,8 @@
 package com.jonesl7l.carinfg
 
 import android.app.Application
+import androidx.hilt.work.HiltWorkerFactory
+import androidx.work.Configuration
 import com.jonesl7l.carinfg.core.data.reference.ReferenceDataInitializer
 import com.jonesl7l.carinfg.core.di.ApplicationScope
 import dagger.hilt.android.HiltAndroidApp
@@ -10,9 +12,14 @@ import kotlinx.coroutines.launch
 import timber.log.Timber
 
 @HiltAndroidApp
-class CarinfgApp : Application() {
+class CarinfgApp :
+    Application(),
+    Configuration.Provider {
     @Inject
     lateinit var referenceDataInitializer: ReferenceDataInitializer
+
+    @Inject
+    lateinit var workerFactory: HiltWorkerFactory
 
     @Inject
     @field:ApplicationScope
@@ -23,4 +30,7 @@ class CarinfgApp : Application() {
         if (BuildConfig.DEBUG) Timber.plant(Timber.DebugTree())
         applicationScope.launch { referenceDataInitializer.initialize() }
     }
+
+    override val workManagerConfiguration: Configuration
+        get() = Configuration.Builder().setWorkerFactory(workerFactory).build()
 }
