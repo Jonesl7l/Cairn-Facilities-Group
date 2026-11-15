@@ -53,4 +53,11 @@
     <string name="time_edited">Edited %1$s</string>
     <string name="joined_with_dot">%1$s · %2$s</string>
     <string name="location_joined">%1$s, %2$s</string>
+    <string name="status_online">Online</string>
+    <string name="status_offline">Offline</string>
+    <string name="status_up_to_date">Sync: up to date</string>
+    <string name="status_syncing">Syncing</string>
+    <string name="status_waiting">Sync: %1$d waiting</string>
+    <string name="status_needs_attention">%1$d need attention</string>
+    <string name="status_description">%1$s. %2$s</string>
 </resources>

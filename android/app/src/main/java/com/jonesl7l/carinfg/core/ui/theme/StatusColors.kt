@@ -5,6 +5,7 @@ import androidx.compose.ui.graphics.Color
 
 @Immutable
 data class StatusColors(
+    val upToDate: Color,
     val severityLow: Color,
     val severityMedium: Color,
     val severityHigh: Color,

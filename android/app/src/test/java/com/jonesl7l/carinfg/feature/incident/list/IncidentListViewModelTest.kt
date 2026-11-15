@@ -4,6 +4,7 @@ import assertk.assertThat
 import assertk.assertions.containsExactly
 import assertk.assertions.isEqualTo
 import assertk.assertions.isFalse
+import assertk.assertions.isTrue
 import com.jonesl7l.carinfg.MainDispatcherRule
 import com.jonesl7l.carinfg.core.data.incident.FakeIncidentRepository
 import com.jonesl7l.carinfg.core.data.preferences.FakeUserPreferencesStore
@@ -15,10 +16,15 @@ import com.jonesl7l.carinfg.core.domain.model.incident.Severity
 import com.jonesl7l.carinfg.core.domain.model.sync.SyncState
 import com.jonesl7l.carinfg.core.domain.model.user.User
 import com.jonesl7l.carinfg.core.domain.model.user.UserRole
+import com.jonesl7l.carinfg.core.network.connectivity.FakeNetworkMonitor
 import com.jonesl7l.carinfg.core.sync.FakeSyncScheduler
+import com.jonesl7l.carinfg.core.sync.status.SyncStatusProvider
+import com.jonesl7l.carinfg.core.sync.store.FakeSyncLocalStore
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Instant
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import org.junit.Rule
 import org.junit.Test
@@ -36,6 +42,12 @@ class IncidentListViewModelTest {
             sessionStore = FakeSessionStore(initial = technician),
             userPreferencesStore = preferences,
             syncScheduler = scheduler,
+            syncStatusProvider =
+                SyncStatusProvider(
+                    syncLocalStore = FakeSyncLocalStore(),
+                    syncScheduler = scheduler,
+                    networkMonitor = FakeNetworkMonitor(),
+                ),
         )
     }
 
@@ -112,13 +124,34 @@ class IncidentListViewModelTest {
     }
 
     @Test
+    fun `tapping the status asks for a sync`() = runTest {
+        latest()
+
+        viewModel.onSyncStatusClick()
+
+        assertThat(scheduler.syncRequests).isEqualTo(1)
+    }
+
+    @Test
+    fun `while syncing the list is refreshing and tapping the status does nothing`() = runTest {
+        scheduler.isSyncing.value = true
+
+        assertThat(latest().isRefreshing).isTrue()
+        viewModel.onSyncStatusClick()
+        assertThat(scheduler.syncRequests).isEqualTo(0)
+    }
+
+    @Test
     fun `pulling to refresh asks for a sync`() {
         viewModel.onRefresh()
 
         assertThat(scheduler.syncRequests).isEqualTo(1)
     }
 
-    private suspend fun latest(): IncidentListUiState = viewModel.uiState.first { !it.isLoading }
+    private suspend fun TestScope.latest(): IncidentListUiState {
+        backgroundScope.launch { viewModel.uiState.collect {} }
+        return viewModel.uiState.first { !it.isLoading }
+    }
 
     private fun item(
         id: String,

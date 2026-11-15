@@ -51,6 +51,7 @@ private val darkColors =
 
 private val lightStatusColors =
     StatusColors(
+        upToDate = Color(0xFF166534),
         severityLow = Color(0xFF374151),
         severityMedium = Color(0xFF854D0E),
         severityHigh = Color(0xFF9A3412),
@@ -68,6 +69,7 @@ private val lightStatusColors =
 
 private val darkStatusColors =
     StatusColors(
+        upToDate = Color(0xFF86EFAC),
         severityLow = Color(0xFFC4C9D2),
         severityMedium = Color(0xFFFCD34D),
         severityHigh = Color(0xFFFDBA74),

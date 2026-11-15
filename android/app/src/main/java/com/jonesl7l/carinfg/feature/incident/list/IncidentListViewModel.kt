@@ -8,6 +8,7 @@ import com.jonesl7l.carinfg.core.data.session.SessionStore
 import com.jonesl7l.carinfg.core.domain.model.incident.IncidentSort
 import com.jonesl7l.carinfg.core.domain.model.user.User
 import com.jonesl7l.carinfg.core.sync.SyncScheduler
+import com.jonesl7l.carinfg.core.sync.status.SyncStatusProvider
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlin.time.Duration.Companion.seconds
@@ -25,6 +26,7 @@ class IncidentListViewModel @Inject constructor(
     sessionStore: SessionStore,
     private val userPreferencesStore: UserPreferencesStore,
     private val syncScheduler: SyncScheduler,
+    syncStatusProvider: SyncStatusProvider,
 ) : ViewModel() {
     private val scope = MutableStateFlow(IncidentScope.MINE)
     private val statusFilter = MutableStateFlow(StatusFilter.ALL)
@@ -53,11 +55,12 @@ class IncidentListViewModel @Inject constructor(
                         sort = sort,
                     ),
             )
-        }.stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(stopTimeout = stopTimeout),
-            initialValue = IncidentListUiState(),
-        )
+        }.combine(syncStatusProvider.status) { state, syncStatus -> state.copy(syncStatus = syncStatus) }
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(stopTimeout = stopTimeout),
+                initialValue = IncidentListUiState(),
+            )
 
     fun onScopeChange(scope: IncidentScope) {
         this.scope.value = scope
@@ -72,6 +75,11 @@ class IncidentListViewModel @Inject constructor(
     }
 
     fun onRefresh() {
+        syncScheduler.requestSync()
+    }
+
+    fun onSyncStatusClick() {
+        if (uiState.value.isRefreshing) return
         syncScheduler.requestSync()
     }
 

@@ -94,6 +94,7 @@ fun IncidentListScreen(
         onStatusFilterChange = viewModel::onStatusFilterChange,
         onSortChange = viewModel::onSortChange,
         onRefresh = viewModel::onRefresh,
+        onSyncStatusClick = viewModel::onSyncStatusClick,
         onOpenIncident = onOpenIncident,
         onReportIncident = onReportIncident,
     )
@@ -107,6 +108,7 @@ fun IncidentListContent(
     onStatusFilterChange: (StatusFilter) -> Unit,
     onSortChange: (IncidentSort) -> Unit,
     onRefresh: () -> Unit,
+    onSyncStatusClick: () -> Unit,
     onOpenIncident: (String) -> Unit,
     onReportIncident: () -> Unit,
     modifier: Modifier = Modifier,
@@ -128,6 +130,10 @@ fun IncidentListContent(
                     )
                 },
                 actions = {
+                    SyncStatusPill(
+                        status = uiState.syncStatus,
+                        onClick = onSyncStatusClick,
+                    )
                     SortMenu(
                         sort = uiState.sort,
                         onSortChange = onSortChange,
@@ -155,7 +161,7 @@ fun IncidentListContent(
         containerColor = MaterialTheme.colorScheme.background,
     ) { innerPadding ->
         PullToRefreshBox(
-            isRefreshing = false,
+            isRefreshing = uiState.isRefreshing,
             onRefresh = onRefresh,
             modifier =
                 Modifier
