@@ -1,3 +1,4 @@
+import java.util.Properties
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
@@ -10,6 +11,11 @@ plugins {
     alias(buildLibs.plugins.ktlint)
     alias(buildLibs.plugins.kover)
 }
+
+val releaseKey: Properties? =
+    rootProject.file("keystore.properties").takeIf { it.isFile }?.let { file ->
+        Properties().apply { file.inputStream().use { load(it) } }
+    }
 
 android {
     namespace = "com.jonesl7l.carinfg"
@@ -29,11 +35,24 @@ android {
         buildConfigField("String", "DEFAULT_BASE_URL", "\"http://10.0.2.2:3000/\"")
     }
 
+    signingConfigs {
+        if (releaseKey != null) {
+            create("release") {
+                storeFile = file(releaseKey.getProperty("storeFile"))
+                storePassword = releaseKey.getProperty("storePassword")
+                keyAlias = releaseKey.getProperty("keyAlias")
+                keyPassword = releaseKey.getProperty("keyPassword")
+            }
+        }
+    }
+
     buildTypes {
         release {
+            isDebuggable = false
             optimization {
                 enable = false
             }
+            signingConfig = signingConfigs.getByName(if (releaseKey != null) "release" else "debug")
         }
     }
 

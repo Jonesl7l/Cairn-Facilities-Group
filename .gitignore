@@ -38,3 +38,8 @@ dashboard/next-env.d.ts
 node_modules/
 npm-debug.log*
 .env*.local
+
+# Release signing (local only)
+keystore.properties
+*.jks
+*.keystore
