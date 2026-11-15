@@ -7,6 +7,8 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStoreFile
 import com.jonesl7l.carinfg.core.data.incident.IncidentRepository
 import com.jonesl7l.carinfg.core.data.incident.IncidentRepositoryImpl
+import com.jonesl7l.carinfg.core.data.preferences.DataStoreUserPreferencesStore
+import com.jonesl7l.carinfg.core.data.preferences.UserPreferencesStore
 import com.jonesl7l.carinfg.core.data.session.DataStoreSessionStore
 import com.jonesl7l.carinfg.core.data.session.SessionStore
 import com.jonesl7l.carinfg.core.sync.SyncScheduler
@@ -26,6 +28,9 @@ import javax.inject.Singleton
 abstract class DataModule {
     @Binds
     abstract fun bindSessionStore(impl: DataStoreSessionStore): SessionStore
+
+    @Binds
+    abstract fun bindUserPreferencesStore(impl: DataStoreUserPreferencesStore): UserPreferencesStore
 
     @Binds
     abstract fun bindIncidentRepository(impl: IncidentRepositoryImpl): IncidentRepository
