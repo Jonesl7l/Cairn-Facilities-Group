@@ -50,28 +50,40 @@ class PushErrorHelperTest {
 
     @Test
     fun `a 410 needs attention as deleted remotely`() {
-        val action = decide(error = incidentDeleted, operation = PushOperation.UPDATE)
+        val action = decide(
+            error = incidentDeleted,
+            operation = PushOperation.UPDATE,
+        )
 
         assertThat(action).isEqualTo(PushErrorAction.NeedsAttention(reason = ConflictReason.DELETED_REMOTELY))
     }
 
     @Test
     fun `a 410 on a delete removes the incident locally`() {
-        val action = decide(error = incidentDeleted, operation = PushOperation.DELETE)
+        val action = decide(
+            error = incidentDeleted,
+            operation = PushOperation.DELETE,
+        )
 
         assertThat(action).isEqualTo(PushErrorAction.RemoveLocally)
     }
 
     @Test
     fun `a 404 on an update submits it again as a new report`() {
-        val action = decide(error = ApiError.NotFound, operation = PushOperation.UPDATE)
+        val action = decide(
+            error = ApiError.NotFound,
+            operation = PushOperation.UPDATE,
+        )
 
         assertThat(action).isEqualTo(PushErrorAction.ResubmitAsCreate)
     }
 
     @Test
     fun `a 404 on a delete removes the incident locally`() {
-        val action = decide(error = ApiError.NotFound, operation = PushOperation.DELETE)
+        val action = decide(
+            error = ApiError.NotFound,
+            operation = PushOperation.DELETE,
+        )
 
         assertThat(action).isEqualTo(PushErrorAction.RemoveLocally)
     }
@@ -79,7 +91,10 @@ class PushErrorHelperTest {
     @Test
     fun `a 404 on a create or a photo upload is recorded as a failure`() {
         listOf(PushOperation.CREATE, PushOperation.PHOTO_UPLOAD).forEach { operation ->
-            val action = decide(error = ApiError.NotFound, operation = operation)
+            val action = decide(
+                error = ApiError.NotFound,
+                operation = operation,
+            )
 
             assertThat(action).isEqualTo(PushErrorAction.RecordFailure)
         }

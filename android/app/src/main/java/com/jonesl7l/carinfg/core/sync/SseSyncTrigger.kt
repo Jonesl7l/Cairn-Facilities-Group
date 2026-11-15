@@ -49,7 +49,10 @@ class SseSyncTrigger @Inject constructor(
     }
 
     private suspend fun followSession() {
-        combine(sessionStore.session, sessionStore.isSessionExpired) { user, isExpired -> user != null && !isExpired }
+        combine(
+            sessionStore.session,
+            sessionStore.isSessionExpired,
+        ) { user, isExpired -> user != null && !isExpired }
             .distinctUntilChanged()
             .collectLatest { canConnect -> if (canConnect) connectWithRetry() }
     }

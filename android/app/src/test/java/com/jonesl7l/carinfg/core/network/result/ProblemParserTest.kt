@@ -46,24 +46,43 @@ class ProblemParserTest {
     fun `a missing or non problem body still maps by status`() {
         assertThat(parser.parse(response = errorResponse(status = HttpStatus.INTERNAL_SERVER_ERROR)))
             .isEqualTo(ApiError.Server(status = HttpStatus.INTERNAL_SERVER_ERROR))
-        assertThat(parser.parse(response = errorResponse(status = HttpStatus.FORBIDDEN, body = "<html>no</html>")))
+        assertThat(
+            parser.parse(
+                response = errorResponse(
+                    status = HttpStatus.FORBIDDEN,
+                    body = "<html>no</html>",
+                ),
+            ),
+        )
             .isEqualTo(ApiError.Forbidden)
     }
 
     @Test
     fun `401 with the invalid credentials code is a login failure`() {
-        val problem = problemDetailsDto(status = HttpStatus.UNAUTHORIZED, code = "INVALID_CREDENTIALS")
+        val problem = problemDetailsDto(
+            status = HttpStatus.UNAUTHORIZED,
+            code = "INVALID_CREDENTIALS",
+        )
 
-        val response = errorResponse(status = HttpStatus.UNAUTHORIZED, body = problemJson(problem = problem))
+        val response = errorResponse(
+            status = HttpStatus.UNAUTHORIZED,
+            body = problemJson(problem = problem),
+        )
 
         assertThat(parser.parse(response = response)).isEqualTo(ApiError.InvalidCredentials)
     }
 
     @Test
     fun `409 carries the current status`() {
-        val problem = problemDetailsDto(status = HttpStatus.CONFLICT, currentStatus = "IN_PROGRESS")
+        val problem = problemDetailsDto(
+            status = HttpStatus.CONFLICT,
+            currentStatus = "IN_PROGRESS",
+        )
 
-        val response = errorResponse(status = HttpStatus.CONFLICT, body = problemJson(problem = problem))
+        val response = errorResponse(
+            status = HttpStatus.CONFLICT,
+            body = problemJson(problem = problem),
+        )
 
         assertThat(parser.parse(response = response)).isEqualTo(ApiError.StatusLocked(currentStatus = "IN_PROGRESS"))
     }
@@ -77,7 +96,10 @@ class ProblemParserTest {
                 current = current,
             )
 
-        val response = errorResponse(status = HttpStatus.PRECONDITION_FAILED, body = problemJson(problem = problem))
+        val response = errorResponse(
+            status = HttpStatus.PRECONDITION_FAILED,
+            body = problemJson(problem = problem),
+        )
 
         assertThat(parser.parse(response = response)).isEqualTo(ApiError.VersionConflict(current = current))
     }
@@ -91,7 +113,10 @@ class ProblemParserTest {
             referenceNumber = "INC-2026-00001",
         )
 
-        val response = errorResponse(status = HttpStatus.GONE, body = problemJson(problem = problem))
+        val response = errorResponse(
+            status = HttpStatus.GONE,
+            body = problemJson(problem = problem),
+        )
         val expected = ApiError.IncidentDeleted(
             deletedAt = now,
             deletedBy = "operator",
@@ -103,9 +128,21 @@ class ProblemParserTest {
 
     @Test
     fun `422 carries field errors, or the photo limit by code`() {
-        val fieldErrors = listOf(ProblemFieldErrorDto(field = "title", code = "TOO_SHORT", message = "Too short"))
-        val validation = problemDetailsDto(status = HttpStatus.UNPROCESSABLE_CONTENT, errors = fieldErrors)
-        val photoLimit = problemDetailsDto(status = HttpStatus.UNPROCESSABLE_CONTENT, code = "PHOTO_LIMIT_EXCEEDED")
+        val fieldErrors = listOf(
+            ProblemFieldErrorDto(
+                field = "title",
+                code = "TOO_SHORT",
+                message = "Too short",
+            ),
+        )
+        val validation = problemDetailsDto(
+            status = HttpStatus.UNPROCESSABLE_CONTENT,
+            errors = fieldErrors,
+        )
+        val photoLimit = problemDetailsDto(
+            status = HttpStatus.UNPROCESSABLE_CONTENT,
+            code = "PHOTO_LIMIT_EXCEEDED",
+        )
 
         val validationResponse = errorResponse(
             status = HttpStatus.UNPROCESSABLE_CONTENT,
@@ -124,7 +161,10 @@ class ProblemParserTest {
     @Test
     fun `503 carries retry after in seconds`() {
         val response =
-            errorResponse(status = HttpStatus.SERVICE_UNAVAILABLE, headers = mapOf(HttpHeaders.RETRY_AFTER to "30"))
+            errorResponse(
+                status = HttpStatus.SERVICE_UNAVAILABLE,
+                headers = mapOf(HttpHeaders.RETRY_AFTER to "30"),
+            )
 
         assertThat(parser.parse(response = response)).isEqualTo(ApiError.ServiceUnavailable(retryAfter = 30.seconds))
     }

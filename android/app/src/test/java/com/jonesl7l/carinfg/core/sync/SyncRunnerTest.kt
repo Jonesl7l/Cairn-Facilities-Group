@@ -153,7 +153,10 @@ class SyncRunnerTest {
 
     private fun pending(syncState: SyncState = SyncState.PENDING_CREATE) {
         val row = incidentEntity(syncState = syncState)
-        store.incidents[row.id] = IncidentWithPhotos(incident = row, photos = emptyList())
+        store.incidents[row.id] = IncidentWithPhotos(
+            incident = row,
+            photos = emptyList(),
+        )
     }
 
     private fun lastPage(incidents: List<IncidentDto> = emptyList()) = ApiResult.Success(

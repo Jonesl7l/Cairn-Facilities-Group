@@ -41,7 +41,10 @@ class PullEngine @Inject constructor(
             )
             if (page.isLastPage) break
         }
-        syncLocalStore.pruneOutOfScope(userId = userId, updatedBefore = now - PullRuleHelper.scopeWindow)
+        syncLocalStore.pruneOutOfScope(
+            userId = userId,
+            updatedBefore = now - PullRuleHelper.scopeWindow,
+        )
         return SyncRunResult.Done
     }
 

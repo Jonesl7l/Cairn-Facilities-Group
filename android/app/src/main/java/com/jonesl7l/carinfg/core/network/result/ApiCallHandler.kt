@@ -7,8 +7,10 @@ import retrofit2.Response
 import timber.log.Timber
 
 class ApiCallHandler @Inject constructor(private val problemParser: ProblemParser) {
-    suspend fun <T : Any> execute(call: suspend () -> Response<T>): ApiResult<T> =
-        execute(call = call, onSuccess = { it.body() })
+    suspend fun <T : Any> execute(call: suspend () -> Response<T>): ApiResult<T> = execute(
+        call = call,
+        onSuccess = { it.body() },
+    )
 
     suspend fun <T, R : Any> execute(
         call: suspend () -> Response<T>,

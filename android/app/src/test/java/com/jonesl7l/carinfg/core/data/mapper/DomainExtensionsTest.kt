@@ -59,7 +59,13 @@ class DomainExtensionsTest {
                 status = "ON_HOLD",
                 immediateActions = listOf("OTHER", "POWER_CUT"),
                 immediateActionsOther = "Put up signs",
-                persons = listOf(personColumn(personType = "VOLUNTEER", role = "FIRST_AIDER", injury = null)),
+                persons = listOf(
+                    personColumn(
+                        personType = "VOLUNTEER",
+                        role = "FIRST_AIDER",
+                        injury = null,
+                    ),
+                ),
             )
 
         val domain = toDomain(entity = entity)

@@ -38,39 +38,79 @@ class ReferenceRepositoryTest {
 
     @Test
     fun childListsAreFilteredByParentSortedAndMappedToTheDomain() = runTest {
-        val zebra = buildingEntity(id = "building-2", name = "Zebra House")
-        val alpha = buildingEntity(id = "building-3", name = "Alpha House")
-        val elsewhere = buildingEntity(id = "building-4", siteId = "site-2", name = "Elsewhere")
+        val zebra = buildingEntity(
+            id = "building-2",
+            name = "Zebra House",
+        )
+        val alpha = buildingEntity(
+            id = "building-3",
+            name = "Alpha House",
+        )
+        val elsewhere = buildingEntity(
+            id = "building-4",
+            siteId = "site-2",
+            name = "Elsewhere",
+        )
         dao.replaceAll(entities = referenceEntities(buildings = listOf(zebra, alpha, elsewhere)))
 
         val buildings = repository(scope = backgroundScope).observeBuildings(siteId = "site-1").first()
 
         assertThat(buildings).containsExactly(
-            Building(id = "building-3", siteId = "site-1", name = "Alpha House"),
-            Building(id = "building-2", siteId = "site-1", name = "Zebra House"),
+            Building(
+                id = "building-3",
+                siteId = "site-1",
+                name = "Alpha House",
+            ),
+            Building(
+                id = "building-2",
+                siteId = "site-1",
+                name = "Zebra House",
+            ),
         )
     }
 
     @Test
     fun aSuccessfulRefreshReplacesTheData() = runTest {
-        dao.replaceAll(entities = referenceEntities(sites = listOf(siteEntity(id = "site-old", name = "Old"))))
+        dao.replaceAll(
+            entities = referenceEntities(
+                sites = listOf(
+                    siteEntity(
+                        id = "site-old",
+                        name = "Old",
+                    ),
+                ),
+            ),
+        )
         val repository = repository(scope = backgroundScope)
 
         repository.refresh().join()
 
-        assertThat(repository.observeSites().first()).containsExactly(Site(id = "site-new", name = "New Campus"))
+        assertThat(repository.observeSites().first()).containsExactly(
+            Site(
+                id = "site-new",
+                name = "New Campus",
+            ),
+        )
     }
 
     @Test
     fun aFailedRefreshKeepsTheOldData() = runTest {
-        val old = siteEntity(id = "site-old", name = "Old")
+        val old = siteEntity(
+            id = "site-old",
+            name = "Old",
+        )
         dao.replaceAll(entities = referenceEntities(sites = listOf(old)))
         remote.result = ApiResult.Failure(error = ApiError.ServiceUnavailable(retryAfter = null))
         val repository = repository(scope = backgroundScope)
 
         repository.refresh().join()
 
-        assertThat(repository.observeSites().first()).containsExactly(Site(id = "site-old", name = "Old"))
+        assertThat(repository.observeSites().first()).containsExactly(
+            Site(
+                id = "site-old",
+                name = "Old",
+            ),
+        )
     }
 
     @Test
@@ -97,7 +137,12 @@ class ReferenceRepositoryTest {
     private companion object {
         val serverData =
             ReferenceDataDto(
-                sites = listOf(SiteDto(id = "site-new", name = "New Campus")),
+                sites = listOf(
+                    SiteDto(
+                        id = "site-new",
+                        name = "New Campus",
+                    ),
+                ),
                 buildings = emptyList(),
                 floors = emptyList(),
                 rooms = emptyList(),

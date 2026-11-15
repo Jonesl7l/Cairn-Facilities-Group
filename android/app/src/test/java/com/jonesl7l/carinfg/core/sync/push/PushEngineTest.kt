@@ -59,7 +59,12 @@ class PushEngineTest {
 
     @Test
     fun `a pending create is posted and stored as synced`() = runTest {
-        stored(row = incidentEntity(syncState = SyncState.PENDING_CREATE, serverVersion = null))
+        stored(
+            row = incidentEntity(
+                syncState = SyncState.PENDING_CREATE,
+                serverVersion = null,
+            ),
+        )
         remote.createResults += success(version = 1)
 
         val result = engine.push(now = now)
@@ -72,9 +77,24 @@ class PushEngineTest {
     @Test
     fun `pending photos are uploaded first and sent with the create`() = runTest {
         val photo =
-            photoEntity(remoteUrl = null, localPath = "photos/photo-0.jpg", uploadState = PhotoUploadState.PENDING)
-        stored(row = incidentEntity(syncState = SyncState.PENDING_CREATE, serverVersion = null), photos = listOf(photo))
-        remote.uploadResults += ApiResult.Success(value = photoDto(id = photo.id, url = "uploads/photo-0.jpg"))
+            photoEntity(
+                remoteUrl = null,
+                localPath = "photos/photo-0.jpg",
+                uploadState = PhotoUploadState.PENDING,
+            )
+        stored(
+            row = incidentEntity(
+                syncState = SyncState.PENDING_CREATE,
+                serverVersion = null,
+            ),
+            photos = listOf(photo),
+        )
+        remote.uploadResults += ApiResult.Success(
+            value = photoDto(
+                id = photo.id,
+                url = "uploads/photo-0.jpg",
+            ),
+        )
         remote.createResults += success(version = 1)
 
         engine.push(now = now)
@@ -86,8 +106,18 @@ class PushEngineTest {
     @Test
     fun `photos are not uploaded once the status no longer allows them`() = runTest {
         val photo =
-            photoEntity(remoteUrl = null, localPath = "photos/photo-0.jpg", uploadState = PhotoUploadState.PENDING)
-        stored(row = incidentEntity(syncState = SyncState.PENDING_UPDATE, status = "RESOLVED"), photos = listOf(photo))
+            photoEntity(
+                remoteUrl = null,
+                localPath = "photos/photo-0.jpg",
+                uploadState = PhotoUploadState.PENDING,
+            )
+        stored(
+            row = incidentEntity(
+                syncState = SyncState.PENDING_UPDATE,
+                status = "RESOLVED",
+            ),
+            photos = listOf(photo),
+        )
 
         engine.push(now = now)
 
@@ -97,7 +127,12 @@ class PushEngineTest {
 
     @Test
     fun `a pending update is sent with its server version`() = runTest {
-        stored(row = incidentEntity(syncState = SyncState.PENDING_UPDATE, serverVersion = 4))
+        stored(
+            row = incidentEntity(
+                syncState = SyncState.PENDING_UPDATE,
+                serverVersion = 4,
+            ),
+        )
         remote.updateResults += success(version = 5)
 
         engine.push(now = now)
@@ -108,7 +143,12 @@ class PushEngineTest {
 
     @Test
     fun `a 412 retries once with the version from the server copy`() = runTest {
-        stored(row = incidentEntity(syncState = SyncState.PENDING_UPDATE, serverVersion = 4))
+        stored(
+            row = incidentEntity(
+                syncState = SyncState.PENDING_UPDATE,
+                serverVersion = 4,
+            ),
+        )
         remote.updateResults += versionConflict(current = incidentDto(version = 7))
         remote.updateResults += success(version = 8)
 
@@ -121,7 +161,12 @@ class PushEngineTest {
 
     @Test
     fun `a 412 without a server copy fetches the incident before retrying`() = runTest {
-        stored(row = incidentEntity(syncState = SyncState.PENDING_UPDATE, serverVersion = 4))
+        stored(
+            row = incidentEntity(
+                syncState = SyncState.PENDING_UPDATE,
+                serverVersion = 4,
+            ),
+        )
         remote.updateResults += versionConflict(current = null)
         remote.incidentResults += success(version = 9)
         remote.updateResults += success(version = 10)
@@ -134,7 +179,12 @@ class PushEngineTest {
 
     @Test
     fun `a second 412 leaves the incident pending for the next pass`() = runTest {
-        stored(row = incidentEntity(syncState = SyncState.PENDING_UPDATE, serverVersion = 4))
+        stored(
+            row = incidentEntity(
+                syncState = SyncState.PENDING_UPDATE,
+                serverVersion = 4,
+            ),
+        )
         remote.updateResults += versionConflict(current = incidentDto(version = 7))
         remote.updateResults += versionConflict(current = incidentDto(version = 8))
 
@@ -147,7 +197,12 @@ class PushEngineTest {
 
     @Test
     fun `an update the status no longer allows needs attention without a call`() = runTest {
-        stored(row = incidentEntity(syncState = SyncState.PENDING_UPDATE, status = "IN_PROGRESS"))
+        stored(
+            row = incidentEntity(
+                syncState = SyncState.PENDING_UPDATE,
+                status = "IN_PROGRESS",
+            ),
+        )
 
         engine.push(now = now)
 
@@ -157,7 +212,13 @@ class PushEngineTest {
 
     @Test
     fun `an incident missing a required field needs attention without a call`() = runTest {
-        stored(row = incidentEntity(syncState = SyncState.PENDING_CREATE, serverVersion = null, severity = null))
+        stored(
+            row = incidentEntity(
+                syncState = SyncState.PENDING_CREATE,
+                serverVersion = null,
+                severity = null,
+            ),
+        )
 
         engine.push(now = now)
 
@@ -167,7 +228,12 @@ class PushEngineTest {
 
     @Test
     fun `a 404 on an update submits it again as a new report`() = runTest {
-        stored(row = incidentEntity(syncState = SyncState.PENDING_UPDATE, serverVersion = 4))
+        stored(
+            row = incidentEntity(
+                syncState = SyncState.PENDING_UPDATE,
+                serverVersion = 4,
+            ),
+        )
         remote.updateResults += ApiResult.Failure(error = ApiError.NotFound)
         remote.createResults += success(version = 1)
 
@@ -211,7 +277,11 @@ class PushEngineTest {
     @Test
     fun `a 422 needs attention and the pass carries on`() = runTest {
         stored(
-            row = incidentEntity(id = "first", syncState = SyncState.PENDING_UPDATE, localUpdatedAt = now - 2.minutes),
+            row = incidentEntity(
+                id = "first",
+                syncState = SyncState.PENDING_UPDATE,
+                localUpdatedAt = now - 2.minutes,
+            ),
         )
         stored(
             row = incidentEntity(
@@ -223,7 +293,10 @@ class PushEngineTest {
         )
         remote.updateResults +=
             ApiResult.Failure(error = ApiError.ValidationFailed(fieldErrors = listOf(problemFieldErrorDto())))
-        remote.updateResults += success(id = "second", version = 2)
+        remote.updateResults += success(
+            id = "second",
+            version = 2,
+        )
 
         val result = engine.push(now = now)
 
@@ -236,7 +309,11 @@ class PushEngineTest {
     @Test
     fun `an error that points to an app bug is recorded and the pass carries on`() = runTest {
         stored(
-            row = incidentEntity(id = "first", syncState = SyncState.PENDING_UPDATE, localUpdatedAt = now - 2.minutes),
+            row = incidentEntity(
+                id = "first",
+                syncState = SyncState.PENDING_UPDATE,
+                localUpdatedAt = now - 2.minutes,
+            ),
         )
         stored(
             row = incidentEntity(
@@ -247,7 +324,10 @@ class PushEngineTest {
             ),
         )
         remote.updateResults += ApiResult.Failure(error = ApiError.Forbidden)
-        remote.updateResults += success(id = "second", version = 2)
+        remote.updateResults += success(
+            id = "second",
+            version = 2,
+        )
 
         engine.push(now = now)
 
@@ -259,7 +339,11 @@ class PushEngineTest {
     @Test
     fun `a network error stops the pass and counts the attempt`() = runTest {
         stored(
-            row = incidentEntity(id = "first", syncState = SyncState.PENDING_UPDATE, localUpdatedAt = now - 2.minutes),
+            row = incidentEntity(
+                id = "first",
+                syncState = SyncState.PENDING_UPDATE,
+                localUpdatedAt = now - 2.minutes,
+            ),
         )
         stored(
             row = incidentEntity(
@@ -299,7 +383,10 @@ class PushEngineTest {
         row: IncidentEntity,
         photos: List<PhotoEntity> = emptyList(),
     ) {
-        store.incidents[row.id] = IncidentWithPhotos(incident = row, photos = photos)
+        store.incidents[row.id] = IncidentWithPhotos(
+            incident = row,
+            photos = photos,
+        )
     }
 
     private fun row(id: String = INCIDENT_ID): IncidentEntity? = store.incidents[id]?.incident
@@ -319,7 +406,13 @@ class PushEngineTest {
     private fun success(
         id: String = INCIDENT_ID,
         version: Int,
-    ) = ApiResult.Success(value = incidentDto(id = id, version = version, photos = emptyList()))
+    ) = ApiResult.Success(
+        value = incidentDto(
+            id = id,
+            version = version,
+            photos = emptyList(),
+        ),
+    )
 
     private fun versionConflict(current: IncidentDto?) =
         ApiResult.Failure(error = ApiError.VersionConflict(current = current))

@@ -42,7 +42,12 @@ class IncidentValidatorTest {
     @Test
     fun `title is required, trimmed and between 3 and 80 characters`() {
         assertThat(incident(details = incidentDetails(title = "   ")).errors())
-            .containsExactly(FieldError(field = IncidentField.Title, reason = Required))
+            .containsExactly(
+                FieldError(
+                    field = IncidentField.Title,
+                    reason = Required,
+                ),
+            )
         assertThat(incident(details = incidentDetails(title = " ab ")).errors())
             .containsExactly(
                 FieldError(
@@ -63,7 +68,12 @@ class IncidentValidatorTest {
     @Test
     fun `description is required and at most 2000 characters`() {
         assertThat(incident(details = incidentDetails(description = "")).errors())
-            .containsExactly(FieldError(field = IncidentField.Description, reason = Required))
+            .containsExactly(
+                FieldError(
+                    field = IncidentField.Description,
+                    reason = Required,
+                ),
+            )
         assertThat(incident(details = incidentDetails(description = "a".repeat(2001))).errors())
             .containsExactly(
                 FieldError(
@@ -85,23 +95,48 @@ class IncidentValidatorTest {
         )
 
         assertThat(withinSkew.errors()).isEmpty()
-        assertThat(beyondSkew.errors()).containsExactly(FieldError(field = IncidentField.OccurredAt, reason = InFuture))
+        assertThat(beyondSkew.errors()).containsExactly(
+            FieldError(
+                field = IncidentField.OccurredAt,
+                reason = InFuture,
+            ),
+        )
     }
 
     @Test
     fun `occurred at cannot be after reported at`() {
         assertThat(incident(details = incidentDetails(occurredAt = now + 1.minutes)).errors())
-            .containsExactly(FieldError(field = IncidentField.OccurredAt, reason = AfterReportedAt))
+            .containsExactly(
+                FieldError(
+                    field = IncidentField.OccurredAt,
+                    reason = AfterReportedAt,
+                ),
+            )
     }
 
     @Test
     fun `type is required, known, and other needs text`() {
         assertThat(incident(details = incidentDetails(type = null)).errors())
-            .containsExactly(FieldError(field = IncidentField.Type, reason = Required))
+            .containsExactly(
+                FieldError(
+                    field = IncidentField.Type,
+                    reason = Required,
+                ),
+            )
         assertThat(incident(details = incidentDetails(type = IncidentType.Unknown(raw = "FLOOD"))).errors())
-            .containsExactly(FieldError(field = IncidentField.Type, reason = UnknownValue))
+            .containsExactly(
+                FieldError(
+                    field = IncidentField.Type,
+                    reason = UnknownValue,
+                ),
+            )
         assertThat(incident(details = incidentDetails(type = IncidentType.Other(description = " "))).errors())
-            .containsExactly(FieldError(field = IncidentField.Type, reason = OtherTextRequired))
+            .containsExactly(
+                FieldError(
+                    field = IncidentField.Type,
+                    reason = OtherTextRequired,
+                ),
+            )
         assertThat(incident(details = incidentDetails(type = IncidentType.Other(description = "Pest"))).errors())
             .isEmpty()
     }
@@ -109,35 +144,87 @@ class IncidentValidatorTest {
     @Test
     fun `severity is required and known`() {
         assertThat(incident(details = incidentDetails(severity = null)).errors())
-            .containsExactly(FieldError(field = IncidentField.Severity, reason = Required))
+            .containsExactly(
+                FieldError(
+                    field = IncidentField.Severity,
+                    reason = Required,
+                ),
+            )
         assertThat(incident(details = incidentDetails(severity = Severity.Unknown(raw = "SEVERE"))).errors())
-            .containsExactly(FieldError(field = IncidentField.Severity, reason = UnknownValue))
+            .containsExactly(
+                FieldError(
+                    field = IncidentField.Severity,
+                    reason = UnknownValue,
+                ),
+            )
     }
 
     @Test
     fun `site is required and building can be replaced by an unlisted location`() {
         assertThat(incident(location = incidentLocation(siteId = null)).errors())
-            .containsExactly(FieldError(field = IncidentField.Site, reason = Required))
+            .containsExactly(
+                FieldError(
+                    field = IncidentField.Site,
+                    reason = Required,
+                ),
+            )
         assertThat(incident(location = incidentLocation(buildingId = null)).errors())
-            .containsExactly(FieldError(field = IncidentField.Building, reason = Required))
-        assertThat(incident(location = incidentLocation(buildingId = null, unlistedLocation = "Car park")).errors())
+            .containsExactly(
+                FieldError(
+                    field = IncidentField.Building,
+                    reason = Required,
+                ),
+            )
+        assertThat(
+            incident(
+                location = incidentLocation(
+                    buildingId = null,
+                    unlistedLocation = "Car park",
+                ),
+            ).errors(),
+        )
             .isEmpty()
     }
 
     @Test
     fun `equipment out of service needs an asset`() {
         assertThat(incident(location = incidentLocation(equipmentOutOfService = true)).errors())
-            .containsExactly(FieldError(field = IncidentField.EquipmentOutOfService, reason = AssetRequired))
-        assertThat(incident(location = incidentLocation(equipmentOutOfService = true, assetId = "a1")).errors())
+            .containsExactly(
+                FieldError(
+                    field = IncidentField.EquipmentOutOfService,
+                    reason = AssetRequired,
+                ),
+            )
+        assertThat(
+            incident(
+                location = incidentLocation(
+                    equipmentOutOfService = true,
+                    assetId = "a1",
+                ),
+            ).errors(),
+        )
             .isEmpty()
     }
 
     @Test
     fun `injury and hazard answers are required`() {
-        assertThat(incident(safety = incidentSafety(injuryOccurred = null, hazardStillPresent = null)).errors())
+        assertThat(
+            incident(
+                safety = incidentSafety(
+                    injuryOccurred = null,
+                    hazardStillPresent = null,
+                ),
+            ).errors(),
+        )
             .containsExactlyInAnyOrder(
-                FieldError(field = IncidentField.InjuryOccurred, reason = Required),
-                FieldError(field = IncidentField.HazardStillPresent, reason = Required),
+                FieldError(
+                    field = IncidentField.InjuryOccurred,
+                    reason = Required,
+                ),
+                FieldError(
+                    field = IncidentField.HazardStillPresent,
+                    reason = Required,
+                ),
             )
     }
 
@@ -155,20 +242,45 @@ class IncidentValidatorTest {
         )
 
         assertThat(witnessOnly.errors())
-            .containsExactly(FieldError(field = IncidentField.InjuryOccurred, reason = InjuredPersonRequired))
+            .containsExactly(
+                FieldError(
+                    field = IncidentField.InjuryOccurred,
+                    reason = InjuredPersonRequired,
+                ),
+            )
         assertThat(withInjured.errors()).isEmpty()
     }
 
     @Test
     fun `immediate actions need at least one, none alone, and other with text`() {
         assertThat(actionErrors())
-            .containsExactly(FieldError(field = IncidentField.ImmediateActions, reason = Required))
+            .containsExactly(
+                FieldError(
+                    field = IncidentField.ImmediateActions,
+                    reason = Required,
+                ),
+            )
         assertThat(actionErrors(ImmediateAction.None, ImmediateAction.AreaEvacuated))
-            .containsExactly(FieldError(field = IncidentField.ImmediateActions, reason = NoneWithOthers))
+            .containsExactly(
+                FieldError(
+                    field = IncidentField.ImmediateActions,
+                    reason = NoneWithOthers,
+                ),
+            )
         assertThat(actionErrors(ImmediateAction.Other(description = "")))
-            .containsExactly(FieldError(field = IncidentField.ImmediateActions, reason = OtherTextRequired))
+            .containsExactly(
+                FieldError(
+                    field = IncidentField.ImmediateActions,
+                    reason = OtherTextRequired,
+                ),
+            )
         assertThat(actionErrors(ImmediateAction.Unknown(raw = "DRAINED")))
-            .containsExactly(FieldError(field = IncidentField.ImmediateActions, reason = UnknownValue))
+            .containsExactly(
+                FieldError(
+                    field = IncidentField.ImmediateActions,
+                    reason = UnknownValue,
+                ),
+            )
         assertThat(actionErrors(ImmediateAction.None)).isEmpty()
     }
 
@@ -181,15 +293,30 @@ class IncidentValidatorTest {
         )
 
         assertThat(incident(persons = listOf(person(), invalid)).errors()).containsExactlyInAnyOrder(
-            personError(index = 1, field = PersonField.NAME, reason = Required),
-            personError(index = 1, field = PersonField.TYPE, reason = UnknownValue),
-            personError(index = 1, field = PersonField.ROLE, reason = UnknownValue),
+            personError(
+                index = 1,
+                field = PersonField.NAME,
+                reason = Required,
+            ),
+            personError(
+                index = 1,
+                field = PersonField.TYPE,
+                reason = UnknownValue,
+            ),
+            personError(
+                index = 1,
+                field = PersonField.ROLE,
+                reason = UnknownValue,
+            ),
         )
     }
 
     @Test
     fun `injured persons need injury details`() {
-        val missing = person(role = PersonRole.Injured, injury = null)
+        val missing = person(
+            role = PersonRole.Injured,
+            injury = null,
+        )
         val blank = person(
             role = PersonRole.Injured,
             injury = injuryDetails(
@@ -200,14 +327,38 @@ class IncidentValidatorTest {
         )
 
         assertThat(incident(persons = listOf(missing)).errors()).containsExactlyInAnyOrder(
-            personError(index = 0, field = PersonField.INJURY_NATURE, reason = Required),
-            personError(index = 0, field = PersonField.INJURY_BODY_PART, reason = Required),
-            personError(index = 0, field = PersonField.INJURY_TREATMENT, reason = Required),
+            personError(
+                index = 0,
+                field = PersonField.INJURY_NATURE,
+                reason = Required,
+            ),
+            personError(
+                index = 0,
+                field = PersonField.INJURY_BODY_PART,
+                reason = Required,
+            ),
+            personError(
+                index = 0,
+                field = PersonField.INJURY_TREATMENT,
+                reason = Required,
+            ),
         )
         assertThat(incident(persons = listOf(blank)).errors()).containsExactlyInAnyOrder(
-            personError(index = 0, field = PersonField.INJURY_NATURE, reason = Required),
-            personError(index = 0, field = PersonField.INJURY_BODY_PART, reason = Required),
-            personError(index = 0, field = PersonField.INJURY_TREATMENT, reason = UnknownValue),
+            personError(
+                index = 0,
+                field = PersonField.INJURY_NATURE,
+                reason = Required,
+            ),
+            personError(
+                index = 0,
+                field = PersonField.INJURY_BODY_PART,
+                reason = Required,
+            ),
+            personError(
+                index = 0,
+                field = PersonField.INJURY_TREATMENT,
+                reason = UnknownValue,
+            ),
         )
     }
 
@@ -223,7 +374,10 @@ class IncidentValidatorTest {
             )
     }
 
-    private fun Incident.errors(): List<FieldError> = IncidentValidator.validate(incident = this, now = now)
+    private fun Incident.errors(): List<FieldError> = IncidentValidator.validate(
+        incident = this,
+        now = now,
+    )
 
     private fun actionErrors(vararg actions: ImmediateAction): List<FieldError> =
         incident(safety = incidentSafety(immediateActions = actions.toSet())).errors()
@@ -233,7 +387,10 @@ class IncidentValidatorTest {
         field: PersonField,
         reason: ValidationReason,
     ) = FieldError(
-        field = IncidentField.Person(index = index, field = field),
+        field = IncidentField.Person(
+            index = index,
+            field = field,
+        ),
         reason = reason,
     )
 }

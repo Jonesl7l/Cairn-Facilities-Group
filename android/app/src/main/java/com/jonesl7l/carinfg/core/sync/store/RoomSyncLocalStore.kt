@@ -63,7 +63,10 @@ class RoomSyncLocalStore @Inject constructor(
         photoId: String,
         remoteUrl: String,
     ) {
-        incidentDao.markPhotoUploaded(photoId = photoId, remoteUrl = remoteUrl)
+        incidentDao.markPhotoUploaded(
+            photoId = photoId,
+            remoteUrl = remoteUrl,
+        )
     }
 
     override suspend fun commitPush(
@@ -85,7 +88,10 @@ class RoomSyncLocalStore @Inject constructor(
         id: String,
         basedOnRevision: Long,
     ) {
-        val removed = incidentDao.deleteIfUnchanged(id = id, basedOnRevision = basedOnRevision)
+        val removed = incidentDao.deleteIfUnchanged(
+            id = id,
+            basedOnRevision = basedOnRevision,
+        )
         if (removed == 0) Timber.i("removePushed: kept %s, edited locally since it was read", id)
     }
 
@@ -109,14 +115,23 @@ class RoomSyncLocalStore @Inject constructor(
         id: String,
         error: String,
     ) {
-        incidentDao.recordSyncFailure(id = id, error = error)
+        incidentDao.recordSyncFailure(
+            id = id,
+            error = error,
+        )
     }
 
     private suspend fun apply(action: PullAction) {
         when (action) {
             PullAction.Skip -> Unit
 
-            is PullAction.Upsert -> if (isUnchanged(id = action.entity.id, basedOnRevision = action.basedOnRevision)) {
+            is PullAction.Upsert -> {
+                val unchanged =
+                    isUnchanged(
+                        id = action.entity.id,
+                        basedOnRevision = action.basedOnRevision,
+                    )
+                if (!unchanged) return
                 incidentDao.upsertIncident(incident = action.entity)
                 action.replacementPhotos?.let { photos ->
                     incidentDao.deletePhotos(incidentId = action.entity.id)
@@ -124,8 +139,13 @@ class RoomSyncLocalStore @Inject constructor(
                 }
             }
 
-            is PullAction.Delete -> if (isUnchanged(id = action.id, basedOnRevision = action.basedOnRevision)) {
-                incidentDao.deleteIncident(id = action.id)
+            is PullAction.Delete -> {
+                val unchanged =
+                    isUnchanged(
+                        id = action.id,
+                        basedOnRevision = action.basedOnRevision,
+                    )
+                if (unchanged) incidentDao.deleteIncident(id = action.id)
             }
         }
     }

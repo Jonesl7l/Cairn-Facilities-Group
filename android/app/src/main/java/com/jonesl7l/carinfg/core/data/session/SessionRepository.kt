@@ -29,7 +29,12 @@ class SessionRepository @Inject constructor(
     suspend fun login(
         username: String,
         password: String,
-    ): LoginResult = when (val result = authRemoteDataSource.login(username = username, password = password)) {
+    ): LoginResult = when (
+        val result = authRemoteDataSource.login(
+            username = username,
+            password = password,
+        )
+    ) {
         is ApiResult.Failure -> if (result.error == ApiError.InvalidCredentials) {
             LoginResult.InvalidCredentials
         } else {

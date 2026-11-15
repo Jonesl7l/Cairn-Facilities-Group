@@ -150,7 +150,11 @@ object ApiTestHelper {
         additionalNotes: String? = "Cleaner informed",
         status: String = "OPEN",
         assignedTo: String? = "operator1",
-        dueDate: LocalDate? = LocalDate(year = 2026, month = 11, day = 20),
+        dueDate: LocalDate? = LocalDate(
+            year = 2026,
+            month = 11,
+            day = 20,
+        ),
         rootCause: String? = "Leaking roof",
         correctiveActions: String? = "Roof repair booked",
         regulatoryReportable: Boolean? = false,

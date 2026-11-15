@@ -29,7 +29,10 @@ class PushEngine @Inject constructor(
     suspend fun push(now: Instant): SyncRunResult {
         val userId = sessionStore.session.first()?.id ?: return SyncRunResult.Done
         for (local in syncLocalStore.getPendingIncidents(now = now)) {
-            val outcome = pushIncident(local = local, userId = userId)
+            val outcome = pushIncident(
+                local = local,
+                userId = userId,
+            )
             if (outcome is IncidentPushOutcome.Stop) return outcome.result
         }
         return SyncRunResult.Done
@@ -41,12 +44,23 @@ class PushEngine @Inject constructor(
     ): IncidentPushOutcome {
         val hasPendingPhotos = local.photos.any { it.uploadState == PhotoUploadState.PENDING }
         if (local.incident.syncState == SyncState.PENDING_DELETE || !hasPendingPhotos) {
-            return send(local = local, userId = userId)
+            return send(
+                local = local,
+                userId = userId,
+            )
         }
-        val uploaded = uploadPendingPhotos(local = local, userId = userId)
+        val uploaded = uploadPendingPhotos(
+            local = local,
+            userId = userId,
+        )
         if (uploaded != IncidentPushOutcome.Continue) return uploaded
         val refreshed = syncLocalStore.getIncidents(ids = listOf(local.incident.id))[local.incident.id]
-        return refreshed?.let { send(local = it, userId = userId) } ?: IncidentPushOutcome.Done
+        return refreshed?.let {
+            send(
+                local = it,
+                userId = userId,
+            )
+        } ?: IncidentPushOutcome.Done
     }
 
     // region uploadPendingPhotos
@@ -54,8 +68,17 @@ class PushEngine @Inject constructor(
         local: IncidentWithPhotos,
         userId: String,
     ): IncidentPushOutcome {
-        if (!IncidentPolicyHelper.canAddPhotos(incident = local.toDomain(), userId = userId)) {
-            return needsAttention(local = local, reason = ConflictReason.STATUS_LOCKED, error = STATUS_LOCKED_ERROR)
+        val canAddPhotos =
+            IncidentPolicyHelper.canAddPhotos(
+                incident = local.toDomain(),
+                userId = userId,
+            )
+        if (!canAddPhotos) {
+            return needsAttention(
+                local = local,
+                reason = ConflictReason.STATUS_LOCKED,
+                error = STATUS_LOCKED_ERROR,
+            )
         }
         val pending = local.photos.filter { it.uploadState == PhotoUploadState.PENDING }.sortedBy { it.position }
         for (photo in pending) {
@@ -94,8 +117,17 @@ class PushEngine @Inject constructor(
         userId: String,
     ): IncidentPushOutcome = when (local.incident.syncState) {
         SyncState.PENDING_CREATE -> sendCreate(local = local)
-        SyncState.PENDING_UPDATE -> sendUpdate(local = local, userId = userId)
-        SyncState.PENDING_DELETE -> sendDelete(local = local, userId = userId)
+
+        SyncState.PENDING_UPDATE -> sendUpdate(
+            local = local,
+            userId = userId,
+        )
+
+        SyncState.PENDING_DELETE -> sendDelete(
+            local = local,
+            userId = userId,
+        )
+
         else -> IncidentPushOutcome.Done
     }
 
@@ -113,13 +145,25 @@ class PushEngine @Inject constructor(
         userId: String,
     ): IncidentPushOutcome {
         val row = local.incident
-        if (!IncidentPolicyHelper.canEdit(incident = local.toDomain(), userId = userId)) {
-            return needsAttention(local = local, reason = ConflictReason.STATUS_LOCKED, error = STATUS_LOCKED_ERROR)
+        val canEdit =
+            IncidentPolicyHelper.canEdit(
+                incident = local.toDomain(),
+                userId = userId,
+            )
+        if (!canEdit) {
+            return needsAttention(
+                local = local,
+                reason = ConflictReason.STATUS_LOCKED,
+                error = STATUS_LOCKED_ERROR,
+            )
         }
         val version = row.serverVersion ?: return sendCreate(local = local)
         val request = local.toWriteRequest() ?: return missingRequiredFields(local = local)
         val result =
-            sendWithVersionRetry(id = row.id, version = version) { currentVersion ->
+            sendWithVersionRetry(
+                id = row.id,
+                version = version,
+            ) { currentVersion ->
                 incidentRemoteDataSource.updateIncident(
                     id = row.id,
                     version = currentVersion,
@@ -139,17 +183,32 @@ class PushEngine @Inject constructor(
     ): IncidentPushOutcome {
         val row = local.incident
         val version = row.serverVersion ?: return removeLocally(local = local)
-        if (!IncidentPolicyHelper.canDelete(incident = local.toDomain(), userId = userId)) {
-            return needsAttention(local = local, reason = ConflictReason.STATUS_LOCKED, error = STATUS_LOCKED_ERROR)
+        val canDelete =
+            IncidentPolicyHelper.canDelete(
+                incident = local.toDomain(),
+                userId = userId,
+            )
+        if (!canDelete) {
+            return needsAttention(
+                local = local,
+                reason = ConflictReason.STATUS_LOCKED,
+                error = STATUS_LOCKED_ERROR,
+            )
         }
         val request = row.toDeleteRequest()
         if (request == null) {
             Timber.e("sendDelete: pending delete %s has no deletedAt or deletedBy", row.id)
-            syncLocalStore.recordFailure(id = row.id, error = MISSING_DELETE_FIELDS_ERROR)
+            syncLocalStore.recordFailure(
+                id = row.id,
+                error = MISSING_DELETE_FIELDS_ERROR,
+            )
             return IncidentPushOutcome.Done
         }
         val result =
-            sendWithVersionRetry(id = row.id, version = version) { currentVersion ->
+            sendWithVersionRetry(
+                id = row.id,
+                version = version,
+            ) { currentVersion ->
                 incidentRemoteDataSource.deleteIncident(
                     id = row.id,
                     version = currentVersion,
@@ -195,7 +254,10 @@ class PushEngine @Inject constructor(
         is ApiResult.Success -> if (operation == PushOperation.DELETE) {
             removeLocally(local = local)
         } else {
-            commit(local = local, remote = result.value)
+            commit(
+                local = local,
+                remote = result.value,
+            )
         }
     }
 
@@ -218,7 +280,12 @@ class PushEngine @Inject constructor(
         error: ApiError,
         local: IncidentWithPhotos,
         operation: PushOperation,
-    ): IncidentPushOutcome = when (val action = PushErrorHelper.decide(error = error, operation = operation)) {
+    ): IncidentPushOutcome = when (
+        val action = PushErrorHelper.decide(
+            error = error,
+            operation = operation,
+        )
+    ) {
         is PushErrorAction.NeedsAttention -> needsAttention(
             local = local,
             reason = action.reason,
@@ -232,14 +299,20 @@ class PushEngine @Inject constructor(
         PushErrorAction.LeaveForNextPass -> IncidentPushOutcome.Done
 
         PushErrorAction.RecordFailure -> {
-            syncLocalStore.recordFailure(id = local.incident.id, error = error.name)
+            syncLocalStore.recordFailure(
+                id = local.incident.id,
+                error = error.name,
+            )
             IncidentPushOutcome.Done
         }
 
         PushErrorAction.StopForSession -> IncidentPushOutcome.Stop(result = SyncRunResult.SessionExpired)
 
         PushErrorAction.StopAndRetry -> {
-            syncLocalStore.recordFailure(id = local.incident.id, error = error.name)
+            syncLocalStore.recordFailure(
+                id = local.incident.id,
+                error = error.name,
+            )
             IncidentPushOutcome.Stop(result = SyncRunResult.RetryWithBackoff)
         }
     }
@@ -260,11 +333,18 @@ class PushEngine @Inject constructor(
 
     private suspend fun missingRequiredFields(local: IncidentWithPhotos): IncidentPushOutcome {
         Timber.w("missingRequiredFields: %s is missing a required field", local.incident.id)
-        return needsAttention(local = local, reason = ConflictReason.VALIDATION, error = MISSING_FIELDS_ERROR)
+        return needsAttention(
+            local = local,
+            reason = ConflictReason.VALIDATION,
+            error = MISSING_FIELDS_ERROR,
+        )
     }
 
     private suspend fun removeLocally(local: IncidentWithPhotos): IncidentPushOutcome {
-        syncLocalStore.removePushed(id = local.incident.id, basedOnRevision = local.incident.localRevision)
+        syncLocalStore.removePushed(
+            id = local.incident.id,
+            basedOnRevision = local.incident.localRevision,
+        )
         return IncidentPushOutcome.Done
     }
 

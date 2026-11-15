@@ -16,7 +16,12 @@ class AuthRemoteDataSourceImpl @Inject constructor(
         username: String,
         password: String,
     ): ApiResult<UserDto> {
-        val result = apiCallHandler.execute(call = { api.findUsers(username = username, password = password) })
+        val result = apiCallHandler.execute(call = {
+            api.findUsers(
+                username = username,
+                password = password,
+            )
+        })
         return when (result) {
             is ApiResult.Failure -> result
 

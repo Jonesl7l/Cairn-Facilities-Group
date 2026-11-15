@@ -52,7 +52,10 @@ class IncidentRepositoryImplTest {
     // region saveDraft
     @Test
     fun aNewIncidentIsSavedAsADraft() = runTest {
-        val result = repository.saveDraft(incident = domain(entity = draftIncidentEntity()), now = now)
+        val result = repository.saveDraft(
+            incident = domain(entity = draftIncidentEntity()),
+            now = now,
+        )
 
         assertThat(result).isEqualTo(SaveResult.Saved)
         assertThat(stored()?.syncState).isEqualTo(SyncState.DRAFT)
@@ -63,7 +66,10 @@ class IncidentRepositoryImplTest {
     fun aSubmittedIncidentCannotBeSavedAsADraft() = runTest {
         dao.upsertIncident(incident = incidentEntity(syncState = SyncState.SYNCED))
 
-        val result = repository.saveDraft(incident = domain(entity = incidentEntity()), now = now)
+        val result = repository.saveDraft(
+            incident = domain(entity = incidentEntity()),
+            now = now,
+        )
 
         assertThat(result).isEqualTo(SaveResult.NotAllowed)
     }
@@ -72,7 +78,10 @@ class IncidentRepositoryImplTest {
     // region submit
     @Test
     fun anIncompleteIncidentIsNotSubmitted() = runTest {
-        val result = repository.submit(incident = domain(entity = draftIncidentEntity()), now = now)
+        val result = repository.submit(
+            incident = domain(entity = draftIncidentEntity()),
+            now = now,
+        )
 
         assertThat(result).isInstanceOf<SaveResult.Invalid>()
         assertThat(stored()).isNull()
@@ -81,10 +90,16 @@ class IncidentRepositoryImplTest {
 
     @Test
     fun aCompleteDraftIsQueuedForCreate() = runTest {
-        val draft = incidentEntity(syncState = SyncState.DRAFT, reportedAt = null)
+        val draft = incidentEntity(
+            syncState = SyncState.DRAFT,
+            reportedAt = null,
+        )
         dao.upsertIncident(incident = draft)
 
-        val result = repository.submit(incident = domain(entity = draft), now = now)
+        val result = repository.submit(
+            incident = domain(entity = draft),
+            now = now,
+        )
 
         assertThat(result).isEqualTo(SaveResult.Saved)
         assertThat(stored()?.syncState).isEqualTo(SyncState.PENDING_CREATE)
@@ -96,10 +111,23 @@ class IncidentRepositoryImplTest {
     // region saveEdit
     @Test
     fun editingASyncedIncidentQueuesAnUpdateAndKeepsServerFields() = runTest {
-        dao.upsertIncident(incident = incidentEntity(status = "ASSIGNED", serverVersion = 3))
-        val staleCopy = domain(entity = incidentEntity(title = "Edited title", status = "OPEN"))
+        dao.upsertIncident(
+            incident = incidentEntity(
+                status = "ASSIGNED",
+                serverVersion = 3,
+            ),
+        )
+        val staleCopy = domain(
+            entity = incidentEntity(
+                title = "Edited title",
+                status = "OPEN",
+            ),
+        )
 
-        val result = repository.saveEdit(incident = staleCopy, now = now)
+        val result = repository.saveEdit(
+            incident = staleCopy,
+            now = now,
+        )
 
         assertThat(result).isEqualTo(SaveResult.Saved)
         assertThat(stored()?.title).isEqualTo("Edited title")
@@ -113,7 +141,10 @@ class IncidentRepositoryImplTest {
     fun anotherTechniciansIncidentCannotBeEdited() = runTest {
         dao.upsertIncident(incident = incidentEntity(reporterId = "u2"))
 
-        val result = repository.saveEdit(incident = domain(entity = incidentEntity(reporterId = "u2")), now = now)
+        val result = repository.saveEdit(
+            incident = domain(entity = incidentEntity(reporterId = "u2")),
+            now = now,
+        )
 
         assertThat(result).isEqualTo(SaveResult.NotAllowed)
         assertThat(syncScheduler.syncRequests).isEqualTo(0)
@@ -123,7 +154,10 @@ class IncidentRepositoryImplTest {
     fun anIncidentNeedingAttentionCannotBeEdited() = runTest {
         dao.upsertIncident(incident = incidentEntity(syncState = SyncState.NEEDS_ATTENTION))
 
-        val result = repository.saveEdit(incident = domain(entity = incidentEntity()), now = now)
+        val result = repository.saveEdit(
+            incident = domain(entity = incidentEntity()),
+            now = now,
+        )
 
         assertThat(result).isEqualTo(SaveResult.NotAllowed)
     }
@@ -134,7 +168,11 @@ class IncidentRepositoryImplTest {
     fun deletingADraftRemovesIt() = runTest {
         dao.upsertIncident(incident = draftIncidentEntity())
 
-        val result = repository.delete(id = INCIDENT_ID, now = now, undoWindow = undoWindow)
+        val result = repository.delete(
+            id = INCIDENT_ID,
+            now = now,
+            undoWindow = undoWindow,
+        )
 
         assertThat(result).isEqualTo(DeleteResult.Removed)
         assertThat(stored()).isNull()
@@ -145,13 +183,22 @@ class IncidentRepositoryImplTest {
     fun deletingASyncedIncidentCanBeUndone() = runTest {
         dao.upsertIncident(incident = incidentEntity(syncState = SyncState.SYNCED))
 
-        val result = repository.delete(id = INCIDENT_ID, now = now, undoWindow = undoWindow)
+        val result = repository.delete(
+            id = INCIDENT_ID,
+            now = now,
+            undoWindow = undoWindow,
+        )
 
         assertThat(result).isEqualTo(DeleteResult.PendingDelete(undoDeadline = now + undoWindow))
         assertThat(stored()?.syncState).isEqualTo(SyncState.PENDING_DELETE)
         assertThat(syncScheduler.syncRequests).isEqualTo(0)
 
-        assertThat(repository.undoDelete(id = INCIDENT_ID, now = now)).isTrue()
+        assertThat(
+            repository.undoDelete(
+                id = INCIDENT_ID,
+                now = now,
+            ),
+        ).isTrue()
         assertThat(stored()?.syncState).isEqualTo(SyncState.SYNCED)
         assertThat(stored()?.deletedAt).isNull()
     }
@@ -159,9 +206,16 @@ class IncidentRepositoryImplTest {
     @Test
     fun dismissingTheUndoSendsTheDeleteNow() = runTest {
         dao.upsertIncident(incident = incidentEntity(syncState = SyncState.SYNCED))
-        repository.delete(id = INCIDENT_ID, now = now, undoWindow = undoWindow)
+        repository.delete(
+            id = INCIDENT_ID,
+            now = now,
+            undoWindow = undoWindow,
+        )
 
-        repository.sendDeleteNow(id = INCIDENT_ID, now = now)
+        repository.sendDeleteNow(
+            id = INCIDENT_ID,
+            now = now,
+        )
 
         assertThat(stored()?.undoDeadline).isEqualTo(now)
         assertThat(syncScheduler.syncRequests).isEqualTo(1)
@@ -171,7 +225,11 @@ class IncidentRepositoryImplTest {
     fun anIncidentPastOpenCannotBeDeleted() = runTest {
         dao.upsertIncident(incident = incidentEntity(status = "ASSIGNED"))
 
-        val result = repository.delete(id = INCIDENT_ID, now = now, undoWindow = undoWindow)
+        val result = repository.delete(
+            id = INCIDENT_ID,
+            now = now,
+            undoWindow = undoWindow,
+        )
 
         assertThat(result).isEqualTo(DeleteResult.NotAllowed)
     }

@@ -25,7 +25,10 @@ class OkHttpSyncEventSourceTest {
     @Before
     fun setUp() {
         server.start()
-        eventSource = OkHttpSyncEventSource(client = OkHttpClient(), eventsUrl = server.url("/events"))
+        eventSource = OkHttpSyncEventSource(
+            client = OkHttpClient(),
+            eventsUrl = server.url("/events"),
+        )
     }
 
     @After

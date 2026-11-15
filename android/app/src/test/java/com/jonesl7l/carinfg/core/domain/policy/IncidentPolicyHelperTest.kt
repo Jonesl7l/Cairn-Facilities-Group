@@ -15,27 +15,72 @@ class IncidentPolicyHelperTest {
     fun `owner can edit, add photos and delete while open`() {
         val incident = incidentWithStatus(status = IncidentStatus.Open)
 
-        assertThat(IncidentPolicyHelper.canEdit(incident = incident, userId = REPORTER_ID)).isTrue()
-        assertThat(IncidentPolicyHelper.canAddPhotos(incident = incident, userId = REPORTER_ID)).isTrue()
-        assertThat(IncidentPolicyHelper.canDelete(incident = incident, userId = REPORTER_ID)).isTrue()
+        assertThat(
+            IncidentPolicyHelper.canEdit(
+                incident = incident,
+                userId = REPORTER_ID,
+            ),
+        ).isTrue()
+        assertThat(
+            IncidentPolicyHelper.canAddPhotos(
+                incident = incident,
+                userId = REPORTER_ID,
+            ),
+        ).isTrue()
+        assertThat(
+            IncidentPolicyHelper.canDelete(
+                incident = incident,
+                userId = REPORTER_ID,
+            ),
+        ).isTrue()
     }
 
     @Test
     fun `owner can edit and add photos but not delete while assigned`() {
         val incident = incidentWithStatus(status = IncidentStatus.Assigned)
 
-        assertThat(IncidentPolicyHelper.canEdit(incident = incident, userId = REPORTER_ID)).isTrue()
-        assertThat(IncidentPolicyHelper.canAddPhotos(incident = incident, userId = REPORTER_ID)).isTrue()
-        assertThat(IncidentPolicyHelper.canDelete(incident = incident, userId = REPORTER_ID)).isFalse()
+        assertThat(
+            IncidentPolicyHelper.canEdit(
+                incident = incident,
+                userId = REPORTER_ID,
+            ),
+        ).isTrue()
+        assertThat(
+            IncidentPolicyHelper.canAddPhotos(
+                incident = incident,
+                userId = REPORTER_ID,
+            ),
+        ).isTrue()
+        assertThat(
+            IncidentPolicyHelper.canDelete(
+                incident = incident,
+                userId = REPORTER_ID,
+            ),
+        ).isFalse()
     }
 
     @Test
     fun `owner can only add photos while in progress`() {
         val incident = incidentWithStatus(status = IncidentStatus.InProgress)
 
-        assertThat(IncidentPolicyHelper.canEdit(incident = incident, userId = REPORTER_ID)).isFalse()
-        assertThat(IncidentPolicyHelper.canAddPhotos(incident = incident, userId = REPORTER_ID)).isTrue()
-        assertThat(IncidentPolicyHelper.canDelete(incident = incident, userId = REPORTER_ID)).isFalse()
+        assertThat(
+            IncidentPolicyHelper.canEdit(
+                incident = incident,
+                userId = REPORTER_ID,
+            ),
+        ).isFalse()
+        assertThat(
+            IncidentPolicyHelper.canAddPhotos(
+                incident = incident,
+                userId = REPORTER_ID,
+            ),
+        ).isTrue()
+        assertThat(
+            IncidentPolicyHelper.canDelete(
+                incident = incident,
+                userId = REPORTER_ID,
+            ),
+        ).isFalse()
     }
 
     @Test
@@ -48,9 +93,24 @@ class IncidentPolicyHelperTest {
         statuses.forEach { status ->
             val incident = incidentWithStatus(status = status)
 
-            assertThat(IncidentPolicyHelper.canEdit(incident = incident, userId = REPORTER_ID)).isFalse()
-            assertThat(IncidentPolicyHelper.canAddPhotos(incident = incident, userId = REPORTER_ID)).isFalse()
-            assertThat(IncidentPolicyHelper.canDelete(incident = incident, userId = REPORTER_ID)).isFalse()
+            assertThat(
+                IncidentPolicyHelper.canEdit(
+                    incident = incident,
+                    userId = REPORTER_ID,
+                ),
+            ).isFalse()
+            assertThat(
+                IncidentPolicyHelper.canAddPhotos(
+                    incident = incident,
+                    userId = REPORTER_ID,
+                ),
+            ).isFalse()
+            assertThat(
+                IncidentPolicyHelper.canDelete(
+                    incident = incident,
+                    userId = REPORTER_ID,
+                ),
+            ).isFalse()
         }
     }
 
@@ -58,9 +118,24 @@ class IncidentPolicyHelperTest {
     fun `other technicians cannot change an open incident`() {
         val incident = incidentWithStatus(status = IncidentStatus.Open)
 
-        assertThat(IncidentPolicyHelper.canEdit(incident = incident, userId = "tech2")).isFalse()
-        assertThat(IncidentPolicyHelper.canAddPhotos(incident = incident, userId = "tech2")).isFalse()
-        assertThat(IncidentPolicyHelper.canDelete(incident = incident, userId = "tech2")).isFalse()
+        assertThat(
+            IncidentPolicyHelper.canEdit(
+                incident = incident,
+                userId = "tech2",
+            ),
+        ).isFalse()
+        assertThat(
+            IncidentPolicyHelper.canAddPhotos(
+                incident = incident,
+                userId = "tech2",
+            ),
+        ).isFalse()
+        assertThat(
+            IncidentPolicyHelper.canDelete(
+                incident = incident,
+                userId = "tech2",
+            ),
+        ).isFalse()
     }
 
     private fun incidentWithStatus(status: IncidentStatus): Incident =

@@ -39,8 +39,15 @@ class ReferenceDaoTest {
     @Test
     fun replaceAllRemovesRowsMissingFromTheNewData() = runTest {
         dao.replaceAll(entities = referenceEntities())
-        val newSite = siteEntity(id = "site-2", name = "Depot")
-        val newBuilding = buildingEntity(id = "building-2", siteId = "site-2", name = "Warehouse")
+        val newSite = siteEntity(
+            id = "site-2",
+            name = "Depot",
+        )
+        val newBuilding = buildingEntity(
+            id = "building-2",
+            siteId = "site-2",
+            name = "Warehouse",
+        )
 
         dao.replaceAll(
             entities =
@@ -57,7 +64,10 @@ class ReferenceDaoTest {
 
     @Test
     fun insertAllIfEmptyLeavesExistingDataAlone() = runTest {
-        val existing = siteEntity(id = "site-9", name = "Newer From Server")
+        val existing = siteEntity(
+            id = "site-9",
+            name = "Newer From Server",
+        )
         dao.replaceAll(entities = referenceEntities(sites = listOf(existing)))
 
         dao.insertAllIfEmpty(entities = referenceEntities())
@@ -67,9 +77,19 @@ class ReferenceDaoTest {
 
     @Test
     fun childListsAreFilteredByParentAndSortedByName() = runTest {
-        val zebra = buildingEntity(id = "building-2", name = "Zebra House")
-        val alpha = buildingEntity(id = "building-3", name = "Alpha House")
-        val elsewhere = buildingEntity(id = "building-4", siteId = "site-2", name = "Elsewhere")
+        val zebra = buildingEntity(
+            id = "building-2",
+            name = "Zebra House",
+        )
+        val alpha = buildingEntity(
+            id = "building-3",
+            name = "Alpha House",
+        )
+        val elsewhere = buildingEntity(
+            id = "building-4",
+            siteId = "site-2",
+            name = "Elsewhere",
+        )
 
         dao.replaceAll(entities = referenceEntities(buildings = listOf(zebra, alpha, elsewhere)))
 

@@ -33,7 +33,10 @@ class IncidentTransitionHelperTest {
     fun `submitting a draft queues its create and stamps reportedAt`() {
         val draft = draftIncidentEntity()
 
-        val submitted = IncidentTransitionHelper.submit(entity = draft, now = now)
+        val submitted = IncidentTransitionHelper.submit(
+            entity = draft,
+            now = now,
+        )
 
         val expected =
             draft.copy(
@@ -49,14 +52,24 @@ class IncidentTransitionHelperTest {
         val reportedAt = now - 1.hours
         val draft = draftIncidentEntity().copy(reportedAt = reportedAt)
 
-        assertThat(IncidentTransitionHelper.submit(entity = draft, now = now)?.reportedAt).isEqualTo(reportedAt)
+        assertThat(
+            IncidentTransitionHelper.submit(
+                entity = draft,
+                now = now,
+            )?.reportedAt,
+        ).isEqualTo(reportedAt)
     }
 
     @Test
     fun `only drafts can be submitted`() {
         val synced = incidentEntity(syncState = SyncState.SYNCED)
 
-        assertThat(IncidentTransitionHelper.submit(entity = synced, now = now)).isNull()
+        assertThat(
+            IncidentTransitionHelper.submit(
+                entity = synced,
+                now = now,
+            ),
+        ).isNull()
     }
     // endregion
 
@@ -176,7 +189,10 @@ class IncidentTransitionHelperTest {
                 undoDeadline = now + undoWindow,
             )
 
-        val sent = IncidentTransitionHelper.sendDeleteNow(entity = pending, now = now)
+        val sent = IncidentTransitionHelper.sendDeleteNow(
+            entity = pending,
+            now = now,
+        )
 
         assertThat(sent?.undoDeadline).isEqualTo(now)
     }
@@ -185,7 +201,12 @@ class IncidentTransitionHelperTest {
     fun `send now only applies to a pending delete`() {
         val synced = incidentEntity(syncState = SyncState.SYNCED)
 
-        assertThat(IncidentTransitionHelper.sendDeleteNow(entity = synced, now = now)).isNull()
+        assertThat(
+            IncidentTransitionHelper.sendDeleteNow(
+                entity = synced,
+                now = now,
+            ),
+        ).isNull()
     }
     // endregion
 }

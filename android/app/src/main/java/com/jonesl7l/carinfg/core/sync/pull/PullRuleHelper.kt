@@ -66,10 +66,18 @@ object PullRuleHelper {
         remote: IncidentDto,
         userId: String,
         now: Instant,
-    ): PullAction = if (remote.isTombstone || !isInScope(remote = remote, userId = userId, now = now)) {
+    ): PullAction = if (remote.isTombstone || !isInScope(
+            remote = remote,
+            userId = userId,
+            now = now,
+        )
+    ) {
         PullAction.Skip
     } else {
-        overwrite(remote = remote, local = null)
+        overwrite(
+            remote = remote,
+            local = null,
+        )
     }
 
     private fun decideForSynced(
@@ -77,28 +85,53 @@ object PullRuleHelper {
         remote: IncidentDto,
         userId: String,
         now: Instant,
-    ): PullAction = if (remote.isTombstone || !isInScope(remote = remote, userId = userId, now = now)) {
-        PullAction.Delete(id = local.incident.id, basedOnRevision = local.incident.localRevision)
+    ): PullAction = if (remote.isTombstone || !isInScope(
+            remote = remote,
+            userId = userId,
+            now = now,
+        )
+    ) {
+        PullAction.Delete(
+            id = local.incident.id,
+            basedOnRevision = local.incident.localRevision,
+        )
     } else {
-        overwrite(remote = remote, local = local)
+        overwrite(
+            remote = remote,
+            local = local,
+        )
     }
 
     private fun decideForPendingCreate(
         row: IncidentEntity,
         remote: IncidentDto,
     ): PullAction = if (remote.isTombstone) {
-        needsAttention(row = row, remote = remote, reason = ConflictReason.DELETED_REMOTELY)
+        needsAttention(
+            row = row,
+            remote = remote,
+            reason = ConflictReason.DELETED_REMOTELY,
+        )
     } else {
-        keep(row = row, entity = remote.toEntity().keepingLocalBookkeeping(row = row))
+        keep(
+            row = row,
+            entity = remote.toEntity().keepingLocalBookkeeping(row = row),
+        )
     }
 
     private fun decideForLocalEdits(
         row: IncidentEntity,
         remote: IncidentDto,
     ): PullAction = if (remote.isTombstone) {
-        needsAttention(row = row, remote = remote, reason = ConflictReason.DELETED_REMOTELY)
+        needsAttention(
+            row = row,
+            remote = remote,
+            reason = ConflictReason.DELETED_REMOTELY,
+        )
     } else {
-        keep(row = row, entity = row.withServerFields(remote = remote))
+        keep(
+            row = row,
+            entity = row.withServerFields(remote = remote),
+        )
     }
 
     private fun decideForPendingDelete(
@@ -106,13 +139,23 @@ object PullRuleHelper {
         remote: IncidentDto,
     ): PullAction = when {
         // the user wanted it gone, so a remote delete needs no attention
-        remote.isTombstone -> PullAction.Delete(id = row.id, basedOnRevision = row.localRevision)
+        remote.isTombstone -> PullAction.Delete(
+            id = row.id,
+            basedOnRevision = row.localRevision,
+        )
 
         remote.status != OPEN_STATUS -> {
-            needsAttention(row = row, remote = remote, reason = ConflictReason.STATUS_LOCKED)
+            needsAttention(
+                row = row,
+                remote = remote,
+                reason = ConflictReason.STATUS_LOCKED,
+            )
         }
 
-        else -> keep(row = row, entity = row.withServerFields(remote = remote))
+        else -> keep(
+            row = row,
+            entity = row.withServerFields(remote = remote),
+        )
     }
 
     // endregion

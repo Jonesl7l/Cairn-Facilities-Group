@@ -59,7 +59,12 @@ class RoomSyncLocalStoreTest {
 
     @Test
     fun aPageIsAppliedWithItsCursor() = runTest {
-        incidentDao.upsertIncident(incident = incidentEntity(id = "gone", localRevision = 1))
+        incidentDao.upsertIncident(
+            incident = incidentEntity(
+                id = "gone",
+                localRevision = 1,
+            ),
+        )
         val meta = syncMetaEntity(lastChangeSeq = 50)
         val actions =
             listOf(
@@ -68,11 +73,17 @@ class RoomSyncLocalStoreTest {
                     replacementPhotos = listOf(photoEntity(incidentId = "new")),
                     basedOnRevision = null,
                 ),
-                PullAction.Delete(id = "gone", basedOnRevision = 1),
+                PullAction.Delete(
+                    id = "gone",
+                    basedOnRevision = 1,
+                ),
                 PullAction.Skip,
             )
 
-        store.applyPullPage(actions = actions, meta = meta)
+        store.applyPullPage(
+            actions = actions,
+            meta = meta,
+        )
 
         assertThat(incidentDao.getIncident(id = "new")?.photos?.size).isEqualTo(1)
         assertThat(incidentDao.getIncident(id = "gone")).isNull()
@@ -82,24 +93,49 @@ class RoomSyncLocalStoreTest {
     @Test
     fun replacementPhotosReplaceAndNullKeepsTheLocalPhotos() = runTest {
         incidentDao.upsertIncident(incident = incidentEntity(id = "a"))
-        incidentDao.upsertPhotos(photos = listOf(photoEntity(id = "old", incidentId = "a")))
+        incidentDao.upsertPhotos(
+            photos = listOf(
+                photoEntity(
+                    id = "old",
+                    incidentId = "a",
+                ),
+            ),
+        )
         incidentDao.upsertIncident(incident = incidentEntity(id = "b"))
-        incidentDao.upsertPhotos(photos = listOf(photoEntity(id = "kept", incidentId = "b")))
+        incidentDao.upsertPhotos(
+            photos = listOf(
+                photoEntity(
+                    id = "kept",
+                    incidentId = "b",
+                ),
+            ),
+        )
         val actions =
             listOf(
                 PullAction.Upsert(
                     entity = incidentEntity(id = "a"),
-                    replacementPhotos = listOf(photoEntity(id = "new", incidentId = "a")),
+                    replacementPhotos = listOf(
+                        photoEntity(
+                            id = "new",
+                            incidentId = "a",
+                        ),
+                    ),
                     basedOnRevision = 0,
                 ),
                 PullAction.Upsert(
-                    entity = incidentEntity(id = "b", title = "Server title"),
+                    entity = incidentEntity(
+                        id = "b",
+                        title = "Server title",
+                    ),
                     replacementPhotos = null,
                     basedOnRevision = 0,
                 ),
             )
 
-        store.applyPullPage(actions = actions, meta = syncMetaEntity())
+        store.applyPullPage(
+            actions = actions,
+            meta = syncMetaEntity(),
+        )
 
         assertThat(incidentDao.getIncident(id = "a")?.photos?.map { it.id }).isEqualTo(listOf("new"))
         assertThat(incidentDao.getIncident(id = "b")?.photos?.map { it.id }).isEqualTo(listOf("kept"))
@@ -108,24 +144,50 @@ class RoomSyncLocalStoreTest {
 
     @Test
     fun anActionIsSkippedWhenTheRowChangedSinceItWasRead() = runTest {
-        incidentDao.upsertIncident(incident = incidentEntity(title = "Edited locally", localRevision = 2))
+        incidentDao.upsertIncident(
+            incident = incidentEntity(
+                title = "Edited locally",
+                localRevision = 2,
+            ),
+        )
         val stale =
             PullAction.Upsert(
-                entity = incidentEntity(title = "Server title", localRevision = 1),
+                entity = incidentEntity(
+                    title = "Server title",
+                    localRevision = 1,
+                ),
                 replacementPhotos = null,
                 basedOnRevision = 1,
             )
 
-        store.applyPullPage(actions = listOf(stale), meta = syncMetaEntity())
+        store.applyPullPage(
+            actions = listOf(stale),
+            meta = syncMetaEntity(),
+        )
 
         assertThat(incidentDao.getIncident(id = incidentEntity().id)?.incident?.title).isEqualTo("Edited locally")
     }
 
     @Test
     fun aServerResetRemovesSyncedRowsKeepsPendingOnesAndResetsTheCursor() = runTest {
-        incidentDao.upsertIncident(incident = incidentEntity(id = "synced", syncState = SyncState.SYNCED))
-        incidentDao.upsertIncident(incident = incidentEntity(id = "pending", syncState = SyncState.PENDING_UPDATE))
-        database.syncMetaDao().upsert(meta = syncMetaEntity(lastChangeSeq = 90, databaseId = "db-1"))
+        incidentDao.upsertIncident(
+            incident = incidentEntity(
+                id = "synced",
+                syncState = SyncState.SYNCED,
+            ),
+        )
+        incidentDao.upsertIncident(
+            incident = incidentEntity(
+                id = "pending",
+                syncState = SyncState.PENDING_UPDATE,
+            ),
+        )
+        database.syncMetaDao().upsert(
+            meta = syncMetaEntity(
+                lastChangeSeq = 90,
+                databaseId = "db-1",
+            ),
+        )
 
         store.resetForNewDatabase(databaseId = "db-2")
 
@@ -139,10 +201,30 @@ class RoomSyncLocalStoreTest {
         val old = now - 31.days
         val rows =
             listOf(
-                incidentEntity(id = "mine", reporterId = "u1", status = "CLOSED", updatedAt = old),
-                incidentEntity(id = "othersOpen", reporterId = "u2", status = "ASSIGNED", updatedAt = old),
-                incidentEntity(id = "othersRecent", reporterId = "u2", status = "CLOSED", updatedAt = now),
-                incidentEntity(id = "othersOld", reporterId = "u2", status = "CLOSED", updatedAt = old),
+                incidentEntity(
+                    id = "mine",
+                    reporterId = "u1",
+                    status = "CLOSED",
+                    updatedAt = old,
+                ),
+                incidentEntity(
+                    id = "othersOpen",
+                    reporterId = "u2",
+                    status = "ASSIGNED",
+                    updatedAt = old,
+                ),
+                incidentEntity(
+                    id = "othersRecent",
+                    reporterId = "u2",
+                    status = "CLOSED",
+                    updatedAt = now,
+                ),
+                incidentEntity(
+                    id = "othersOld",
+                    reporterId = "u2",
+                    status = "CLOSED",
+                    updatedAt = old,
+                ),
                 incidentEntity(
                     id = "othersOldPending",
                     reporterId = "u2",
@@ -153,7 +235,10 @@ class RoomSyncLocalStoreTest {
             )
         rows.forEach { incidentDao.upsertIncident(incident = it) }
 
-        store.pruneOutOfScope(userId = "u1", updatedBefore = now - 30.days)
+        store.pruneOutOfScope(
+            userId = "u1",
+            updatedBefore = now - 30.days,
+        )
 
         val remaining = store.getIncidents(ids = rows.map { it.id }).keys
         assertThat(remaining).containsOnly("mine", "othersOpen", "othersRecent", "othersOldPending")
@@ -163,8 +248,16 @@ class RoomSyncLocalStoreTest {
     fun pendingIncidentsAreOldestFirstAndDeletesWaitForTheirUndoDeadline() = runTest {
         val rows =
             listOf(
-                incidentEntity(id = "update", syncState = SyncState.PENDING_UPDATE, localUpdatedAt = now - 1.minutes),
-                incidentEntity(id = "create", syncState = SyncState.PENDING_CREATE, localUpdatedAt = now - 2.minutes),
+                incidentEntity(
+                    id = "update",
+                    syncState = SyncState.PENDING_UPDATE,
+                    localUpdatedAt = now - 1.minutes,
+                ),
+                incidentEntity(
+                    id = "create",
+                    syncState = SyncState.PENDING_CREATE,
+                    localUpdatedAt = now - 2.minutes,
+                ),
                 incidentEntity(
                     id = "dueDelete",
                     syncState = SyncState.PENDING_DELETE,
@@ -176,9 +269,18 @@ class RoomSyncLocalStoreTest {
                     syncState = SyncState.PENDING_DELETE,
                     undoDeadline = now + 5.seconds,
                 ),
-                incidentEntity(id = "synced", syncState = SyncState.SYNCED),
-                incidentEntity(id = "draft", syncState = SyncState.DRAFT),
-                incidentEntity(id = "attention", syncState = SyncState.NEEDS_ATTENTION),
+                incidentEntity(
+                    id = "synced",
+                    syncState = SyncState.SYNCED,
+                ),
+                incidentEntity(
+                    id = "draft",
+                    syncState = SyncState.DRAFT,
+                ),
+                incidentEntity(
+                    id = "attention",
+                    syncState = SyncState.NEEDS_ATTENTION,
+                ),
             )
         rows.forEach { incidentDao.upsertIncident(incident = it) }
 
@@ -191,10 +293,18 @@ class RoomSyncLocalStoreTest {
     fun anUploadedPhotoStoresItsUrl() = runTest {
         incidentDao.upsertIncident(incident = incidentEntity())
         incidentDao.upsertPhotos(
-            photos = listOf(photoEntity(remoteUrl = null, uploadState = PhotoUploadState.PENDING)),
+            photos = listOf(
+                photoEntity(
+                    remoteUrl = null,
+                    uploadState = PhotoUploadState.PENDING,
+                ),
+            ),
         )
 
-        store.markPhotoUploaded(photoId = photoEntity().id, remoteUrl = "uploads/photo-0.jpg")
+        store.markPhotoUploaded(
+            photoId = photoEntity().id,
+            remoteUrl = "uploads/photo-0.jpg",
+        )
 
         val photo = incidentDao.getIncident(id = INCIDENT_ID)?.photos?.single()
         assertThat(photo?.remoteUrl).isEqualTo("uploads/photo-0.jpg")
@@ -205,10 +315,16 @@ class RoomSyncLocalStoreTest {
     fun commitPushWritesTheMergedRowAndReplacesPhotos() = runTest {
         incidentDao.upsertIncident(incident = incidentEntity(syncState = SyncState.PENDING_CREATE))
         incidentDao.upsertPhotos(photos = listOf(photoEntity(id = "old")))
-        val synced = incidentEntity(syncState = SyncState.SYNCED, serverVersion = 2)
+        val synced = incidentEntity(
+            syncState = SyncState.SYNCED,
+            serverVersion = 2,
+        )
 
         store.commitPush(id = INCIDENT_ID) {
-            PushCommit(entity = synced, replacementPhotos = listOf(photoEntity(id = "new")))
+            PushCommit(
+                entity = synced,
+                replacementPhotos = listOf(photoEntity(id = "new")),
+            )
         }
 
         val stored = incidentDao.getIncident(id = INCIDENT_ID)
@@ -218,7 +334,12 @@ class RoomSyncLocalStoreTest {
 
     @Test
     fun commitPushDoesNothingWhenTheRowIsGone() = runTest {
-        store.commitPush(id = INCIDENT_ID) { PushCommit(entity = incidentEntity(), replacementPhotos = null) }
+        store.commitPush(id = INCIDENT_ID) {
+            PushCommit(
+                entity = incidentEntity(),
+                replacementPhotos = null,
+            )
+        }
 
         assertThat(incidentDao.getIncident(id = INCIDENT_ID)).isNull()
     }
@@ -226,14 +347,28 @@ class RoomSyncLocalStoreTest {
     @Test
     fun aPushedDeleteIsRemovedOnlyWhenUnchanged() = runTest {
         incidentDao.upsertIncident(
-            incident = incidentEntity(id = "a", syncState = SyncState.PENDING_DELETE, localRevision = 1),
+            incident = incidentEntity(
+                id = "a",
+                syncState = SyncState.PENDING_DELETE,
+                localRevision = 1,
+            ),
         )
         incidentDao.upsertIncident(
-            incident = incidentEntity(id = "b", syncState = SyncState.PENDING_DELETE, localRevision = 2),
+            incident = incidentEntity(
+                id = "b",
+                syncState = SyncState.PENDING_DELETE,
+                localRevision = 2,
+            ),
         )
 
-        store.removePushed(id = "a", basedOnRevision = 1)
-        store.removePushed(id = "b", basedOnRevision = 1)
+        store.removePushed(
+            id = "a",
+            basedOnRevision = 1,
+        )
+        store.removePushed(
+            id = "b",
+            basedOnRevision = 1,
+        )
 
         assertThat(incidentDao.getIncident(id = "a")).isNull()
         assertThat(incidentDao.getIncident(id = "b")).isNotNull()
@@ -242,10 +377,18 @@ class RoomSyncLocalStoreTest {
     @Test
     fun needsAttentionIsMarkedOnlyWhenUnchanged() = runTest {
         incidentDao.upsertIncident(
-            incident = incidentEntity(id = "a", syncState = SyncState.PENDING_UPDATE, localRevision = 1),
+            incident = incidentEntity(
+                id = "a",
+                syncState = SyncState.PENDING_UPDATE,
+                localRevision = 1,
+            ),
         )
         incidentDao.upsertIncident(
-            incident = incidentEntity(id = "b", syncState = SyncState.PENDING_UPDATE, localRevision = 2),
+            incident = incidentEntity(
+                id = "b",
+                syncState = SyncState.PENDING_UPDATE,
+                localRevision = 2,
+            ),
         )
 
         listOf("a", "b").forEach { id ->
@@ -266,9 +409,17 @@ class RoomSyncLocalStoreTest {
 
     @Test
     fun aFailureCountsTheAttemptAndKeepsTheRowPending() = runTest {
-        incidentDao.upsertIncident(incident = incidentEntity(syncState = SyncState.PENDING_UPDATE, syncAttempts = 2))
+        incidentDao.upsertIncident(
+            incident = incidentEntity(
+                syncState = SyncState.PENDING_UPDATE,
+                syncAttempts = 2,
+            ),
+        )
 
-        store.recordFailure(id = INCIDENT_ID, error = "Network")
+        store.recordFailure(
+            id = INCIDENT_ID,
+            error = "Network",
+        )
 
         val row = incidentDao.getIncident(id = INCIDENT_ID)?.incident
         assertThat(row?.syncAttempts).isEqualTo(3)

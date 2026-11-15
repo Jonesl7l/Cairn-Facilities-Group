@@ -38,7 +38,10 @@ class ReferenceDataInitializerTest {
 
     @Test
     fun leavesExistingDataAlone() = runTest {
-        val existing = siteEntity(id = "site-9", name = "Newer From Server")
+        val existing = siteEntity(
+            id = "site-9",
+            name = "Newer From Server",
+        )
         dao.replaceAll(entities = referenceEntities(sites = listOf(existing)))
 
         initializer(dispatcherScheduler = testScheduler).initialize()

@@ -33,15 +33,30 @@ class WireValueMapperTest {
         cases.forEach { (type, wire) ->
             assertThat(WireValueMapper.toWire(type = type)).isEqualTo(wire)
             val otherDescription = (type as? IncidentType.Other)?.description
-            assertThat(WireValueMapper.toIncidentType(raw = wire, otherDescription = otherDescription)).isEqualTo(type)
+            assertThat(
+                WireValueMapper.toIncidentType(
+                    raw = wire,
+                    otherDescription = otherDescription,
+                ),
+            ).isEqualTo(type)
         }
     }
 
     @Test
     fun `other without its text becomes other with empty text`() {
-        assertThat(WireValueMapper.toIncidentType(raw = "OTHER", otherDescription = null))
+        assertThat(
+            WireValueMapper.toIncidentType(
+                raw = "OTHER",
+                otherDescription = null,
+            ),
+        )
             .isEqualTo(IncidentType.Other(description = ""))
-        assertThat(WireValueMapper.toImmediateAction(raw = "OTHER", otherDescription = null))
+        assertThat(
+            WireValueMapper.toImmediateAction(
+                raw = "OTHER",
+                otherDescription = null,
+            ),
+        )
             .isEqualTo(ImmediateAction.Other(description = ""))
     }
 
@@ -143,7 +158,12 @@ class WireValueMapperTest {
         cases.forEach { (action, wire) ->
             assertThat(WireValueMapper.toWire(action = action)).isEqualTo(wire)
             val otherDescription = (action as? ImmediateAction.Other)?.description
-            assertThat(WireValueMapper.toImmediateAction(raw = wire, otherDescription = otherDescription))
+            assertThat(
+                WireValueMapper.toImmediateAction(
+                    raw = wire,
+                    otherDescription = otherDescription,
+                ),
+            )
                 .isEqualTo(action)
         }
     }

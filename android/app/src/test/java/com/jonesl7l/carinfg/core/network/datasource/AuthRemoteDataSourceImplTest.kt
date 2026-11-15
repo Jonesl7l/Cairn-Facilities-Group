@@ -44,7 +44,10 @@ class AuthRemoteDataSourceImplTest {
     fun `login sends the credentials and returns the matching user`() = runTest {
         server.enqueue(jsonResponse(body = json.encodeToString(listOf(userDto()))))
 
-        val result = dataSource.login(username = "tech1", password = "password")
+        val result = dataSource.login(
+            username = "tech1",
+            password = "password",
+        )
 
         assertThat(result).isEqualTo(ApiResult.Success(value = userDto()))
         val url = server.takeRequest().url
@@ -57,16 +60,31 @@ class AuthRemoteDataSourceImplTest {
     fun `an empty list means invalid credentials`() = runTest {
         server.enqueue(jsonResponse(body = "[]"))
 
-        assertThat(dataSource.login(username = "tech1", password = "wrong"))
+        assertThat(
+            dataSource.login(
+                username = "tech1",
+                password = "wrong",
+            ),
+        )
             .isEqualTo(ApiResult.Failure(error = ApiError.InvalidCredentials))
     }
 
     @Test
     fun `an error response comes back as a typed failure`() = runTest {
         val problem = problemDetailsDto(status = HttpStatus.SERVICE_UNAVAILABLE)
-        server.enqueue(jsonResponse(code = HttpStatus.SERVICE_UNAVAILABLE, body = problemJson(problem = problem)))
+        server.enqueue(
+            jsonResponse(
+                code = HttpStatus.SERVICE_UNAVAILABLE,
+                body = problemJson(problem = problem),
+            ),
+        )
 
-        assertThat(dataSource.login(username = "tech1", password = "password"))
+        assertThat(
+            dataSource.login(
+                username = "tech1",
+                password = "password",
+            ),
+        )
             .isEqualTo(ApiResult.Failure(error = ApiError.ServiceUnavailable(retryAfter = null)))
     }
 
@@ -74,7 +92,12 @@ class AuthRemoteDataSourceImplTest {
     fun `a connection failure is a network error`() = runTest {
         server.close()
 
-        assertThat(dataSource.login(username = "tech1", password = "password"))
+        assertThat(
+            dataSource.login(
+                username = "tech1",
+                password = "password",
+            ),
+        )
             .isInstanceOf<ApiResult.Failure>()
             .prop(ApiResult.Failure::error)
             .isInstanceOf<ApiError.Network>()
@@ -84,7 +107,12 @@ class AuthRemoteDataSourceImplTest {
     fun `an undecodable body is unexpected`() = runTest {
         server.enqueue(jsonResponse(body = """[{"id":"u1"}]"""))
 
-        assertThat(dataSource.login(username = "tech1", password = "password"))
+        assertThat(
+            dataSource.login(
+                username = "tech1",
+                password = "password",
+            ),
+        )
             .isEqualTo(ApiResult.Failure(error = ApiError.Unexpected(status = null)))
     }
 }

@@ -23,13 +23,26 @@ import kotlin.time.Duration.Companion.days
 import org.junit.Test
 
 class PullRuleHelperTest {
-    private val remote = incidentDto(title = "Server title", status = "ASSIGNED", version = 4, changeSeq = 40)
-    private val tombstone = incidentDto(deletedAt = now, deletedBy = "operator1", version = 5, changeSeq = 41)
+    private val remote = incidentDto(
+        title = "Server title",
+        status = "ASSIGNED",
+        version = 4,
+        changeSeq = 40,
+    )
+    private val tombstone = incidentDto(
+        deletedAt = now,
+        deletedBy = "operator1",
+        version = 5,
+        changeSeq = 41,
+    )
 
     // region no local row or synced
     @Test
     fun `a new live item is stored as synced with its photos`() {
-        val action = decide(local = null, remote = remote)
+        val action = decide(
+            local = null,
+            remote = remote,
+        )
 
         val expected =
             PullAction.Upsert(
@@ -42,18 +55,29 @@ class PullRuleHelperTest {
 
     @Test
     fun `a new tombstone is skipped`() {
-        assertThat(decide(local = null, remote = tombstone)).isEqualTo(PullAction.Skip)
+        assertThat(
+            decide(
+                local = null,
+                remote = tombstone,
+            ),
+        ).isEqualTo(PullAction.Skip)
     }
 
     @Test
     fun `a synced row is overwritten and keeps the local paths of its photos`() {
         val local =
             withPhotos(
-                row = incidentEntity(syncState = SyncState.SYNCED, localRevision = 2),
+                row = incidentEntity(
+                    syncState = SyncState.SYNCED,
+                    localRevision = 2,
+                ),
                 photos = listOf(photoEntity(localPath = "/files/photo-0.jpg")),
             )
 
-        val action = decide(local = local, remote = remote) as PullAction.Upsert
+        val action = decide(
+            local = local,
+            remote = remote,
+        ) as PullAction.Upsert
 
         assertThat(action.entity).isEqualTo(remote.toEntity())
         assertThat(action.replacementPhotos?.single()?.localPath).isEqualTo("/files/photo-0.jpg")
@@ -62,11 +86,24 @@ class PullRuleHelperTest {
 
     @Test
     fun `a synced row with a tombstone is deleted locally`() {
-        val local = withPhotos(row = incidentEntity(syncState = SyncState.SYNCED, localRevision = 2))
+        val local = withPhotos(
+            row = incidentEntity(
+                syncState = SyncState.SYNCED,
+                localRevision = 2,
+            ),
+        )
 
-        val action = decide(local = local, remote = tombstone)
+        val action = decide(
+            local = local,
+            remote = tombstone,
+        )
 
-        assertThat(action).isEqualTo(PullAction.Delete(id = local.incident.id, basedOnRevision = 2))
+        assertThat(action).isEqualTo(
+            PullAction.Delete(
+                id = local.incident.id,
+                basedOnRevision = 2,
+            ),
+        )
     }
     // endregion
 
@@ -80,7 +117,10 @@ class PullRuleHelperTest {
                 localRevision = 3,
             )
 
-        val action = decide(local = withPhotos(row = row), remote = remote) as PullAction.Upsert
+        val action = decide(
+            local = withPhotos(row = row),
+            remote = remote,
+        ) as PullAction.Upsert
 
         assertThat(action.entity.title).isEqualTo("Local title")
         assertThat(action.entity.status).isEqualTo("ASSIGNED")
@@ -93,7 +133,10 @@ class PullRuleHelperTest {
     @Test
     fun `any pending row with a tombstone needs attention as deleted remotely`() {
         listOf(SyncState.PENDING_CREATE, SyncState.PENDING_UPDATE).forEach { state ->
-            val action = decide(local = withPhotos(row = incidentEntity(syncState = state)), remote = tombstone)
+            val action = decide(
+                local = withPhotos(row = incidentEntity(syncState = state)),
+                remote = tombstone,
+            )
 
             val entity = (action as PullAction.Upsert).entity
             assertThat(entity.syncState).isEqualTo(SyncState.NEEDS_ATTENTION)
@@ -104,9 +147,15 @@ class PullRuleHelperTest {
 
     @Test
     fun `a pending create that comes back is marked synced`() {
-        val row = incidentEntity(syncState = SyncState.PENDING_CREATE, localRevision = 1)
+        val row = incidentEntity(
+            syncState = SyncState.PENDING_CREATE,
+            localRevision = 1,
+        )
 
-        val action = decide(local = withPhotos(row = row), remote = remote) as PullAction.Upsert
+        val action = decide(
+            local = withPhotos(row = row),
+            remote = remote,
+        ) as PullAction.Upsert
 
         val expected =
             remote.toEntity().copy(
@@ -119,9 +168,19 @@ class PullRuleHelperTest {
 
     @Test
     fun `a pending delete takes the new version and keeps its delete while still open`() {
-        val row = incidentEntity(syncState = SyncState.PENDING_DELETE, deletedAt = now, deletedBy = REPORTER_ID)
+        val row = incidentEntity(
+            syncState = SyncState.PENDING_DELETE,
+            deletedAt = now,
+            deletedBy = REPORTER_ID,
+        )
 
-        val action = decide(local = withPhotos(row = row), remote = incidentDto(status = "OPEN", version = 6))
+        val action = decide(
+            local = withPhotos(row = row),
+            remote = incidentDto(
+                status = "OPEN",
+                version = 6,
+            ),
+        )
 
         val entity = (action as PullAction.Upsert).entity
         assertThat(entity.syncState).isEqualTo(SyncState.PENDING_DELETE)
@@ -134,7 +193,12 @@ class PullRuleHelperTest {
     fun `a pending delete needs attention as locked once the status moves on`() {
         val row = incidentEntity(syncState = SyncState.PENDING_DELETE)
 
-        val entity = (decide(local = withPhotos(row = row), remote = remote) as PullAction.Upsert).entity
+        val entity = (
+            decide(
+                local = withPhotos(row = row),
+                remote = remote,
+            ) as PullAction.Upsert
+            ).entity
 
         assertThat(entity.syncState).isEqualTo(SyncState.NEEDS_ATTENTION)
         assertThat(entity.conflictReason).isEqualTo(ConflictReason.STATUS_LOCKED)
@@ -142,11 +206,22 @@ class PullRuleHelperTest {
 
     @Test
     fun `a pending delete whose incident was deleted remotely is removed locally`() {
-        val row = incidentEntity(syncState = SyncState.PENDING_DELETE, localRevision = 2)
+        val row = incidentEntity(
+            syncState = SyncState.PENDING_DELETE,
+            localRevision = 2,
+        )
 
-        val action = decide(local = withPhotos(row = row), remote = tombstone)
+        val action = decide(
+            local = withPhotos(row = row),
+            remote = tombstone,
+        )
 
-        assertThat(action).isEqualTo(PullAction.Delete(id = row.id, basedOnRevision = 2))
+        assertThat(action).isEqualTo(
+            PullAction.Delete(
+                id = row.id,
+                basedOnRevision = 2,
+            ),
+        )
     }
     // endregion
 
@@ -160,7 +235,12 @@ class PullRuleHelperTest {
                 title = "Local title",
             )
 
-        val entity = (decide(local = withPhotos(row = row), remote = remote) as PullAction.Upsert).entity
+        val entity = (
+            decide(
+                local = withPhotos(row = row),
+                remote = remote,
+            ) as PullAction.Upsert
+            ).entity
 
         assertThat(entity.title).isEqualTo("Local title")
         assertThat(entity.serverVersion).isEqualTo(4)
@@ -170,7 +250,12 @@ class PullRuleHelperTest {
 
     @Test
     fun `drafts are left alone`() {
-        assertThat(decide(local = withPhotos(row = draftIncidentEntity()), remote = remote)).isEqualTo(PullAction.Skip)
+        assertThat(
+            decide(
+                local = withPhotos(row = draftIncidentEntity()),
+                remote = remote,
+            ),
+        ).isEqualTo(PullAction.Skip)
     }
     // endregion
 
@@ -178,10 +263,26 @@ class PullRuleHelperTest {
     @Test
     fun `scope covers my incidents, others unresolved ones and others changed in the last 30 days`() {
         val old = now - 31.days
-        val mine = incidentDto(reporterId = REPORTER_ID, status = "CLOSED", updatedAt = old)
-        val othersOpen = incidentDto(reporterId = "tech2", status = "IN_PROGRESS", updatedAt = old)
-        val othersRecent = incidentDto(reporterId = "tech2", status = "RESOLVED", updatedAt = now - 29.days)
-        val othersOld = incidentDto(reporterId = "tech2", status = "CLOSED", updatedAt = old)
+        val mine = incidentDto(
+            reporterId = REPORTER_ID,
+            status = "CLOSED",
+            updatedAt = old,
+        )
+        val othersOpen = incidentDto(
+            reporterId = "tech2",
+            status = "IN_PROGRESS",
+            updatedAt = old,
+        )
+        val othersRecent = incidentDto(
+            reporterId = "tech2",
+            status = "RESOLVED",
+            updatedAt = now - 29.days,
+        )
+        val othersOld = incidentDto(
+            reporterId = "tech2",
+            status = "CLOSED",
+            updatedAt = old,
+        )
 
         assertThat(inScope(remote = mine)).isTrue()
         assertThat(inScope(remote = othersOpen)).isTrue()
@@ -191,11 +292,30 @@ class PullRuleHelperTest {
 
     @Test
     fun `an out of scope item is skipped when new and removed when synced locally`() {
-        val othersOld = incidentDto(reporterId = "tech2", status = "CLOSED", updatedAt = now - 31.days)
-        val local = withPhotos(row = incidentEntity(reporterId = "tech2", syncState = SyncState.SYNCED))
+        val othersOld = incidentDto(
+            reporterId = "tech2",
+            status = "CLOSED",
+            updatedAt = now - 31.days,
+        )
+        val local = withPhotos(
+            row = incidentEntity(
+                reporterId = "tech2",
+                syncState = SyncState.SYNCED,
+            ),
+        )
 
-        assertThat(decide(local = null, remote = othersOld)).isEqualTo(PullAction.Skip)
-        assertThat(decide(local = local, remote = othersOld)).isInstanceOf<PullAction.Delete>()
+        assertThat(
+            decide(
+                local = null,
+                remote = othersOld,
+            ),
+        ).isEqualTo(PullAction.Skip)
+        assertThat(
+            decide(
+                local = local,
+                remote = othersOld,
+            ),
+        ).isInstanceOf<PullAction.Delete>()
     }
     // endregion
 

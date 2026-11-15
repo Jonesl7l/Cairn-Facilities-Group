@@ -48,7 +48,10 @@ class SessionRepositoryTest {
 
     @Test
     fun aTechnicianLogsInAndTheSessionIsSaved() = runTest {
-        val result = repository.login(username = "tech1", password = "password")
+        val result = repository.login(
+            username = "tech1",
+            password = "password",
+        )
 
         assertThat(result).isEqualTo(LoginResult.Success(user = technician))
         assertThat(repository.observeUser().first()).isEqualTo(technician)
@@ -59,7 +62,12 @@ class SessionRepositoryTest {
     fun wrongCredentialsAreInvalidCredentials() = runTest {
         authRemoteDataSource.result = ApiResult.Failure(error = ApiError.InvalidCredentials)
 
-        assertThat(repository.login(username = "tech1", password = "wrong")).isEqualTo(LoginResult.InvalidCredentials)
+        assertThat(
+            repository.login(
+                username = "tech1",
+                password = "wrong",
+            ),
+        ).isEqualTo(LoginResult.InvalidCredentials)
         assertThat(repository.observeUser().first()).isNull()
     }
 
@@ -67,7 +75,12 @@ class SessionRepositoryTest {
     fun anOperatorIsRejectedWithoutASession() = runTest {
         authRemoteDataSource.result = ApiResult.Success(value = technicianDto.copy(role = "OPERATOR"))
 
-        assertThat(repository.login(username = "operator", password = "password")).isEqualTo(LoginResult.NotTechnician)
+        assertThat(
+            repository.login(
+                username = "operator",
+                password = "password",
+            ),
+        ).isEqualTo(LoginResult.NotTechnician)
         assertThat(repository.observeUser().first()).isNull()
         assertThat(syncScheduler.syncRequests).isEqualTo(0)
     }
@@ -77,7 +90,10 @@ class SessionRepositoryTest {
         val error = ApiError.Network(cause = IOException("offline"))
         authRemoteDataSource.result = ApiResult.Failure(error = error)
 
-        val result = repository.login(username = "tech1", password = "password")
+        val result = repository.login(
+            username = "tech1",
+            password = "password",
+        )
 
         assertThat(result).isEqualTo(LoginResult.Failed(error = error))
     }
@@ -85,17 +101,40 @@ class SessionRepositoryTest {
     @Test
     fun theUnsyncedCountIncludesEverythingThatIsNotSynced() = runTest {
         val incidentDao = database.incidentDao()
-        incidentDao.upsertIncident(incident = incidentEntity(id = "synced", syncState = SyncState.SYNCED))
-        incidentDao.upsertIncident(incident = incidentEntity(id = "draft", syncState = SyncState.DRAFT))
-        incidentDao.upsertIncident(incident = incidentEntity(id = "pending", syncState = SyncState.PENDING_UPDATE))
-        incidentDao.upsertIncident(incident = incidentEntity(id = "attention", syncState = SyncState.NEEDS_ATTENTION))
+        incidentDao.upsertIncident(
+            incident = incidentEntity(
+                id = "synced",
+                syncState = SyncState.SYNCED,
+            ),
+        )
+        incidentDao.upsertIncident(
+            incident = incidentEntity(
+                id = "draft",
+                syncState = SyncState.DRAFT,
+            ),
+        )
+        incidentDao.upsertIncident(
+            incident = incidentEntity(
+                id = "pending",
+                syncState = SyncState.PENDING_UPDATE,
+            ),
+        )
+        incidentDao.upsertIncident(
+            incident = incidentEntity(
+                id = "attention",
+                syncState = SyncState.NEEDS_ATTENTION,
+            ),
+        )
 
         assertThat(repository.observeUnsyncedCount().first()).isEqualTo(3)
     }
 
     @Test
     fun logoutClearsTheUsersDataAndSessionButKeepsReferenceData() = runTest {
-        repository.login(username = "tech1", password = "password")
+        repository.login(
+            username = "tech1",
+            password = "password",
+        )
         database.incidentDao().upsertIncident(incident = incidentEntity())
         database.syncMetaDao().upsert(meta = syncMetaEntity())
         database.referenceDao().replaceAll(entities = referenceEntities())

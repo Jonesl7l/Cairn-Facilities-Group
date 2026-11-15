@@ -27,10 +27,33 @@ class DtoExtensionsTest {
     fun `every list and field is copied to its entity`() {
         val expected =
             ReferenceEntities(
-                sites = listOf(SiteEntity(id = "site-1", name = "Head Office")),
-                buildings = listOf(BuildingEntity(id = "building-1", siteId = "site-1", name = "North Block")),
-                floors = listOf(FloorEntity(id = "floor-1", buildingId = "building-1", name = "Ground Floor")),
-                rooms = listOf(RoomEntity(id = "room-1", floorId = "floor-1", name = "Lobby")),
+                sites = listOf(
+                    SiteEntity(
+                        id = "site-1",
+                        name = "Head Office",
+                    ),
+                ),
+                buildings = listOf(
+                    BuildingEntity(
+                        id = "building-1",
+                        siteId = "site-1",
+                        name = "North Block",
+                    ),
+                ),
+                floors = listOf(
+                    FloorEntity(
+                        id = "floor-1",
+                        buildingId = "building-1",
+                        name = "Ground Floor",
+                    ),
+                ),
+                rooms = listOf(
+                    RoomEntity(
+                        id = "room-1",
+                        floorId = "floor-1",
+                        name = "Lobby",
+                    ),
+                ),
                 assets =
                     listOf(
                         AssetEntity(
@@ -40,7 +63,13 @@ class DtoExtensionsTest {
                             code = "DOOR-001",
                         ),
                     ),
-                technicians = listOf(TechnicianEntity(id = "u1", username = "tech1", displayName = "Tech One")),
+                technicians = listOf(
+                    TechnicianEntity(
+                        id = "u1",
+                        username = "tech1",
+                        displayName = "Tech One",
+                    ),
+                ),
             )
 
         assertThat(referenceDataDto().toEntities()).isEqualTo(expected)
@@ -127,7 +156,10 @@ class DtoExtensionsTest {
 
     @Test
     fun `unknown values are kept raw and an unknown severity ranks last`() {
-        val entity = incidentDto(severity = "SEVERE", status = "ON_HOLD").toEntity()
+        val entity = incidentDto(
+            severity = "SEVERE",
+            status = "ON_HOLD",
+        ).toEntity()
 
         assertThat(entity.severity).isEqualTo("SEVERE")
         assertThat(entity.severityRank).isEqualTo(0)

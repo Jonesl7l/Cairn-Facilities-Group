@@ -69,7 +69,10 @@ class OkHttpSyncEventSource(
                     channel.close(cause = t as? IOException ?: IOException("onFailure: stream failed", t))
                 }
             }
-        val eventSource = factory.newEventSource(request = request, listener = listener)
+        val eventSource = factory.newEventSource(
+            request = request,
+            listener = listener,
+        )
         awaitClose { eventSource.cancel() }
     }
 

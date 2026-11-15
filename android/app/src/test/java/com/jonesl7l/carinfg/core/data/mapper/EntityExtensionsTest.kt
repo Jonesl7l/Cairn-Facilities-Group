@@ -118,7 +118,11 @@ class EntityExtensionsTest {
                     operatorFields(
                         status = IncidentStatus.Open,
                         assignedTo = "operator1",
-                        dueDate = LocalDate(year = 2026, month = 11, day = 20),
+                        dueDate = LocalDate(
+                            year = 2026,
+                            month = 11,
+                            day = 20,
+                        ),
                         regulatoryReportable = false,
                         supervisorAcknowledged = true,
                     ),
@@ -131,7 +135,12 @@ class EntityExtensionsTest {
                         lastError = "STATUS_LOCKED",
                     ),
             )
-        assertThat(IncidentWithPhotos(incident = entity, photos = photos).toDomain()).isEqualTo(expected)
+        assertThat(
+            IncidentWithPhotos(
+                incident = entity,
+                photos = photos,
+            ).toDomain(),
+        ).isEqualTo(expected)
     }
 
     @Test
@@ -167,7 +176,12 @@ class EntityExtensionsTest {
             )
 
         incomplete.forEach { entity ->
-            assertThat(IncidentWithPhotos(incident = entity, photos = emptyList()).toWriteRequest()).isNull()
+            assertThat(
+                IncidentWithPhotos(
+                    incident = entity,
+                    photos = emptyList(),
+                ).toWriteRequest(),
+            ).isNull()
         }
     }
 
@@ -184,7 +198,10 @@ class EntityExtensionsTest {
                 ),
             )
 
-        val request = IncidentWithPhotos(incident = incidentEntity(), photos = photos).toWriteRequest()
+        val request = IncidentWithPhotos(
+            incident = incidentEntity(),
+            photos = photos,
+        ).toWriteRequest()
 
         assertThat(request?.photos?.map { it.id }).isEqualTo(listOf("photo-0", "photo-1"))
     }
@@ -209,8 +226,18 @@ class EntityExtensionsTest {
 
     @Test
     fun `a delete without its time or user gives no delete request`() {
-        assertThat(incidentEntity(deletedAt = null, deletedBy = REPORTER_ID).toDeleteRequest()).isNull()
-        assertThat(incidentEntity(deletedAt = now, deletedBy = null).toDeleteRequest()).isNull()
+        assertThat(
+            incidentEntity(
+                deletedAt = null,
+                deletedBy = REPORTER_ID,
+            ).toDeleteRequest(),
+        ).isNull()
+        assertThat(
+            incidentEntity(
+                deletedAt = now,
+                deletedBy = null,
+            ).toDeleteRequest(),
+        ).isNull()
     }
     // endregion
 
@@ -242,15 +269,45 @@ class EntityExtensionsTest {
         val entities = referenceDataDto().toEntities()
 
         assertThat(entities.sites.single().toDomain())
-            .isEqualTo(Site(id = "site-1", name = "Head Office"))
+            .isEqualTo(
+                Site(
+                    id = "site-1",
+                    name = "Head Office",
+                ),
+            )
         assertThat(entities.buildings.single().toDomain())
-            .isEqualTo(Building(id = "building-1", siteId = "site-1", name = "North Block"))
+            .isEqualTo(
+                Building(
+                    id = "building-1",
+                    siteId = "site-1",
+                    name = "North Block",
+                ),
+            )
         assertThat(entities.floors.single().toDomain())
-            .isEqualTo(Floor(id = "floor-1", buildingId = "building-1", name = "Ground Floor"))
+            .isEqualTo(
+                Floor(
+                    id = "floor-1",
+                    buildingId = "building-1",
+                    name = "Ground Floor",
+                ),
+            )
         assertThat(entities.rooms.single().toDomain())
-            .isEqualTo(Room(id = "room-1", floorId = "floor-1", name = "Lobby"))
+            .isEqualTo(
+                Room(
+                    id = "room-1",
+                    floorId = "floor-1",
+                    name = "Lobby",
+                ),
+            )
         assertThat(entities.assets.single().toDomain())
-            .isEqualTo(Asset(id = "asset-1", roomId = "room-1", name = "Revolving Door", code = "DOOR-001"))
+            .isEqualTo(
+                Asset(
+                    id = "asset-1",
+                    roomId = "room-1",
+                    name = "Revolving Door",
+                    code = "DOOR-001",
+                ),
+            )
     }
     // endregion
 

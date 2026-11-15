@@ -31,7 +31,10 @@ class SyncMetaDaoTest {
     @Test
     fun upsertRoundTripsAndReplacesTheSingleRow() = runTest {
         dao.upsert(meta = syncMetaEntity())
-        val next = syncMetaEntity(lastChangeSeq = 92, databaseId = "db-2")
+        val next = syncMetaEntity(
+            lastChangeSeq = 92,
+            databaseId = "db-2",
+        )
 
         dao.upsert(meta = next)
 
@@ -47,13 +50,28 @@ class SyncMetaDaoTest {
 
     @Test
     fun raiseAnnouncedChangeSeqOnlyEverIncreasesAndKeepsTheCursor() = runTest {
-        dao.upsert(meta = syncMetaEntity(lastChangeSeq = 10, announcedChangeSeq = 20))
+        dao.upsert(
+            meta = syncMetaEntity(
+                lastChangeSeq = 10,
+                announcedChangeSeq = 20,
+            ),
+        )
 
         dao.raiseAnnouncedChangeSeq(changeSeq = 15)
-        assertThat(dao.get()).isEqualTo(syncMetaEntity(lastChangeSeq = 10, announcedChangeSeq = 20))
+        assertThat(dao.get()).isEqualTo(
+            syncMetaEntity(
+                lastChangeSeq = 10,
+                announcedChangeSeq = 20,
+            ),
+        )
 
         dao.raiseAnnouncedChangeSeq(changeSeq = 30)
-        assertThat(dao.get()).isEqualTo(syncMetaEntity(lastChangeSeq = 10, announcedChangeSeq = 30))
+        assertThat(dao.get()).isEqualTo(
+            syncMetaEntity(
+                lastChangeSeq = 10,
+                announcedChangeSeq = 30,
+            ),
+        )
     }
 
     @Test

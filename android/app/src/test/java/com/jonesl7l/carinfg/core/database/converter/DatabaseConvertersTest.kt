@@ -31,7 +31,11 @@ class DatabaseConvertersTest {
 
     @Test
     fun `dates are stored as iso strings`() {
-        val date = LocalDate(year = 2026, month = 11, day = 20)
+        val date = LocalDate(
+            year = 2026,
+            month = 11,
+            day = 20,
+        )
 
         val stored = converters.localDateToIso(value = date)
 

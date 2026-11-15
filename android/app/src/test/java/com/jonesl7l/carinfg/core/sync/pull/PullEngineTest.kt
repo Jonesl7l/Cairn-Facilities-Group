@@ -33,8 +33,24 @@ class PullEngineTest {
 
     @Test
     fun `pages are pulled until a short page and the cursor follows the last change`() = runTest {
-        remote.changePages += page(incidents = listOf(incident(id = "a", changeSeq = 10)), isLastPage = false)
-        remote.changePages += page(incidents = listOf(incident(id = "b", changeSeq = 11)), isLastPage = true)
+        remote.changePages += page(
+            incidents = listOf(
+                incident(
+                    id = "a",
+                    changeSeq = 10,
+                ),
+            ),
+            isLastPage = false,
+        )
+        remote.changePages += page(
+            incidents = listOf(
+                incident(
+                    id = "b",
+                    changeSeq = 11,
+                ),
+            ),
+            isLastPage = true,
+        )
 
         val result = engine.pull(now = now)
 
@@ -46,7 +62,10 @@ class PullEngineTest {
 
     @Test
     fun `the first pull stores the database id`() = runTest {
-        remote.changePages += page(incidents = emptyList(), databaseId = "db-1")
+        remote.changePages += page(
+            incidents = emptyList(),
+            databaseId = "db-1",
+        )
 
         engine.pull(now = now)
 
@@ -55,9 +74,23 @@ class PullEngineTest {
 
     @Test
     fun `a changed database id resets and pulls again from the start`() = runTest {
-        store.meta = store.meta.copy(lastChangeSeq = 90, databaseId = "db-1")
-        remote.changePages += page(incidents = emptyList(), databaseId = "db-2")
-        remote.changePages += page(incidents = listOf(incident(id = "a", changeSeq = 1)), databaseId = "db-2")
+        store.meta = store.meta.copy(
+            lastChangeSeq = 90,
+            databaseId = "db-1",
+        )
+        remote.changePages += page(
+            incidents = emptyList(),
+            databaseId = "db-2",
+        )
+        remote.changePages += page(
+            incidents = listOf(
+                incident(
+                    id = "a",
+                    changeSeq = 1,
+                ),
+            ),
+            databaseId = "db-2",
+        )
 
         engine.pull(now = now)
 
@@ -68,7 +101,10 @@ class PullEngineTest {
 
     @Test
     fun `a failed page stops the pull and keeps the cursor`() = runTest {
-        store.meta = store.meta.copy(lastChangeSeq = 5, databaseId = "db-1")
+        store.meta = store.meta.copy(
+            lastChangeSeq = 5,
+            databaseId = "db-1",
+        )
         val error = ApiError.ServiceUnavailable(retryAfter = null)
         remote.changePages += ApiResult.Failure(error = error)
 

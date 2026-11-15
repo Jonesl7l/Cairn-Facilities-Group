@@ -36,7 +36,12 @@ class IncidentRepositoryImpl @Inject constructor(
     ): SaveResult = database.withWriteTransaction {
         val stored = incidentDao.getIncident(id = incident.id)?.incident
         val draft =
-            IncidentTransitionHelper.saveDraft(entity = incident.mergeOnto(stored = stored, now = now))
+            IncidentTransitionHelper.saveDraft(
+                entity = incident.mergeOnto(
+                    stored = stored,
+                    now = now,
+                ),
+            )
                 ?: return@withWriteTransaction SaveResult.NotAllowed
         incidentDao.upsertIncident(incident = draft)
         SaveResult.Saved
@@ -46,13 +51,19 @@ class IncidentRepositoryImpl @Inject constructor(
         incident: Incident,
         now: Instant,
     ): SaveResult {
-        val errors = IncidentValidator.validate(incident = incident, now = now)
+        val errors = IncidentValidator.validate(
+            incident = incident,
+            now = now,
+        )
         if (errors.isNotEmpty()) return SaveResult.Invalid(errors = errors)
         val result = database.withWriteTransaction {
             val stored = incidentDao.getIncident(id = incident.id)?.incident
             val submitted =
                 IncidentTransitionHelper.submit(
-                    entity = incident.mergeOnto(stored = stored, now = now),
+                    entity = incident.mergeOnto(
+                        stored = stored,
+                        now = now,
+                    ),
                     now = now,
                 ) ?: return@withWriteTransaction SaveResult.NotAllowed
             incidentDao.upsertIncident(incident = submitted)
@@ -67,15 +78,28 @@ class IncidentRepositoryImpl @Inject constructor(
         now: Instant,
     ): SaveResult {
         val userId = currentUserId() ?: return SaveResult.NotAllowed
-        val errors = IncidentValidator.validate(incident = incident, now = now)
+        val errors = IncidentValidator.validate(
+            incident = incident,
+            now = now,
+        )
         if (errors.isNotEmpty()) return SaveResult.Invalid(errors = errors)
         val result = database.withWriteTransaction {
             val stored = incidentDao.getIncident(id = incident.id) ?: return@withWriteTransaction SaveResult.NotAllowed
-            if (!IncidentPolicyHelper.canEdit(incident = stored.toDomain(), userId = userId)) {
+            val canEdit =
+                IncidentPolicyHelper.canEdit(
+                    incident = stored.toDomain(),
+                    userId = userId,
+                )
+            if (!canEdit) {
                 return@withWriteTransaction SaveResult.NotAllowed
             }
             val edited =
-                IncidentTransitionHelper.edit(entity = incident.mergeOnto(stored = stored.incident, now = now))
+                IncidentTransitionHelper.edit(
+                    entity = incident.mergeOnto(
+                        stored = stored.incident,
+                        now = now,
+                    ),
+                )
                     ?: return@withWriteTransaction SaveResult.NotAllowed
             incidentDao.upsertIncident(incident = edited)
             SaveResult.Saved
@@ -92,7 +116,12 @@ class IncidentRepositoryImpl @Inject constructor(
         val userId = currentUserId() ?: return DeleteResult.NotAllowed
         return database.withWriteTransaction {
             val stored = incidentDao.getIncident(id = id) ?: return@withWriteTransaction DeleteResult.NotAllowed
-            if (!IncidentPolicyHelper.canDelete(incident = stored.toDomain(), userId = userId)) {
+            val canDelete =
+                IncidentPolicyHelper.canDelete(
+                    incident = stored.toDomain(),
+                    userId = userId,
+                )
+            if (!canDelete) {
                 return@withWriteTransaction DeleteResult.NotAllowed
             }
             val transition =
@@ -137,7 +166,10 @@ class IncidentRepositoryImpl @Inject constructor(
             database.withWriteTransaction {
                 val stored = incidentDao.getIncident(id = id)?.incident ?: return@withWriteTransaction false
                 val entity =
-                    IncidentTransitionHelper.sendDeleteNow(entity = stored, now = now)
+                    IncidentTransitionHelper.sendDeleteNow(
+                        entity = stored,
+                        now = now,
+                    )
                         ?: return@withWriteTransaction false
                 incidentDao.upsertIncident(incident = entity)
                 true
@@ -151,7 +183,10 @@ class IncidentRepositoryImpl @Inject constructor(
         stored: IncidentEntity?,
         now: Instant,
     ): IncidentEntity {
-        val fromForm = toEntity(existing = stored, localUpdatedAt = now)
+        val fromForm = toEntity(
+            existing = stored,
+            localUpdatedAt = now,
+        )
         if (stored == null) return fromForm.copy(syncState = SyncState.DRAFT)
         return fromForm.copy(
             referenceNumber = stored.referenceNumber,

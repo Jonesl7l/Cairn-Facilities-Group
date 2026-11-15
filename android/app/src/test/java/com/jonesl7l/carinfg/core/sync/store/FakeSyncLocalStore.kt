@@ -32,7 +32,10 @@ class FakeSyncLocalStore : SyncLocalStore {
 
                 is PullAction.Upsert -> {
                     val photos = action.replacementPhotos ?: incidents[action.entity.id]?.photos.orEmpty()
-                    incidents[action.entity.id] = IncidentWithPhotos(incident = action.entity, photos = photos)
+                    incidents[action.entity.id] = IncidentWithPhotos(
+                        incident = action.entity,
+                        photos = photos,
+                    )
                 }
 
                 is PullAction.Delete -> incidents.remove(action.id)
@@ -70,7 +73,10 @@ class FakeSyncLocalStore : SyncLocalStore {
                 photos =
                     local.photos.map { photo ->
                         if (photo.id == photoId) {
-                            photo.copy(remoteUrl = remoteUrl, uploadState = PhotoUploadState.UPLOADED)
+                            photo.copy(
+                                remoteUrl = remoteUrl,
+                                uploadState = PhotoUploadState.UPLOADED,
+                            )
                         } else {
                             photo
                         }
@@ -86,7 +92,10 @@ class FakeSyncLocalStore : SyncLocalStore {
         val current = incidents[id] ?: return
         val commit = merge(current)
         incidents[id] =
-            IncidentWithPhotos(incident = commit.entity, photos = commit.replacementPhotos ?: current.photos)
+            IncidentWithPhotos(
+                incident = commit.entity,
+                photos = commit.replacementPhotos ?: current.photos,
+            )
     }
 
     override suspend fun removePushed(

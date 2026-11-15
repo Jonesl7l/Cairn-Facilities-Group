@@ -37,10 +37,22 @@ object IncidentValidator {
         incident: Incident,
         now: Instant,
     ): List<FieldError> = buildList {
-        validateDetails(details = incident.details, reportedAt = incident.reportedAt, now = now)
+        validateDetails(
+            details = incident.details,
+            reportedAt = incident.reportedAt,
+            now = now,
+        )
         validateLocation(location = incident.location)
-        validateSafety(safety = incident.safety, persons = incident.persons)
-        incident.persons.forEachIndexed { index, person -> validatePerson(index = index, person = person) }
+        validateSafety(
+            safety = incident.safety,
+            persons = incident.persons,
+        )
+        incident.persons.forEachIndexed { index, person ->
+            validatePerson(
+                index = index,
+                person = person,
+            )
+        }
         if (incident.photos.size > MAX_PHOTOS) {
             addError(
                 field = IncidentField.Photos,
@@ -57,7 +69,10 @@ object IncidentValidator {
         val title = details.title.trim()
         // title is required and 3-80 chars once trimmed
         when {
-            title.isEmpty() -> addError(field = IncidentField.Title, reason = Required)
+            title.isEmpty() -> addError(
+                field = IncidentField.Title,
+                reason = Required,
+            )
 
             title.length < TITLE_MIN_LENGTH -> {
                 addError(
@@ -77,7 +92,10 @@ object IncidentValidator {
         val description = details.description.trim()
         // description is required and capped at 2000 chars
         when {
-            description.isEmpty() -> addError(field = IncidentField.Description, reason = Required)
+            description.isEmpty() -> addError(
+                field = IncidentField.Description,
+                reason = Required,
+            )
 
             description.length > DESCRIPTION_MAX_LENGTH -> {
                 addError(
@@ -90,22 +108,37 @@ object IncidentValidator {
         // occurredAt cant be in the future (bar small clock skew) or after it was reported
         when {
             details.occurredAt > now + allowedClockSkew -> {
-                addError(field = IncidentField.OccurredAt, reason = InFuture)
+                addError(
+                    field = IncidentField.OccurredAt,
+                    reason = InFuture,
+                )
             }
 
             reportedAt != null && details.occurredAt > reportedAt -> {
-                addError(field = IncidentField.OccurredAt, reason = AfterReportedAt)
+                addError(
+                    field = IncidentField.OccurredAt,
+                    reason = AfterReportedAt,
+                )
             }
         }
 
         // type is required, must be known, and other needs its text
         when (val type = details.type) {
-            null -> addError(field = IncidentField.Type, reason = Required)
+            null -> addError(
+                field = IncidentField.Type,
+                reason = Required,
+            )
 
-            is IncidentType.Unknown -> addError(field = IncidentField.Type, reason = UnknownValue)
+            is IncidentType.Unknown -> addError(
+                field = IncidentField.Type,
+                reason = UnknownValue,
+            )
 
             is IncidentType.Other -> if (type.description.isBlank()) {
-                addError(field = IncidentField.Type, reason = OtherTextRequired)
+                addError(
+                    field = IncidentField.Type,
+                    reason = OtherTextRequired,
+                )
             }
 
             else -> Unit
@@ -113,19 +146,38 @@ object IncidentValidator {
 
         // severity is required and must be known
         when (details.severity) {
-            null -> addError(field = IncidentField.Severity, reason = Required)
-            is Severity.Unknown -> addError(field = IncidentField.Severity, reason = UnknownValue)
+            null -> addError(
+                field = IncidentField.Severity,
+                reason = Required,
+            )
+
+            is Severity.Unknown -> addError(
+                field = IncidentField.Severity,
+                reason = UnknownValue,
+            )
+
             else -> Unit
         }
     }
 
     private fun MutableList<FieldError>.validateLocation(location: IncidentLocation) {
-        if (location.siteId == null) addError(field = IncidentField.Site, reason = Required)
+        if (location.siteId == null) {
+            addError(
+                field = IncidentField.Site,
+                reason = Required,
+            )
+        }
         if (location.buildingId == null && location.unlistedLocation.isNullOrBlank()) {
-            addError(field = IncidentField.Building, reason = Required)
+            addError(
+                field = IncidentField.Building,
+                reason = Required,
+            )
         }
         if (location.equipmentOutOfService && location.assetId == null) {
-            addError(field = IncidentField.EquipmentOutOfService, reason = AssetRequired)
+            addError(
+                field = IncidentField.EquipmentOutOfService,
+                reason = AssetRequired,
+            )
         }
     }
 
@@ -134,29 +186,52 @@ object IncidentValidator {
         persons: List<Person>,
     ) {
         when (safety.injuryOccurred) {
-            null -> addError(field = IncidentField.InjuryOccurred, reason = Required)
+            null -> addError(
+                field = IncidentField.InjuryOccurred,
+                reason = Required,
+            )
 
             true -> if (persons.none { it.role == PersonRole.Injured }) {
-                addError(field = IncidentField.InjuryOccurred, reason = InjuredPersonRequired)
+                addError(
+                    field = IncidentField.InjuryOccurred,
+                    reason = InjuredPersonRequired,
+                )
             }
 
             false -> Unit
         }
 
         if (safety.hazardStillPresent == null) {
-            addError(field = IncidentField.HazardStillPresent, reason = Required)
+            addError(
+                field = IncidentField.HazardStillPresent,
+                reason = Required,
+            )
         }
 
         val actions = safety.immediateActions
-        if (actions.isEmpty()) addError(field = IncidentField.ImmediateActions, reason = Required)
+        if (actions.isEmpty()) {
+            addError(
+                field = IncidentField.ImmediateActions,
+                reason = Required,
+            )
+        }
         if (ImmediateAction.None in actions && actions.size > 1) {
-            addError(field = IncidentField.ImmediateActions, reason = NoneWithOthers)
+            addError(
+                field = IncidentField.ImmediateActions,
+                reason = NoneWithOthers,
+            )
         }
         if (actions.any { it is ImmediateAction.Other && it.description.isBlank() }) {
-            addError(field = IncidentField.ImmediateActions, reason = OtherTextRequired)
+            addError(
+                field = IncidentField.ImmediateActions,
+                reason = OtherTextRequired,
+            )
         }
         if (actions.any { it is ImmediateAction.Unknown }) {
-            addError(field = IncidentField.ImmediateActions, reason = UnknownValue)
+            addError(
+                field = IncidentField.ImmediateActions,
+                reason = UnknownValue,
+            )
         }
     }
 
@@ -164,14 +239,33 @@ object IncidentValidator {
         index: Int,
         person: Person,
     ) {
-        if (person.name.isBlank()) addPersonError(index = index, field = PersonField.NAME, reason = Required)
+        if (person.name.isBlank()) {
+            addPersonError(
+                index = index,
+                field = PersonField.NAME,
+                reason = Required,
+            )
+        }
         if (person.type is PersonType.Unknown) {
-            addPersonError(index = index, field = PersonField.TYPE, reason = UnknownValue)
+            addPersonError(
+                index = index,
+                field = PersonField.TYPE,
+                reason = UnknownValue,
+            )
         }
         if (person.role is PersonRole.Unknown) {
-            addPersonError(index = index, field = PersonField.ROLE, reason = UnknownValue)
+            addPersonError(
+                index = index,
+                field = PersonField.ROLE,
+                reason = UnknownValue,
+            )
         }
-        if (person.role == PersonRole.Injured) validateInjury(index = index, injury = person.injury)
+        if (person.role == PersonRole.Injured) {
+            validateInjury(
+                index = index,
+                injury = person.injury,
+            )
+        }
     }
 
     private fun MutableList<FieldError>.validateInjury(
@@ -179,19 +273,43 @@ object IncidentValidator {
         injury: InjuryDetails?,
     ) {
         if (injury == null) {
-            addPersonError(index = index, field = PersonField.INJURY_NATURE, reason = Required)
-            addPersonError(index = index, field = PersonField.INJURY_BODY_PART, reason = Required)
-            addPersonError(index = index, field = PersonField.INJURY_TREATMENT, reason = Required)
+            addPersonError(
+                index = index,
+                field = PersonField.INJURY_NATURE,
+                reason = Required,
+            )
+            addPersonError(
+                index = index,
+                field = PersonField.INJURY_BODY_PART,
+                reason = Required,
+            )
+            addPersonError(
+                index = index,
+                field = PersonField.INJURY_TREATMENT,
+                reason = Required,
+            )
             return
         }
         if (injury.nature.isBlank()) {
-            addPersonError(index = index, field = PersonField.INJURY_NATURE, reason = Required)
+            addPersonError(
+                index = index,
+                field = PersonField.INJURY_NATURE,
+                reason = Required,
+            )
         }
         if (injury.bodyPart.isBlank()) {
-            addPersonError(index = index, field = PersonField.INJURY_BODY_PART, reason = Required)
+            addPersonError(
+                index = index,
+                field = PersonField.INJURY_BODY_PART,
+                reason = Required,
+            )
         }
         if (injury.treatment is Treatment.Unknown) {
-            addPersonError(index = index, field = PersonField.INJURY_TREATMENT, reason = UnknownValue)
+            addPersonError(
+                index = index,
+                field = PersonField.INJURY_TREATMENT,
+                reason = UnknownValue,
+            )
         }
     }
 
@@ -199,7 +317,12 @@ object IncidentValidator {
         field: IncidentField,
         reason: ValidationReason,
     ) {
-        add(FieldError(field = field, reason = reason))
+        add(
+            FieldError(
+                field = field,
+                reason = reason,
+            ),
+        )
     }
 
     private fun MutableList<FieldError>.addPersonError(
@@ -208,7 +331,10 @@ object IncidentValidator {
         reason: ValidationReason,
     ) {
         addError(
-            field = IncidentField.Person(index = index, field = field),
+            field = IncidentField.Person(
+                index = index,
+                field = field,
+            ),
             reason = reason,
         )
     }

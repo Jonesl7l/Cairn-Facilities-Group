@@ -96,7 +96,12 @@ class IncidentRemoteDataSourceImplTest {
 
     @Test
     fun `a full page is not the last page`() = runTest {
-        val incidents = List(size = 50) { incidentDto(id = "incident-$it", changeSeq = it + 1L) }
+        val incidents = List(size = 50) {
+            incidentDto(
+                id = "incident-$it",
+                changeSeq = it + 1L,
+            )
+        }
         server.enqueue(changesResponse(incidents = incidents))
 
         assertThat(dataSource.getChanges(afterChangeSeq = 0))
@@ -135,7 +140,12 @@ class IncidentRemoteDataSourceImplTest {
 
     @Test
     fun `a page without the database id header is unexpected`() = runTest {
-        server.enqueue(changesResponse(incidents = emptyList(), databaseId = null))
+        server.enqueue(
+            changesResponse(
+                incidents = emptyList(),
+                databaseId = null,
+            ),
+        )
 
         assertThat(dataSource.getChanges(afterChangeSeq = 0))
             .isEqualTo(ApiResult.Failure(error = ApiError.Unexpected(status = HttpStatus.OK)))
@@ -196,7 +206,10 @@ class IncidentRemoteDataSourceImplTest {
 
     @Test
     fun `unknown keys are ignored and unrecognised values come through as is`() = runTest {
-        val incident = incidentDto(severity = "CATASTROPHIC", status = "ON_HOLD")
+        val incident = incidentDto(
+            severity = "CATASTROPHIC",
+            status = "ON_HOLD",
+        )
         val unknownKey = "priority" to JsonPrimitive(value = "P1")
         val body = JsonObject(content = incidentJson(incident = incident) + unknownKey)
         server.enqueue(jsonResponse(body = body.toString()))
@@ -215,7 +228,12 @@ class IncidentRemoteDataSourceImplTest {
 
     @Test
     fun `json-server's own 404 is not found`() = runTest {
-        server.enqueue(jsonResponse(code = HttpStatus.NOT_FOUND, body = "{}"))
+        server.enqueue(
+            jsonResponse(
+                code = HttpStatus.NOT_FOUND,
+                body = "{}",
+            ),
+        )
 
         assertThat(dataSource.getIncident(id = INCIDENT_ID))
             .isEqualTo(ApiResult.Failure(error = ApiError.NotFound))
@@ -259,7 +277,10 @@ class IncidentRemoteDataSourceImplTest {
 
     @Test
     fun `createIncident posts every app-owned field, including cleared ones as null`() = runTest {
-        val request = incidentWriteRequest(buildingId = null, unlistedLocation = "Portakabin")
+        val request = incidentWriteRequest(
+            buildingId = null,
+            unlistedLocation = "Portakabin",
+        )
         server.enqueue(
             jsonResponse(
                 code = HttpStatus.CREATED,
