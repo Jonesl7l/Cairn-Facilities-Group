@@ -36,12 +36,14 @@ interface ReferenceDao {
     @Query("SELECT NOT EXISTS (SELECT 1 FROM sites)")
     suspend fun isEmpty(): Boolean
 
+    // one transaction, so observers never see the tables empty between delete and insert
     @Transaction
     suspend fun replaceAll(entities: ReferenceEntities) {
         deleteAll()
         insertAll(entities = entities)
     }
 
+    // re-checks inside the transaction, so a server refresh that landed first is never overwritten
     @Transaction
     suspend fun insertAllIfEmpty(entities: ReferenceEntities) {
         if (isEmpty()) insertAll(entities = entities)

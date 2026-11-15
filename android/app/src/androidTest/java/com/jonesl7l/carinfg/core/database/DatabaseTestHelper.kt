@@ -14,6 +14,7 @@ import com.jonesl7l.carinfg.core.database.entity.reference.ReferenceEntities
 import com.jonesl7l.carinfg.core.database.entity.reference.RoomEntity
 import com.jonesl7l.carinfg.core.database.entity.reference.SiteEntity
 import com.jonesl7l.carinfg.core.database.entity.reference.TechnicianEntity
+import com.jonesl7l.carinfg.core.database.entity.sync.SyncMetaEntity
 import com.jonesl7l.carinfg.core.domain.model.photo.PhotoUploadState
 import com.jonesl7l.carinfg.core.domain.model.sync.ConflictReason
 import com.jonesl7l.carinfg.core.domain.model.sync.SyncState
@@ -295,5 +296,15 @@ object DatabaseTestHelper {
         localPath = localPath,
         remoteUrl = remoteUrl,
         uploadState = uploadState,
+    )
+
+    fun syncMetaEntity(
+        lastChangeSeq: Long = 42,
+        databaseId: String? = "db-1",
+        announcedChangeSeq: Long = 42,
+    ) = SyncMetaEntity(
+        lastChangeSeq = lastChangeSeq,
+        databaseId = databaseId,
+        announcedChangeSeq = announcedChangeSeq,
     )
 }

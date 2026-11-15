@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "0499d434cf3ef017be861bfeac66e11c",
+    "identityHash": "6a5ec6e1b1cfb43f6f0b35ed7fcc851e",
     "entities": [
       {
         "tableName": "sites",
@@ -585,11 +585,46 @@
             ]
           }
         ]
+      },
+      {
+        "tableName": "sync_meta",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `lastChangeSeq` INTEGER NOT NULL, `databaseId` TEXT, `announcedChangeSeq` INTEGER NOT NULL, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lastChangeSeq",
+            "columnName": "lastChangeSeq",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "databaseId",
+            "columnName": "databaseId",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "announcedChangeSeq",
+            "columnName": "announcedChangeSeq",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        }
       }
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '0499d434cf3ef017be861bfeac66e11c')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '6a5ec6e1b1cfb43f6f0b35ed7fcc851e')"
     ]
   }
 }

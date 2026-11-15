@@ -6,6 +6,7 @@ import androidx.room3.RoomDatabase
 import com.jonesl7l.carinfg.core.database.converter.DatabaseConverters
 import com.jonesl7l.carinfg.core.database.dao.IncidentDao
 import com.jonesl7l.carinfg.core.database.dao.ReferenceDao
+import com.jonesl7l.carinfg.core.database.dao.SyncMetaDao
 import com.jonesl7l.carinfg.core.database.entity.incident.IncidentEntity
 import com.jonesl7l.carinfg.core.database.entity.photo.PhotoEntity
 import com.jonesl7l.carinfg.core.database.entity.reference.AssetEntity
@@ -14,6 +15,7 @@ import com.jonesl7l.carinfg.core.database.entity.reference.FloorEntity
 import com.jonesl7l.carinfg.core.database.entity.reference.RoomEntity
 import com.jonesl7l.carinfg.core.database.entity.reference.SiteEntity
 import com.jonesl7l.carinfg.core.database.entity.reference.TechnicianEntity
+import com.jonesl7l.carinfg.core.database.entity.sync.SyncMetaEntity
 
 @Database(
     entities = [
@@ -25,6 +27,7 @@ import com.jonesl7l.carinfg.core.database.entity.reference.TechnicianEntity
         TechnicianEntity::class,
         IncidentEntity::class,
         PhotoEntity::class,
+        SyncMetaEntity::class,
     ],
     version = 1,
 )
@@ -33,4 +36,6 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun referenceDao(): ReferenceDao
 
     abstract fun incidentDao(): IncidentDao
+
+    abstract fun syncMetaDao(): SyncMetaDao
 }

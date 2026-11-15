@@ -22,6 +22,7 @@ class ReferenceDataInitializer @Inject constructor(
 ) {
     suspend fun initialize() {
         withContext(ioDispatcher) {
+            // skips reading the asset on every launch; insertAllIfEmpty still guards the race
             if (!referenceDao.isEmpty()) return@withContext
             val dto = readBundledData() ?: return@withContext
             referenceDao.insertAllIfEmpty(entities = ReferenceEntityMapper.toEntities(dto = dto))

@@ -5,6 +5,7 @@ import androidx.room3.Room
 import com.jonesl7l.carinfg.core.database.AppDatabase
 import com.jonesl7l.carinfg.core.database.dao.IncidentDao
 import com.jonesl7l.carinfg.core.database.dao.ReferenceDao
+import com.jonesl7l.carinfg.core.database.dao.SyncMetaDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -27,4 +28,7 @@ object DatabaseModule {
 
     @Provides
     fun provideIncidentDao(database: AppDatabase): IncidentDao = database.incidentDao()
+
+    @Provides
+    fun provideSyncMetaDao(database: AppDatabase): SyncMetaDao = database.syncMetaDao()
 }

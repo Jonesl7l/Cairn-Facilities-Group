@@ -11,12 +11,14 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface IncidentDao {
+    // never REPLACE: it deletes the row first and the cascade removes the photos
     @Upsert
     suspend fun upsertIncident(incident: IncidentEntity)
 
     @Upsert
     suspend fun upsertPhotos(photos: List<PhotoEntity>)
 
+    // the relation runs two queries; the transaction keeps incident and photos consistent
     @Transaction
     @Query("SELECT * FROM incidents WHERE id = :id")
     fun observeIncident(id: String): Flow<IncidentWithPhotos?>
