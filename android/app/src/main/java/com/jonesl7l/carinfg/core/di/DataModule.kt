@@ -1,9 +1,32 @@
 package com.jonesl7l.carinfg.core.di
 
+import android.content.Context
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.PreferenceDataStoreFactory
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.preferencesDataStoreFile
+import com.jonesl7l.carinfg.core.data.session.DataStoreSessionStore
+import com.jonesl7l.carinfg.core.data.session.SessionStore
+import dagger.Binds
 import dagger.Module
+import dagger.Provides
 import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
-abstract class DataModule
+abstract class DataModule {
+    @Binds
+    abstract fun bindSessionStore(impl: DataStoreSessionStore): SessionStore
+
+    companion object {
+        private const val PREFERENCES_FILE_NAME = "carinfg"
+
+        @Provides
+        @Singleton
+        fun providePreferencesDataStore(@ApplicationContext context: Context): DataStore<Preferences> =
+            PreferenceDataStoreFactory.create(produceFile = { context.preferencesDataStoreFile(PREFERENCES_FILE_NAME) })
+    }
+}
