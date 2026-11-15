@@ -10,6 +10,12 @@ import com.jonesl7l.carinfg.core.network.dto.person.PersonDto
 import com.jonesl7l.carinfg.core.network.dto.photo.PhotoDto
 import com.jonesl7l.carinfg.core.network.dto.problem.ProblemDetailsDto
 import com.jonesl7l.carinfg.core.network.dto.problem.ProblemFieldErrorDto
+import com.jonesl7l.carinfg.core.network.dto.reference.AssetDto
+import com.jonesl7l.carinfg.core.network.dto.reference.BuildingDto
+import com.jonesl7l.carinfg.core.network.dto.reference.FloorDto
+import com.jonesl7l.carinfg.core.network.dto.reference.ReferenceDataDto
+import com.jonesl7l.carinfg.core.network.dto.reference.RoomDto
+import com.jonesl7l.carinfg.core.network.dto.reference.SiteDto
 import com.jonesl7l.carinfg.core.network.dto.user.UserDto
 import com.jonesl7l.carinfg.core.network.http.HttpHeaders
 import com.jonesl7l.carinfg.core.network.http.MediaTypes
@@ -323,5 +329,71 @@ object ApiTestHelper {
     ) = PhotoDto(
         id = id,
         url = url,
+    )
+
+    fun referenceDataDto(
+        sites: List<SiteDto> = listOf(siteDto()),
+        buildings: List<BuildingDto> = listOf(buildingDto()),
+        floors: List<FloorDto> = listOf(floorDto()),
+        rooms: List<RoomDto> = listOf(roomDto()),
+        assets: List<AssetDto> = listOf(assetDto()),
+        technicians: List<UserDto> = listOf(userDto()),
+    ) = ReferenceDataDto(
+        sites = sites,
+        buildings = buildings,
+        floors = floors,
+        rooms = rooms,
+        assets = assets,
+        technicians = technicians,
+    )
+
+    fun siteDto(
+        id: String = "site-1",
+        name: String = "Head Office",
+    ) = SiteDto(
+        id = id,
+        name = name,
+    )
+
+    fun buildingDto(
+        id: String = "building-1",
+        siteId: String = "site-1",
+        name: String = "North Block",
+    ) = BuildingDto(
+        id = id,
+        siteId = siteId,
+        name = name,
+    )
+
+    fun floorDto(
+        id: String = "floor-1",
+        buildingId: String = "building-1",
+        name: String = "Ground Floor",
+    ) = FloorDto(
+        id = id,
+        buildingId = buildingId,
+        name = name,
+    )
+
+    fun roomDto(
+        id: String = "room-1",
+        floorId: String = "floor-1",
+        name: String = "Lobby",
+    ) = RoomDto(
+        id = id,
+        floorId = floorId,
+        name = name,
+    )
+
+    fun assetDto(
+        id: String = "asset-1",
+        roomId: String = "room-1",
+        name: String = "Revolving Door",
+        code: String = "DOOR-001",
+    ) = AssetDto(
+        id = id,
+        roomId = roomId,
+        name = name,
+        code = code,
     )
 }

@@ -3,10 +3,13 @@ package com.jonesl7l.carinfg.core.di
 import com.jonesl7l.carinfg.BuildConfig
 import com.jonesl7l.carinfg.core.network.api.AuthApi
 import com.jonesl7l.carinfg.core.network.api.IncidentApi
+import com.jonesl7l.carinfg.core.network.api.ReferenceApi
 import com.jonesl7l.carinfg.core.network.datasource.AuthRemoteDataSource
 import com.jonesl7l.carinfg.core.network.datasource.AuthRemoteDataSourceImpl
 import com.jonesl7l.carinfg.core.network.datasource.IncidentRemoteDataSource
 import com.jonesl7l.carinfg.core.network.datasource.IncidentRemoteDataSourceImpl
+import com.jonesl7l.carinfg.core.network.datasource.ReferenceRemoteDataSource
+import com.jonesl7l.carinfg.core.network.datasource.ReferenceRemoteDataSourceImpl
 import com.jonesl7l.carinfg.core.network.http.MediaTypes
 import dagger.Binds
 import dagger.Module
@@ -30,6 +33,9 @@ abstract class NetworkModule {
 
     @Binds
     abstract fun bindIncidentRemoteDataSource(impl: IncidentRemoteDataSourceImpl): IncidentRemoteDataSource
+
+    @Binds
+    abstract fun bindReferenceRemoteDataSource(impl: ReferenceRemoteDataSourceImpl): ReferenceRemoteDataSource
 
     companion object {
         private val connectTimeout = 15.seconds
@@ -64,5 +70,9 @@ abstract class NetworkModule {
         @Provides
         @Singleton
         fun provideIncidentApi(retrofit: Retrofit): IncidentApi = retrofit.create()
+
+        @Provides
+        @Singleton
+        fun provideReferenceApi(retrofit: Retrofit): ReferenceApi = retrofit.create()
     }
 }
