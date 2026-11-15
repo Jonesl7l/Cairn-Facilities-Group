@@ -21,15 +21,15 @@ class ApiCallHandler @Inject constructor(private val problemParser: ProblemParse
             else -> onSuccess(response)?.let { ApiResult.Success(value = it) }
                 ?: failure(error = ApiError.Unexpected(status = response.code()))
         }
-    } catch (e: IOException) {
+    } catch (error: IOException) {
         failure(
-            error = ApiError.Network(cause = e),
-            cause = e,
+            error = ApiError.Network(cause = error),
+            cause = error,
         )
-    } catch (e: SerializationException) {
+    } catch (error: SerializationException) {
         failure(
             error = ApiError.Unexpected(status = null),
-            cause = e,
+            cause = error,
         )
     }
 

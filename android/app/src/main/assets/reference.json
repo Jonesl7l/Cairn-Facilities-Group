@@ -1,0 +1,52 @@
+{
+  "sites": [
+    { "id": "site-1", "name": "Riverside Campus" },
+    { "id": "site-2", "name": "Northgate Depot" }
+  ],
+  "buildings": [
+    { "id": "building-1", "siteId": "site-1", "name": "Main Office" },
+    { "id": "building-2", "siteId": "site-1", "name": "Engineering Block" },
+    { "id": "building-3", "siteId": "site-1", "name": "Multi-storey Car Park" },
+    { "id": "building-4", "siteId": "site-2", "name": "Warehouse A" },
+    { "id": "building-5", "siteId": "site-2", "name": "Workshop" }
+  ],
+  "floors": [
+    { "id": "floor-1", "buildingId": "building-1", "name": "Ground Floor" },
+    { "id": "floor-2", "buildingId": "building-1", "name": "First Floor" },
+    { "id": "floor-3", "buildingId": "building-2", "name": "Ground Floor" },
+    { "id": "floor-4", "buildingId": "building-3", "name": "Level 1" },
+    { "id": "floor-5", "buildingId": "building-4", "name": "Ground Floor" },
+    { "id": "floor-6", "buildingId": "building-4", "name": "Mezzanine" },
+    { "id": "floor-7", "buildingId": "building-5", "name": "Ground Floor" }
+  ],
+  "rooms": [
+    { "id": "room-1", "floorId": "floor-1", "name": "Reception" },
+    { "id": "room-2", "floorId": "floor-1", "name": "Kitchen" },
+    { "id": "room-3", "floorId": "floor-2", "name": "Open Plan Office" },
+    { "id": "room-4", "floorId": "floor-2", "name": "Meeting Room 1" },
+    { "id": "room-5", "floorId": "floor-3", "name": "Plant Room" },
+    { "id": "room-6", "floorId": "floor-3", "name": "Test Lab" },
+    { "id": "room-7", "floorId": "floor-4", "name": "Entrance Ramp" },
+    { "id": "room-8", "floorId": "floor-5", "name": "Loading Bay" },
+    { "id": "room-9", "floorId": "floor-5", "name": "Racking Aisle 1" },
+    { "id": "room-10", "floorId": "floor-6", "name": "Site Office" },
+    { "id": "room-11", "floorId": "floor-7", "name": "Workshop Floor" }
+  ],
+  "assets": [
+    { "id": "asset-1", "roomId": "room-1", "name": "Revolving Door", "code": "DOOR-001" },
+    { "id": "asset-2", "roomId": "room-2", "name": "Dishwasher", "code": "KIT-001" },
+    { "id": "asset-3", "roomId": "room-3", "name": "Air Conditioning Unit", "code": "HVAC-001" },
+    { "id": "asset-4", "roomId": "room-4", "name": "Projector", "code": "AV-001" },
+    { "id": "asset-5", "roomId": "room-5", "name": "Boiler", "code": "PLANT-001" },
+    { "id": "asset-6", "roomId": "room-5", "name": "Electrical Panel", "code": "ELEC-001" },
+    { "id": "asset-7", "roomId": "room-6", "name": "Fume Cupboard", "code": "LAB-001" },
+    { "id": "asset-8", "roomId": "room-7", "name": "Barrier Arm", "code": "PARK-001" },
+    { "id": "asset-9", "roomId": "room-8", "name": "Dock Leveller", "code": "DOCK-001" },
+    { "id": "asset-10", "roomId": "room-9", "name": "Forklift", "code": "FLT-001" },
+    { "id": "asset-11", "roomId": "room-11", "name": "Pillar Drill", "code": "WS-001" }
+  ],
+  "technicians": [
+    { "id": "u1", "username": "tech1", "displayName": "Tech One", "role": "TECHNICIAN" },
+    { "id": "u2", "username": "tech2", "displayName": "Tech Two", "role": "TECHNICIAN" }
+  ]
+}
