@@ -275,4 +275,12 @@ class RoomSyncLocalStoreTest {
         assertThat(row?.lastSyncError).isEqualTo("Network")
         assertThat(row?.syncState).isEqualTo(SyncState.PENDING_UPDATE)
     }
+
+    @Test
+    fun anAnnouncedChangeOnlyEverRaisesTheStoredValue() = runTest {
+        store.raiseAnnouncedChangeSeq(changeSeq = 7)
+        store.raiseAnnouncedChangeSeq(changeSeq = 5)
+
+        assertThat(store.getSyncMeta().announcedChangeSeq).isEqualTo(7L)
+    }
 }

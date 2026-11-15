@@ -41,6 +41,10 @@ class RoomSyncLocalStore @Inject constructor(
         }
     }
 
+    override suspend fun raiseAnnouncedChangeSeq(changeSeq: Long) {
+        syncMetaDao.raiseAnnouncedChangeSeq(changeSeq = changeSeq)
+    }
+
     override suspend fun pruneOutOfScope(
         userId: String,
         updatedBefore: Instant,

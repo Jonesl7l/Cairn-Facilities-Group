@@ -19,6 +19,8 @@ interface SyncLocalStore {
 
     suspend fun resetForNewDatabase(databaseId: String)
 
+    suspend fun raiseAnnouncedChangeSeq(changeSeq: Long)
+
     suspend fun pruneOutOfScope(
         userId: String,
         updatedBefore: Instant,

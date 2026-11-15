@@ -46,6 +46,10 @@ class FakeSyncLocalStore : SyncLocalStore {
         meta = SyncMetaEntity.initial.copy(databaseId = databaseId)
     }
 
+    override suspend fun raiseAnnouncedChangeSeq(changeSeq: Long) {
+        meta = meta.copy(announcedChangeSeq = maxOf(meta.announcedChangeSeq, changeSeq))
+    }
+
     override suspend fun pruneOutOfScope(
         userId: String,
         updatedBefore: Instant,
