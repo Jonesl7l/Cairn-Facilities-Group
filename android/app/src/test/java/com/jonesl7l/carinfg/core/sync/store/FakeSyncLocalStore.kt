@@ -2,6 +2,7 @@ package com.jonesl7l.carinfg.core.sync.store
 
 import com.jonesl7l.carinfg.core.database.entity.incident.IncidentEntity
 import com.jonesl7l.carinfg.core.database.entity.incident.IncidentWithPhotos
+import com.jonesl7l.carinfg.core.database.entity.sync.SyncCounts
 import com.jonesl7l.carinfg.core.database.entity.sync.SyncMetaEntity
 import com.jonesl7l.carinfg.core.domain.model.photo.PhotoUploadState
 import com.jonesl7l.carinfg.core.domain.model.sync.ConflictReason
@@ -9,6 +10,8 @@ import com.jonesl7l.carinfg.core.domain.model.sync.SyncState
 import com.jonesl7l.carinfg.core.sync.pull.PullAction
 import com.jonesl7l.carinfg.core.sync.push.PushCommit
 import kotlin.time.Instant
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 
 class FakeSyncLocalStore : SyncLocalStore {
     var meta = SyncMetaEntity.initial
@@ -16,8 +19,11 @@ class FakeSyncLocalStore : SyncLocalStore {
     val resets = mutableListOf<String>()
     val prunes = mutableListOf<Pair<String, Instant>>()
     val failures = mutableListOf<Pair<String, String>>()
+    val syncCounts = MutableStateFlow(SyncCounts.none)
 
     override suspend fun getSyncMeta(): SyncMetaEntity = meta
+
+    override fun observeSyncCounts(): Flow<SyncCounts> = syncCounts
 
     override suspend fun getIncidents(ids: List<String>): Map<String, IncidentWithPhotos> = incidents.filterKeys { it in ids }
 

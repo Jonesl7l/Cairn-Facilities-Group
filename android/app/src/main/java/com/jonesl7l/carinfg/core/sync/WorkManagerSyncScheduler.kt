@@ -6,15 +6,26 @@ import androidx.work.Constraints
 import androidx.work.ExistingWorkPolicy
 import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.toJavaDuration
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 
 class WorkManagerSyncScheduler @Inject constructor(@ApplicationContext private val context: Context) : SyncScheduler {
     private val workManager: WorkManager
         get() = WorkManager.getInstance(context)
+
+    override val isSyncing: Flow<Boolean>
+        get() =
+            workManager
+                .getWorkInfosForUniqueWorkFlow(uniqueWorkName = SYNC_WORK_NAME)
+                .map { infos -> infos.any { it.state == WorkInfo.State.RUNNING } }
+                .distinctUntilChanged()
 
     override fun requestSync() {
         val request =

@@ -5,6 +5,7 @@ import com.jonesl7l.carinfg.core.database.AppDatabase
 import com.jonesl7l.carinfg.core.database.dao.IncidentDao
 import com.jonesl7l.carinfg.core.database.dao.SyncMetaDao
 import com.jonesl7l.carinfg.core.database.entity.incident.IncidentWithPhotos
+import com.jonesl7l.carinfg.core.database.entity.sync.SyncCounts
 import com.jonesl7l.carinfg.core.database.entity.sync.SyncMetaEntity
 import com.jonesl7l.carinfg.core.domain.model.sync.ConflictReason
 import com.jonesl7l.carinfg.core.sync.pull.PullAction
@@ -12,6 +13,7 @@ import com.jonesl7l.carinfg.core.sync.pull.PullRuleHelper
 import com.jonesl7l.carinfg.core.sync.push.PushCommit
 import javax.inject.Inject
 import kotlin.time.Instant
+import kotlinx.coroutines.flow.Flow
 import timber.log.Timber
 
 class RoomSyncLocalStore @Inject constructor(
@@ -20,6 +22,8 @@ class RoomSyncLocalStore @Inject constructor(
     private val syncMetaDao: SyncMetaDao,
 ) : SyncLocalStore {
     override suspend fun getSyncMeta(): SyncMetaEntity = syncMetaDao.get() ?: SyncMetaEntity.initial
+
+    override fun observeSyncCounts(): Flow<SyncCounts> = incidentDao.observeSyncCounts()
 
     override suspend fun getIncidents(ids: List<String>): Map<String, IncidentWithPhotos> =
         incidentDao.getIncidents(ids = ids).associateBy { it.incident.id }

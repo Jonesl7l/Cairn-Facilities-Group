@@ -8,6 +8,7 @@ import com.jonesl7l.carinfg.core.database.entity.incident.IncidentEntity
 import com.jonesl7l.carinfg.core.database.entity.incident.IncidentListRow
 import com.jonesl7l.carinfg.core.database.entity.incident.IncidentWithPhotos
 import com.jonesl7l.carinfg.core.database.entity.photo.PhotoEntity
+import com.jonesl7l.carinfg.core.database.entity.sync.SyncCounts
 import com.jonesl7l.carinfg.core.domain.model.sync.ConflictReason
 import kotlin.time.Instant
 import kotlinx.coroutines.flow.Flow
@@ -107,4 +108,10 @@ interface IncidentDao {
             "WHERE i.syncState != 'PENDING_DELETE'",
     )
     fun observeIncidentList(): Flow<List<IncidentListRow>>
+
+    @Query(
+        "SELECT COUNT(CASE WHEN syncState IN ('PENDING_CREATE', 'PENDING_UPDATE', 'PENDING_DELETE') THEN 1 END) AS pending, " +
+            "COUNT(CASE WHEN syncState = 'NEEDS_ATTENTION' THEN 1 END) AS needsAttention FROM incidents",
+    )
+    fun observeSyncCounts(): Flow<SyncCounts>
 }

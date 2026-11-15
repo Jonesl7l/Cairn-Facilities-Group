@@ -1,14 +1,18 @@
 package com.jonesl7l.carinfg.core.sync.store
 
 import com.jonesl7l.carinfg.core.database.entity.incident.IncidentWithPhotos
+import com.jonesl7l.carinfg.core.database.entity.sync.SyncCounts
 import com.jonesl7l.carinfg.core.database.entity.sync.SyncMetaEntity
 import com.jonesl7l.carinfg.core.domain.model.sync.ConflictReason
 import com.jonesl7l.carinfg.core.sync.pull.PullAction
 import com.jonesl7l.carinfg.core.sync.push.PushCommit
 import kotlin.time.Instant
+import kotlinx.coroutines.flow.Flow
 
 interface SyncLocalStore {
     suspend fun getSyncMeta(): SyncMetaEntity
+
+    fun observeSyncCounts(): Flow<SyncCounts>
 
     suspend fun getIncidents(ids: List<String>): Map<String, IncidentWithPhotos>
 

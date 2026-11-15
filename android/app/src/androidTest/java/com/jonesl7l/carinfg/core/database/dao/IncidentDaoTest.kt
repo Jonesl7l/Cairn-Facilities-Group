@@ -18,6 +18,7 @@ import com.jonesl7l.carinfg.core.database.EntityTestHelper.photoEntity
 import com.jonesl7l.carinfg.core.database.EntityTestHelper.referenceEntities
 import com.jonesl7l.carinfg.core.database.EntityTestHelper.siteEntity
 import com.jonesl7l.carinfg.core.database.entity.incident.IncidentWithPhotos
+import com.jonesl7l.carinfg.core.database.entity.sync.SyncCounts
 import com.jonesl7l.carinfg.core.domain.model.sync.SyncState
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
@@ -131,5 +132,38 @@ class IncidentDaoTest {
         assertThat(rows.map { it.id }).containsExactly("shown")
         assertThat(rows.single().siteName).isEqualTo(siteEntity().name)
         assertThat(rows.single().buildingName).isEqualTo(buildingEntity().name)
+    }
+
+    @Test
+    fun syncCountsCountPendingAndNeedsAttention() = runTest {
+        dao.upsertIncident(incident = incidentEntity(id = "synced"))
+        dao.upsertIncident(
+            incident = incidentEntity(
+                id = "pending",
+                syncState = SyncState.PENDING_UPDATE,
+            ),
+        )
+        dao.upsertIncident(
+            incident = incidentEntity(
+                id = "failing",
+                syncState = SyncState.PENDING_CREATE,
+                syncAttempts = 2,
+            ),
+        )
+        dao.upsertIncident(
+            incident = incidentEntity(
+                id = "attention",
+                syncState = SyncState.NEEDS_ATTENTION,
+            ),
+        )
+
+        val counts = dao.observeSyncCounts().first()
+
+        assertThat(counts).isEqualTo(
+            SyncCounts(
+                pending = 2,
+                needsAttention = 1,
+            ),
+        )
     }
 }
