@@ -6,7 +6,7 @@ import com.jonesl7l.carinfg.core.data.incident.IncidentRepository
 import com.jonesl7l.carinfg.core.data.preferences.UserPreferencesStore
 import com.jonesl7l.carinfg.core.data.session.SessionStore
 import com.jonesl7l.carinfg.core.domain.model.incident.IncidentSort
-import com.jonesl7l.carinfg.core.domain.model.user.User
+import com.jonesl7l.carinfg.core.domain.model.user.initials
 import com.jonesl7l.carinfg.core.sync.SyncScheduler
 import com.jonesl7l.carinfg.core.sync.status.SyncStatusProvider
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -83,14 +83,7 @@ class IncidentListViewModel @Inject constructor(
         syncScheduler.requestSync()
     }
 
-    private fun User.initials(): String = displayName
-        .split(" ")
-        .filter { it.isNotBlank() }
-        .take(MAX_INITIALS)
-        .joinToString(separator = "") { it.first().uppercase() }
-
     private companion object {
-        const val MAX_INITIALS = 2
         val stopTimeout = 5.seconds
     }
 }

@@ -60,4 +60,16 @@
     <string name="status_waiting">Sync: %1$d waiting</string>
     <string name="status_needs_attention">%1$d need attention</string>
     <string name="status_description">%1$s. %2$s</string>
+    <string name="account_role">%1$s · Technician, Cairn Facilities Group</string>
+    <string name="account_unsynced_body">They\'ll send automatically when you\'re online.</string>
+    <string name="log_out">Log out</string>
+    <string name="log_out_anyway">Log out anyway</string>
+    <plurals name="account_unsynced_title">
+        <item quantity="one">%1$d change waiting to sync</item>
+        <item quantity="other">%1$d changes waiting to sync</item>
+    </plurals>
+    <plurals name="account_logout_warning">
+        <item quantity="one">Logging out now deletes this unsynced change from this device.</item>
+        <item quantity="other">Logging out now deletes these %1$d unsynced changes from this device.</item>
+    </plurals>
 </resources>

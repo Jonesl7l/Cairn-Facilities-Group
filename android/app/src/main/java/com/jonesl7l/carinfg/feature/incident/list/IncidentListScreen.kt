@@ -2,6 +2,7 @@ package com.jonesl7l.carinfg.feature.incident.list
 
 import androidx.annotation.StringRes
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -40,9 +41,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -58,6 +61,7 @@ import com.jonesl7l.carinfg.R
 import com.jonesl7l.carinfg.core.domain.model.incident.IncidentListItem
 import com.jonesl7l.carinfg.core.domain.model.incident.IncidentSort
 import com.jonesl7l.carinfg.core.ui.theme.LocalStatusColors
+import com.jonesl7l.carinfg.feature.account.AccountSheet
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Instant
@@ -113,6 +117,7 @@ fun IncidentListContent(
     onReportIncident: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    var showAccount by rememberSaveable { mutableStateOf(false) }
     val now by produceState(initialValue = Clock.System.now()) {
         while (true) {
             delay(duration = clockTick)
@@ -141,6 +146,7 @@ fun IncidentListContent(
                     Avatar(
                         initials = uiState.userInitials,
                         name = uiState.userName,
+                        onClick = { showAccount = true },
                     )
                 },
             )
@@ -194,6 +200,7 @@ fun IncidentListContent(
             }
         }
     }
+    if (showAccount) AccountSheet(onDismiss = { showAccount = false })
 }
 
 private fun LazyListScope.sections(
@@ -315,6 +322,7 @@ private fun SortMenu(
 private fun Avatar(
     initials: String,
     name: String,
+    onClick: () -> Unit,
 ) {
     val description = stringResource(id = R.string.account_description, name)
     Box(
@@ -322,10 +330,10 @@ private fun Avatar(
             Modifier
                 .padding(end = filterSpacing)
                 .size(size = avatarSize)
-                .background(
-                    color = MaterialTheme.colorScheme.primary,
-                    shape = CircleShape,
-                ).semantics { contentDescription = description },
+                .clip(shape = CircleShape)
+                .background(color = MaterialTheme.colorScheme.primary)
+                .clickable(onClick = onClick)
+                .semantics { contentDescription = description },
         contentAlignment = Alignment.Center,
     ) {
         Text(
