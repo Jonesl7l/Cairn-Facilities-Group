@@ -30,6 +30,7 @@ import com.jonesl7l.carinfg.app.navigation.IncidentFormRoute
 import com.jonesl7l.carinfg.app.navigation.IncidentListRoute
 import com.jonesl7l.carinfg.app.navigation.LoginRoute
 import com.jonesl7l.carinfg.feature.auth.LoginScreen
+import com.jonesl7l.carinfg.feature.incident.list.IncidentListScreen
 
 @Composable
 fun AppNavigation(viewModel: AppViewModel) {
@@ -73,7 +74,14 @@ private fun AppBackStack(
             entryProvider =
                 entryProvider {
                     entry<LoginRoute> { LoginScreen() }
-                    entry<IncidentListRoute> { PlaceholderScreen(route = it) }
+                    entry<IncidentListRoute> {
+                        IncidentListScreen(
+                            onOpenIncident = { incidentId ->
+                                backStack.add(IncidentDetailRoute(incidentId = incidentId))
+                            },
+                            onReportIncident = { backStack.add(IncidentFormRoute(incidentId = null)) },
+                        )
+                    }
                     entry<IncidentDetailRoute> { PlaceholderScreen(route = it) }
                     entry<IncidentFormRoute> { PlaceholderScreen(route = it) }
                 },
