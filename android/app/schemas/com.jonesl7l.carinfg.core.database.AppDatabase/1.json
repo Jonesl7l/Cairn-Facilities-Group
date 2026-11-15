@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "0f378218824b00e380030b3acc641a0f",
+    "identityHash": "0499d434cf3ef017be861bfeac66e11c",
     "entities": [
       {
         "tableName": "sites",
@@ -227,11 +227,369 @@
             "id"
           ]
         }
+      },
+      {
+        "tableName": "incidents",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `referenceNumber` TEXT, `reporterId` TEXT NOT NULL, `reportedAt` INTEGER, `title` TEXT NOT NULL, `description` TEXT NOT NULL, `occurredAt` INTEGER NOT NULL, `occurredTimeZone` TEXT NOT NULL, `incidentType` TEXT, `incidentTypeOther` TEXT, `severity` TEXT, `severityRank` INTEGER NOT NULL, `siteId` TEXT, `buildingId` TEXT, `floorId` TEXT, `roomId` TEXT, `unlistedLocation` TEXT, `exactSpot` TEXT, `assetId` TEXT, `equipmentOutOfService` INTEGER NOT NULL, `injuryOccurred` INTEGER, `hazardStillPresent` INTEGER, `immediateActions` TEXT NOT NULL, `immediateActionsOther` TEXT, `persons` TEXT NOT NULL, `additionalNotes` TEXT, `status` TEXT NOT NULL, `assignedTo` TEXT, `dueDate` TEXT, `rootCause` TEXT, `correctiveActions` TEXT, `regulatoryReportable` INTEGER, `supervisorAcknowledged` INTEGER, `createdAt` INTEGER, `updatedAt` INTEGER, `serverVersion` INTEGER, `changeSeq` INTEGER, `deletedAt` INTEGER, `deletedBy` TEXT, `syncState` TEXT NOT NULL, `conflictReason` TEXT, `previousSyncState` TEXT, `undoDeadline` INTEGER, `localRevision` INTEGER NOT NULL, `lastSyncError` TEXT, `syncAttempts` INTEGER NOT NULL, `localUpdatedAt` INTEGER NOT NULL, `gps_latitude` REAL, `gps_longitude` REAL, `gps_accuracyMeters` REAL, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "referenceNumber",
+            "columnName": "referenceNumber",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "reporterId",
+            "columnName": "reporterId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "reportedAt",
+            "columnName": "reportedAt",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "title",
+            "columnName": "title",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "description",
+            "columnName": "description",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "occurredAt",
+            "columnName": "occurredAt",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "occurredTimeZone",
+            "columnName": "occurredTimeZone",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "incidentType",
+            "columnName": "incidentType",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "incidentTypeOther",
+            "columnName": "incidentTypeOther",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "severity",
+            "columnName": "severity",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "severityRank",
+            "columnName": "severityRank",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "siteId",
+            "columnName": "siteId",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "buildingId",
+            "columnName": "buildingId",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "floorId",
+            "columnName": "floorId",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "roomId",
+            "columnName": "roomId",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "unlistedLocation",
+            "columnName": "unlistedLocation",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "exactSpot",
+            "columnName": "exactSpot",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "assetId",
+            "columnName": "assetId",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "equipmentOutOfService",
+            "columnName": "equipmentOutOfService",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "injuryOccurred",
+            "columnName": "injuryOccurred",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "hazardStillPresent",
+            "columnName": "hazardStillPresent",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "immediateActions",
+            "columnName": "immediateActions",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "immediateActionsOther",
+            "columnName": "immediateActionsOther",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "persons",
+            "columnName": "persons",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "additionalNotes",
+            "columnName": "additionalNotes",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "status",
+            "columnName": "status",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "assignedTo",
+            "columnName": "assignedTo",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "dueDate",
+            "columnName": "dueDate",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "rootCause",
+            "columnName": "rootCause",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "correctiveActions",
+            "columnName": "correctiveActions",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "regulatoryReportable",
+            "columnName": "regulatoryReportable",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "supervisorAcknowledged",
+            "columnName": "supervisorAcknowledged",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "createdAt",
+            "columnName": "createdAt",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "updatedAt",
+            "columnName": "updatedAt",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "serverVersion",
+            "columnName": "serverVersion",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "changeSeq",
+            "columnName": "changeSeq",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "deletedAt",
+            "columnName": "deletedAt",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "deletedBy",
+            "columnName": "deletedBy",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "syncState",
+            "columnName": "syncState",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "conflictReason",
+            "columnName": "conflictReason",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "previousSyncState",
+            "columnName": "previousSyncState",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "undoDeadline",
+            "columnName": "undoDeadline",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "localRevision",
+            "columnName": "localRevision",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lastSyncError",
+            "columnName": "lastSyncError",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "syncAttempts",
+            "columnName": "syncAttempts",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "localUpdatedAt",
+            "columnName": "localUpdatedAt",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "gpsLocation.latitude",
+            "columnName": "gps_latitude",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "gpsLocation.longitude",
+            "columnName": "gps_longitude",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "gpsLocation.accuracyMeters",
+            "columnName": "gps_accuracyMeters",
+            "affinity": "REAL"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_incidents_syncState",
+            "unique": false,
+            "columnNames": [
+              "syncState"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_incidents_syncState` ON `${TABLE_NAME}` (`syncState`)"
+          }
+        ]
+      },
+      {
+        "tableName": "photos",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `incidentId` TEXT NOT NULL, `position` INTEGER NOT NULL, `localPath` TEXT, `remoteUrl` TEXT, `uploadState` TEXT NOT NULL, PRIMARY KEY(`id`), FOREIGN KEY(`incidentId`) REFERENCES `incidents`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "incidentId",
+            "columnName": "incidentId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "position",
+            "columnName": "position",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "localPath",
+            "columnName": "localPath",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "remoteUrl",
+            "columnName": "remoteUrl",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "uploadState",
+            "columnName": "uploadState",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_photos_incidentId",
+            "unique": false,
+            "columnNames": [
+              "incidentId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_photos_incidentId` ON `${TABLE_NAME}` (`incidentId`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "incidents",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "incidentId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
       }
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '0f378218824b00e380030b3acc641a0f')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '0499d434cf3ef017be861bfeac66e11c')"
     ]
   }
 }

@@ -3,6 +3,7 @@ package com.jonesl7l.carinfg.core.di
 import android.content.Context
 import androidx.room3.Room
 import com.jonesl7l.carinfg.core.database.AppDatabase
+import com.jonesl7l.carinfg.core.database.dao.IncidentDao
 import com.jonesl7l.carinfg.core.database.dao.ReferenceDao
 import dagger.Module
 import dagger.Provides
@@ -23,4 +24,7 @@ object DatabaseModule {
 
     @Provides
     fun provideReferenceDao(database: AppDatabase): ReferenceDao = database.referenceDao()
+
+    @Provides
+    fun provideIncidentDao(database: AppDatabase): IncidentDao = database.incidentDao()
 }
