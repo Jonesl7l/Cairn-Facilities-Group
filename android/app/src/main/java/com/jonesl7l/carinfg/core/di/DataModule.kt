@@ -11,6 +11,8 @@ import com.jonesl7l.carinfg.core.data.preferences.DataStoreUserPreferencesStore
 import com.jonesl7l.carinfg.core.data.preferences.UserPreferencesStore
 import com.jonesl7l.carinfg.core.data.session.DataStoreSessionStore
 import com.jonesl7l.carinfg.core.data.session.SessionStore
+import com.jonesl7l.carinfg.core.network.connectivity.ConnectivityNetworkMonitor
+import com.jonesl7l.carinfg.core.network.connectivity.NetworkMonitor
 import com.jonesl7l.carinfg.core.sync.SyncScheduler
 import com.jonesl7l.carinfg.core.sync.WorkManagerSyncScheduler
 import com.jonesl7l.carinfg.core.sync.store.RoomSyncLocalStore
@@ -40,6 +42,9 @@ abstract class DataModule {
 
     @Binds
     abstract fun bindSyncScheduler(impl: WorkManagerSyncScheduler): SyncScheduler
+
+    @Binds
+    abstract fun bindNetworkMonitor(impl: ConnectivityNetworkMonitor): NetworkMonitor
 
     companion object {
         private const val PREFERENCES_FILE_NAME = "carinfg"
