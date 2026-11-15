@@ -1,12 +1,14 @@
 package com.jonesl7l.carinfg.core.sync.pull
 
 import com.jonesl7l.carinfg.core.data.mapper.toEntity
-import com.jonesl7l.carinfg.core.data.mapper.toPhotoEntities
 import com.jonesl7l.carinfg.core.database.entity.incident.IncidentEntity
 import com.jonesl7l.carinfg.core.database.entity.incident.IncidentWithPhotos
 import com.jonesl7l.carinfg.core.domain.model.sync.ConflictReason
 import com.jonesl7l.carinfg.core.domain.model.sync.SyncState
 import com.jonesl7l.carinfg.core.network.dto.incident.IncidentDto
+import com.jonesl7l.carinfg.core.sync.keepingLocalBookkeeping
+import com.jonesl7l.carinfg.core.sync.toPhotoEntitiesKeepingPaths
+import com.jonesl7l.carinfg.core.sync.withServerFields
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Instant
 
@@ -125,14 +127,11 @@ object PullRuleHelper {
     private fun overwrite(
         remote: IncidentDto,
         local: IncidentWithPhotos?,
-    ): PullAction {
-        val localPaths = local?.photos.orEmpty().associate { it.id to it.localPath }
-        return PullAction.Upsert(
-            entity = remote.toEntity(),
-            replacementPhotos = remote.toPhotoEntities().map { it.copy(localPath = localPaths[it.id]) },
-            basedOnRevision = local?.incident?.localRevision,
-        )
-    }
+    ): PullAction = PullAction.Upsert(
+        entity = remote.toEntity(),
+        replacementPhotos = remote.toPhotoEntitiesKeepingPaths(localPhotos = local?.photos.orEmpty()),
+        basedOnRevision = local?.incident?.localRevision,
+    )
 
     private fun keep(
         row: IncidentEntity,
@@ -158,26 +157,4 @@ object PullRuleHelper {
 
     private val IncidentDto.isTombstone: Boolean
         get() = deletedAt != null
-
-    private fun IncidentEntity.keepingLocalBookkeeping(row: IncidentEntity): IncidentEntity = copy(
-        localRevision = row.localRevision,
-        localUpdatedAt = row.localUpdatedAt,
-    )
-
-    private fun IncidentEntity.withServerFields(remote: IncidentDto): IncidentEntity = copy(
-        referenceNumber = remote.referenceNumber,
-        status = remote.status,
-        assignedTo = remote.assignedTo,
-        dueDate = remote.dueDate,
-        rootCause = remote.rootCause,
-        correctiveActions = remote.correctiveActions,
-        regulatoryReportable = remote.regulatoryReportable,
-        supervisorAcknowledged = remote.supervisorAcknowledged,
-        createdAt = remote.createdAt,
-        updatedAt = remote.updatedAt,
-        serverVersion = remote.version,
-        changeSeq = remote.changeSeq,
-        deletedAt = remote.deletedAt,
-        deletedBy = remote.deletedBy,
-    )
 }

@@ -118,14 +118,16 @@ class PullRuleHelperTest {
     }
 
     @Test
-    fun `a pending delete takes the new version and stays pending while still open`() {
-        val row = incidentEntity(syncState = SyncState.PENDING_DELETE)
+    fun `a pending delete takes the new version and keeps its delete while still open`() {
+        val row = incidentEntity(syncState = SyncState.PENDING_DELETE, deletedAt = now, deletedBy = REPORTER_ID)
 
         val action = decide(local = withPhotos(row = row), remote = incidentDto(status = "OPEN", version = 6))
 
         val entity = (action as PullAction.Upsert).entity
         assertThat(entity.syncState).isEqualTo(SyncState.PENDING_DELETE)
         assertThat(entity.serverVersion).isEqualTo(6)
+        assertThat(entity.deletedAt).isEqualTo(now)
+        assertThat(entity.deletedBy).isEqualTo(REPORTER_ID)
     }
 
     @Test
