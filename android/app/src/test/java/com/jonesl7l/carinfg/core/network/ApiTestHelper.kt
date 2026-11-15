@@ -32,6 +32,7 @@ object ApiTestHelper {
     val now: Instant = Instant.parse("2026-11-13T12:00:00Z")
     const val REPORTER_ID = "tech1"
     const val INCIDENT_ID = "incident-1"
+    const val DATABASE_ID = "db-1"
 
     val json: Json = NetworkModule.provideJson()
 

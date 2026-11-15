@@ -4,6 +4,7 @@ import assertk.assertThat
 import assertk.assertions.isEqualTo
 import assertk.assertions.isInstanceOf
 import assertk.assertions.prop
+import com.jonesl7l.carinfg.core.network.ApiTestHelper.DATABASE_ID
 import com.jonesl7l.carinfg.core.network.ApiTestHelper.INCIDENT_ID
 import com.jonesl7l.carinfg.core.network.ApiTestHelper.apiCallHandler
 import com.jonesl7l.carinfg.core.network.ApiTestHelper.incidentDto
@@ -14,6 +15,7 @@ import com.jonesl7l.carinfg.core.network.ApiTestHelper.problemDetailsDto
 import com.jonesl7l.carinfg.core.network.ApiTestHelper.problemJson
 import com.jonesl7l.carinfg.core.network.ApiTestHelper.retrofit
 import com.jonesl7l.carinfg.core.network.dto.incident.IncidentDto
+import com.jonesl7l.carinfg.core.network.http.HttpHeaders
 import com.jonesl7l.carinfg.core.network.http.HttpStatus
 import com.jonesl7l.carinfg.core.network.result.ApiError
 import com.jonesl7l.carinfg.core.network.result.ApiResult
@@ -22,6 +24,7 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.encodeToJsonElement
 import kotlinx.serialization.json.jsonObject
+import mockwebserver3.MockResponse
 import mockwebserver3.MockWebServer
 import org.junit.After
 import org.junit.Before
@@ -45,6 +48,95 @@ class IncidentRemoteDataSourceImplTest {
     @After
     fun tearDown() {
         server.close()
+    }
+
+    @Test
+    fun `getChanges requests the page after the cursor, oldest first`() = runTest {
+        server.enqueue(changesResponse(incidents = emptyList()))
+
+        dataSource.getChanges(afterChangeSeq = 42)
+
+        val url = server.takeRequest().url
+        assertThat(url.encodedPath).isEqualTo("/incidents")
+        assertThat(url.queryParameter("changeSeq_gte")).isEqualTo("43")
+        assertThat(url.queryParameter("_sort")).isEqualTo("changeSeq")
+        assertThat(url.queryParameter("_order")).isEqualTo("asc")
+        assertThat(url.queryParameter("_limit")).isEqualTo("50")
+    }
+
+    @Test
+    fun `a short page is the last page and carries the database id`() = runTest {
+        val incidents = listOf(incidentDto())
+        server.enqueue(changesResponse(incidents = incidents))
+
+        val expected =
+            IncidentChangesPage(
+                incidents = incidents,
+                databaseId = DATABASE_ID,
+                isLastPage = true,
+            )
+        assertThat(dataSource.getChanges(afterChangeSeq = 0)).isEqualTo(ApiResult.Success(value = expected))
+    }
+
+    @Test
+    fun `a full page is not the last page`() = runTest {
+        val incidents = List(size = 50) { incidentDto(id = "incident-$it", changeSeq = it + 1L) }
+        server.enqueue(changesResponse(incidents = incidents))
+
+        assertThat(dataSource.getChanges(afterChangeSeq = 0))
+            .isInstanceOf<ApiResult.Success<IncidentChangesPage>>()
+            .prop(ApiResult.Success<IncidentChangesPage>::value)
+            .prop(IncidentChangesPage::isLastPage)
+            .isEqualTo(false)
+    }
+
+    @Test
+    fun `an empty page is the last page`() = runTest {
+        server.enqueue(changesResponse(incidents = emptyList()))
+
+        assertThat(dataSource.getChanges(afterChangeSeq = 0))
+            .isInstanceOf<ApiResult.Success<IncidentChangesPage>>()
+            .prop(ApiResult.Success<IncidentChangesPage>::value)
+            .prop(IncidentChangesPage::isLastPage)
+            .isEqualTo(true)
+    }
+
+    @Test
+    fun `deleted incidents come through as tombstones`() = runTest {
+        val tombstone =
+            incidentDto(
+                deletedAt = now,
+                deletedBy = "operator1",
+            )
+        server.enqueue(changesResponse(incidents = listOf(tombstone)))
+
+        assertThat(dataSource.getChanges(afterChangeSeq = 0))
+            .isInstanceOf<ApiResult.Success<IncidentChangesPage>>()
+            .prop(ApiResult.Success<IncidentChangesPage>::value)
+            .prop(IncidentChangesPage::incidents)
+            .isEqualTo(listOf(tombstone))
+    }
+
+    @Test
+    fun `a page without the database id header is unexpected`() = runTest {
+        server.enqueue(changesResponse(incidents = emptyList(), databaseId = null))
+
+        assertThat(dataSource.getChanges(afterChangeSeq = 0))
+            .isEqualTo(ApiResult.Failure(error = ApiError.Unexpected(status = HttpStatus.OK)))
+    }
+
+    @Test
+    fun `an unauthenticated change request fails with unauthenticated`() = runTest {
+        val problem = problemDetailsDto(status = HttpStatus.UNAUTHORIZED)
+        server.enqueue(
+            jsonResponse(
+                code = HttpStatus.UNAUTHORIZED,
+                body = problemJson(problem = problem),
+            ),
+        )
+
+        assertThat(dataSource.getChanges(afterChangeSeq = 0))
+            .isEqualTo(ApiResult.Failure(error = ApiError.Unauthenticated))
     }
 
     @Test
@@ -148,6 +240,14 @@ class IncidentRemoteDataSourceImplTest {
             .prop(ApiResult.Failure::error)
             .isInstanceOf<ApiError.Network>()
     }
+
+    private fun changesResponse(
+        incidents: List<IncidentDto>,
+        databaseId: String? = DATABASE_ID,
+    ): MockResponse = jsonResponse(
+        body = json.encodeToString(incidents),
+        headers = databaseId?.let { mapOf(HttpHeaders.DATABASE_ID to it) } ?: emptyMap(),
+    )
 
     private fun incidentJson(
         incident: IncidentDto = incidentDto(),

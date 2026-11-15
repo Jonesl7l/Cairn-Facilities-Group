@@ -10,7 +10,7 @@ class ApiCallHandler @Inject constructor(private val problemParser: ProblemParse
     suspend fun <T : Any> execute(call: suspend () -> Response<T>): ApiResult<T> =
         execute(call = call, onSuccess = { it.body() })
 
-    private suspend fun <T, R : Any> execute(
+    suspend fun <T, R : Any> execute(
         call: suspend () -> Response<T>,
         onSuccess: (Response<T>) -> R?,
     ): ApiResult<R> = try {
