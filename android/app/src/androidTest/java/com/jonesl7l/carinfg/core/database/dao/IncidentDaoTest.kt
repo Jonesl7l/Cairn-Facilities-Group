@@ -89,4 +89,24 @@ class IncidentDaoTest {
 
         assertThat(dao.observeIncident(id = INCIDENT_ID).first()?.incident).isEqualTo(incidentEntity())
     }
+
+    @Test
+    fun deleteAllRemovesEveryIncidentAndItsPhotos() = runTest {
+        dao.upsertIncident(incident = incidentEntity())
+        dao.upsertPhotos(photos = listOf(photoEntity()))
+
+        dao.deleteAll()
+        dao.upsertIncident(incident = incidentEntity())
+
+        assertThat(dao.getIncident(id = INCIDENT_ID)?.photos).isNotNull().isEmpty()
+    }
+
+    @Test
+    fun observeUnsyncedCountFollowsSyncState() = runTest {
+        dao.upsertIncident(incident = incidentEntity(syncState = SyncState.PENDING_CREATE))
+        assertThat(dao.observeUnsyncedCount().first()).isEqualTo(1)
+
+        dao.upsertIncident(incident = incidentEntity(syncState = SyncState.SYNCED))
+        assertThat(dao.observeUnsyncedCount().first()).isEqualTo(0)
+    }
 }

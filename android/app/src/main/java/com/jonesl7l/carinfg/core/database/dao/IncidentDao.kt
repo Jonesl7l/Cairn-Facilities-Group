@@ -29,4 +29,10 @@ interface IncidentDao {
 
     @Query("DELETE FROM incidents WHERE id = :id")
     suspend fun deleteIncident(id: String)
+
+    @Query("SELECT COUNT(*) FROM incidents WHERE syncState != 'SYNCED'")
+    fun observeUnsyncedCount(): Flow<Int>
+
+    @Query("DELETE FROM incidents")
+    suspend fun deleteAll()
 }
