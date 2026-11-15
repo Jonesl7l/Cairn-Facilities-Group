@@ -1,6 +1,7 @@
 package com.jonesl7l.carinfg.core.network.http
 
 object HttpHeaders {
+    const val ACCEPT = "Accept"
     const val CONTENT_TYPE = "Content-Type"
     const val DATABASE_ID = "X-Database-Id"
     const val IF_MATCH = "If-Match"

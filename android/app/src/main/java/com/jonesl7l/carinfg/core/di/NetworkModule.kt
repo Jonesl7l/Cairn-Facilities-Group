@@ -10,6 +10,8 @@ import com.jonesl7l.carinfg.core.network.datasource.IncidentRemoteDataSource
 import com.jonesl7l.carinfg.core.network.datasource.IncidentRemoteDataSourceImpl
 import com.jonesl7l.carinfg.core.network.datasource.ReferenceRemoteDataSource
 import com.jonesl7l.carinfg.core.network.datasource.ReferenceRemoteDataSourceImpl
+import com.jonesl7l.carinfg.core.network.events.OkHttpSyncEventSource
+import com.jonesl7l.carinfg.core.network.events.SyncEventSource
 import com.jonesl7l.carinfg.core.network.http.MediaTypes
 import dagger.Binds
 import dagger.Module
@@ -19,6 +21,7 @@ import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.serialization.json.Json
+import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
@@ -40,6 +43,10 @@ abstract class NetworkModule {
     companion object {
         private val connectTimeout = 15.seconds
         private val readTimeout = 30.seconds
+
+        // longer than the server's 20 second heartbeat
+        private val eventStreamReadTimeout = 60.seconds
+        private const val EVENTS_PATH = "events"
 
         @Provides
         @Singleton
@@ -74,5 +81,13 @@ abstract class NetworkModule {
         @Provides
         @Singleton
         fun provideReferenceApi(retrofit: Retrofit): ReferenceApi = retrofit.create()
+
+        @Provides
+        @Singleton
+        fun provideSyncEventSource(okHttpClient: OkHttpClient): SyncEventSource = OkHttpSyncEventSource(
+            client = okHttpClient.newBuilder().readTimeout(duration = eventStreamReadTimeout).build(),
+            eventsUrl =
+                BuildConfig.DEFAULT_BASE_URL.toHttpUrl().resolve(link = EVENTS_PATH) ?: error("invalid events url"),
+        )
     }
 }
