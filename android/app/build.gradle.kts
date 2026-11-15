@@ -147,7 +147,6 @@ dependencies {
 
     implementation(libs.bundles.room)
     ksp(libs.androidx.room3.compiler)
-    implementation(libs.bundles.paging)
     implementation(libs.androidx.datastore.preferences)
 
     implementation(libs.androidx.work.runtime)
