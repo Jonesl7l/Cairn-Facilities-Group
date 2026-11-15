@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">carinfg</string>
+    <string name="session_expired">Session expired</string>
+    <string name="sign_in">Sign in</string>
 </resources>
