@@ -6,9 +6,12 @@ import com.jonesl7l.carinfg.core.data.mapper.toEntity
 import com.jonesl7l.carinfg.core.data.session.SessionStore
 import com.jonesl7l.carinfg.core.database.AppDatabase
 import com.jonesl7l.carinfg.core.database.dao.IncidentDao
+import com.jonesl7l.carinfg.core.database.dao.ReferenceDao
 import com.jonesl7l.carinfg.core.database.entity.incident.IncidentEntity
 import com.jonesl7l.carinfg.core.domain.model.incident.Incident
+import com.jonesl7l.carinfg.core.domain.model.incident.IncidentDetail
 import com.jonesl7l.carinfg.core.domain.model.incident.IncidentListItem
+import com.jonesl7l.carinfg.core.domain.model.incident.IncidentNames
 import com.jonesl7l.carinfg.core.domain.model.sync.SyncState
 import com.jonesl7l.carinfg.core.domain.policy.IncidentPolicyHelper
 import com.jonesl7l.carinfg.core.domain.validation.IncidentValidator
@@ -17,6 +20,7 @@ import javax.inject.Inject
 import kotlin.time.Duration
 import kotlin.time.Instant
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
@@ -24,12 +28,25 @@ import kotlinx.coroutines.flow.map
 class IncidentRepositoryImpl @Inject constructor(
     private val database: AppDatabase,
     private val incidentDao: IncidentDao,
+    private val referenceDao: ReferenceDao,
     private val sessionStore: SessionStore,
     private val syncScheduler: SyncScheduler,
 ) : IncidentRepository {
     override fun observeIncident(id: String): Flow<Incident?> = incidentDao.observeIncident(id = id)
         .map { it?.toDomain() }
         .distinctUntilChanged()
+
+    override fun observeIncidentDetail(id: String): Flow<IncidentDetail?> = combine(
+        observeIncident(id = id),
+        observeReferenceLookup(),
+    ) { incident, lookup ->
+        incident?.let {
+            IncidentDetail(
+                incident = it,
+                names = lookup.namesFor(incident = it),
+            )
+        }
+    }
 
     override fun observeIncidentList(): Flow<List<IncidentListItem>> = incidentDao
         .observeIncidentList()
@@ -180,6 +197,38 @@ class IncidentRepositoryImpl @Inject constructor(
                 true
             }
         if (sent) syncScheduler.requestSync()
+    }
+
+    private fun observeReferenceLookup(): Flow<ReferenceLookup> = combine(
+        referenceDao.observeSites(),
+        referenceDao.observeAllBuildings(),
+        referenceDao.observeAllFloors(),
+        referenceDao.observeAllRooms(),
+        referenceDao.observeAllAssets(),
+    ) { sites, buildings, floors, rooms, assets ->
+        ReferenceLookup(
+            sites = sites.associate { it.id to it.name },
+            buildings = buildings.associate { it.id to it.name },
+            floors = floors.associate { it.id to it.name },
+            rooms = rooms.associate { it.id to it.name },
+            assets = assets.associateBy { it.id },
+        )
+    }.combine(referenceDao.observeTechnicians()) { lookup, technicians ->
+        lookup.copy(technicians = technicians.associate { it.id to it.displayName })
+    }
+
+    private fun ReferenceLookup.namesFor(incident: Incident): IncidentNames {
+        val location = incident.location
+        val asset = location.assetId?.let { assets[it] }
+        return IncidentNames(
+            siteName = location.siteId?.let { sites[it] },
+            buildingName = location.buildingId?.let { buildings[it] },
+            floorName = location.floorId?.let { floors[it] },
+            roomName = location.roomId?.let { rooms[it] },
+            assetName = asset?.name,
+            assetCode = asset?.code,
+            reporterName = technicians[incident.reporterId],
+        )
     }
 
     private suspend fun currentUserId(): String? = sessionStore.session.first()?.id

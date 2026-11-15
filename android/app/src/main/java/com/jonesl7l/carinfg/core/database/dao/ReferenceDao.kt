@@ -30,6 +30,18 @@ interface ReferenceDao {
     @Query("SELECT * FROM assets WHERE roomId = :roomId ORDER BY name")
     fun observeAssets(roomId: String): Flow<List<AssetEntity>>
 
+    @Query("SELECT * FROM buildings")
+    fun observeAllBuildings(): Flow<List<BuildingEntity>>
+
+    @Query("SELECT * FROM floors")
+    fun observeAllFloors(): Flow<List<FloorEntity>>
+
+    @Query("SELECT * FROM rooms")
+    fun observeAllRooms(): Flow<List<RoomEntity>>
+
+    @Query("SELECT * FROM assets")
+    fun observeAllAssets(): Flow<List<AssetEntity>>
+
     @Query("SELECT * FROM technicians ORDER BY displayName")
     fun observeTechnicians(): Flow<List<TechnicianEntity>>
 

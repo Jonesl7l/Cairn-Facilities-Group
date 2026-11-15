@@ -13,9 +13,14 @@ import com.jonesl7l.carinfg.core.data.session.FakeSessionStore
 import com.jonesl7l.carinfg.core.database.AppDatabase
 import com.jonesl7l.carinfg.core.database.DatabaseTestHelper.inMemoryDatabase
 import com.jonesl7l.carinfg.core.database.EntityTestHelper.INCIDENT_ID
+import com.jonesl7l.carinfg.core.database.EntityTestHelper.assetEntity
+import com.jonesl7l.carinfg.core.database.EntityTestHelper.buildingEntity
 import com.jonesl7l.carinfg.core.database.EntityTestHelper.draftIncidentEntity
 import com.jonesl7l.carinfg.core.database.EntityTestHelper.incidentEntity
 import com.jonesl7l.carinfg.core.database.EntityTestHelper.now
+import com.jonesl7l.carinfg.core.database.EntityTestHelper.referenceEntities
+import com.jonesl7l.carinfg.core.database.EntityTestHelper.siteEntity
+import com.jonesl7l.carinfg.core.database.EntityTestHelper.technicianEntity
 import com.jonesl7l.carinfg.core.database.entity.incident.IncidentEntity
 import com.jonesl7l.carinfg.core.database.entity.incident.IncidentWithPhotos
 import com.jonesl7l.carinfg.core.domain.model.incident.Incident
@@ -24,6 +29,7 @@ import com.jonesl7l.carinfg.core.domain.model.user.User
 import com.jonesl7l.carinfg.core.domain.model.user.UserRole
 import com.jonesl7l.carinfg.core.sync.FakeSyncScheduler
 import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Test
@@ -39,6 +45,7 @@ class IncidentRepositoryImplTest {
         IncidentRepositoryImpl(
             database = database,
             incidentDao = dao,
+            referenceDao = database.referenceDao(),
             sessionStore = sessionStore,
             syncScheduler = syncScheduler,
         )
@@ -232,6 +239,22 @@ class IncidentRepositoryImplTest {
         )
 
         assertThat(result).isEqualTo(DeleteResult.NotAllowed)
+    }
+    // endregion
+
+    // region observeIncidentDetail
+    @Test
+    fun theDetailLooksUpReferenceNamesAndLeavesUnknownIdsEmpty() = runTest {
+        database.referenceDao().replaceAll(entities = referenceEntities())
+        dao.upsertIncident(incident = incidentEntity(roomId = "missing-room"))
+
+        val names = repository.observeIncidentDetail(id = INCIDENT_ID).first()?.names
+
+        assertThat(names?.siteName).isEqualTo(siteEntity().name)
+        assertThat(names?.buildingName).isEqualTo(buildingEntity().name)
+        assertThat(names?.assetCode).isEqualTo(assetEntity().code)
+        assertThat(names?.reporterName).isEqualTo(technicianEntity().displayName)
+        assertThat(names?.roomName).isNull()
     }
     // endregion
 

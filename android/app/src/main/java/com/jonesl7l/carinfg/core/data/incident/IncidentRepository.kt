@@ -1,6 +1,7 @@
 package com.jonesl7l.carinfg.core.data.incident
 
 import com.jonesl7l.carinfg.core.domain.model.incident.Incident
+import com.jonesl7l.carinfg.core.domain.model.incident.IncidentDetail
 import com.jonesl7l.carinfg.core.domain.model.incident.IncidentListItem
 import kotlin.time.Duration
 import kotlin.time.Instant
@@ -10,6 +11,8 @@ interface IncidentRepository {
     fun observeIncident(id: String): Flow<Incident?>
 
     fun observeIncidentList(): Flow<List<IncidentListItem>>
+
+    fun observeIncidentDetail(id: String): Flow<IncidentDetail?>
 
     suspend fun saveDraft(
         incident: Incident,
