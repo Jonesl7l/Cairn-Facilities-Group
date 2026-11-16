@@ -346,6 +346,29 @@ class IncidentRepositoryImplTest {
         assertThat(items.single().siteName).isEqualTo(siteEntity().name)
         assertThat(items.single().buildingName).isEqualTo(buildingEntity().name)
     }
+
+    @Test
+    fun theListCarriesEachIncidentsCoverPhoto() = runTest {
+        dao.upsertIncident(incident = incidentEntity(id = "with-photos"))
+        dao.upsertIncident(incident = incidentEntity(id = "without"))
+        dao.upsertPhotos(
+            photos = listOf(
+                photoEntity(
+                    id = "cover",
+                    incidentId = "with-photos",
+                ),
+                photoEntity(
+                    position = 1,
+                    incidentId = "with-photos",
+                ),
+            ),
+        )
+
+        val items = repository.observeIncidentList().first().associateBy { it.id }
+
+        assertThat(items["with-photos"]?.coverPhoto?.id).isEqualTo("cover")
+        assertThat(items["without"]?.coverPhoto).isNull()
+    }
     // endregion
 
     // region observeIncidentDetail

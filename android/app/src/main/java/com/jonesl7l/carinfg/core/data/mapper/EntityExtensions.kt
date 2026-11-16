@@ -166,6 +166,7 @@ private fun toTimeZone(id: String): TimeZone = try {
 fun IncidentEntity.toListItem(
     siteName: String?,
     buildingName: String?,
+    coverPhoto: Photo?,
 ) = IncidentListItem(
     id = id,
     title = title,
@@ -179,6 +180,7 @@ fun IncidentEntity.toListItem(
     localUpdatedAt = localUpdatedAt,
     siteName = siteName,
     buildingName = buildingName,
+    coverPhoto = coverPhoto,
 )
 
 fun IncidentEntity.toDeleteRequest(): DeleteIncidentRequest? {

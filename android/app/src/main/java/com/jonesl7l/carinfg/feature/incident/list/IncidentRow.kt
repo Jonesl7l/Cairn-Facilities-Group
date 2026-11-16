@@ -21,17 +21,22 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil3.compose.AsyncImage
 import com.jonesl7l.carinfg.R
 import com.jonesl7l.carinfg.core.domain.model.incident.IncidentListItem
 import com.jonesl7l.carinfg.core.domain.model.incident.Severity
+import com.jonesl7l.carinfg.core.domain.model.photo.Photo
 import com.jonesl7l.carinfg.core.domain.model.sync.SyncState
+import com.jonesl7l.carinfg.core.ui.photo.imageModel
 import com.jonesl7l.carinfg.core.ui.theme.LocalStatusColors
 import com.jonesl7l.carinfg.feature.incident.statusLabel
 import java.time.format.DateTimeFormatter
@@ -80,7 +85,10 @@ fun IncidentRow(
                 ),
         horizontalArrangement = Arrangement.spacedBy(space = rowSpacing),
     ) {
-        Thumbnail(isDraft = isDraft)
+        Thumbnail(
+            isDraft = isDraft,
+            coverPhoto = item.coverPhoto,
+        )
         Column(verticalArrangement = Arrangement.spacedBy(space = lineSpacing)) {
             Text(
                 text = item.title,
@@ -105,7 +113,10 @@ fun IncidentRow(
 }
 
 @Composable
-private fun Thumbnail(isDraft: Boolean) {
+private fun Thumbnail(
+    isDraft: Boolean,
+    coverPhoto: Photo?,
+) {
     val background = if (isDraft) Color.Transparent else MaterialTheme.colorScheme.surfaceVariant
     Box(
         modifier =
@@ -129,6 +140,17 @@ private fun Thumbnail(isDraft: Boolean) {
             tint = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.size(size = thumbnailIconSize),
         )
+        if (!isDraft && coverPhoto != null) {
+            AsyncImage(
+                model = coverPhoto.imageModel(),
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier =
+                    Modifier
+                        .matchParentSize()
+                        .clip(shape = thumbnailShape),
+            )
+        }
     }
 }
 

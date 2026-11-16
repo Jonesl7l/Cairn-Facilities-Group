@@ -58,14 +58,17 @@ class IncidentRepositoryImpl @Inject constructor(
 
     override fun observeIncidentList(): Flow<List<IncidentListItem>> = combine(
         incidentDao.observeIncidents(),
+        incidentDao.observeCoverPhotos(),
         observeReferenceLookup(),
-    ) { rows, lookup ->
+    ) { rows, covers, lookup ->
+        val coverByIncident = covers.associateBy { it.incidentId }
         rows
             .filter { it.syncState != SyncState.PENDING_DELETE }
             .map {
                 it.toListItem(
                     siteName = it.siteId?.let { siteId -> lookup.sites[siteId] },
                     buildingName = it.buildingId?.let { buildingId -> lookup.buildings[buildingId] },
+                    coverPhoto = coverByIncident[it.id]?.toDomain(),
                 )
             }
     }

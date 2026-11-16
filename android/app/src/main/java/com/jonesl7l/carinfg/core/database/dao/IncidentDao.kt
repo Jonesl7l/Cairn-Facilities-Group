@@ -100,6 +100,9 @@ interface IncidentDao {
     @Query("SELECT id FROM incidents")
     suspend fun getIncidentIds(): List<String>
 
+    @Query("SELECT * FROM photos WHERE position = 0")
+    fun observeCoverPhotos(): Flow<List<PhotoEntity>>
+
     @Query("SELECT localPath FROM photos WHERE localPath IS NOT NULL")
     suspend fun getLocalPhotoPaths(): List<String>
 }

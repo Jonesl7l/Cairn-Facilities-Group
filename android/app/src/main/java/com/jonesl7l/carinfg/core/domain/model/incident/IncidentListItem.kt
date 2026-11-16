@@ -1,5 +1,6 @@
 package com.jonesl7l.carinfg.core.domain.model.incident
 
+import com.jonesl7l.carinfg.core.domain.model.photo.Photo
 import com.jonesl7l.carinfg.core.domain.model.sync.SyncState
 import kotlin.time.Instant
 
@@ -16,4 +17,5 @@ data class IncidentListItem(
     val localUpdatedAt: Instant,
     val siteName: String?,
     val buildingName: String?,
+    val coverPhoto: Photo? = null,
 )
