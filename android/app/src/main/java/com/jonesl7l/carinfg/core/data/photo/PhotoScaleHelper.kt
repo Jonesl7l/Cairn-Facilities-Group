@@ -1,6 +1,7 @@
 package com.jonesl7l.carinfg.core.data.photo
 
 object PhotoScaleHelper {
+    // the largest power of two that still leaves the long edge at or above maxEdge
     fun sampleSize(
         width: Int,
         height: Int,

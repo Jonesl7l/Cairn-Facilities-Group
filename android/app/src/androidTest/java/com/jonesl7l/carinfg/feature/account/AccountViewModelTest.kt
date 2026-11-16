@@ -19,6 +19,7 @@ import com.jonesl7l.carinfg.core.network.result.ApiError
 import com.jonesl7l.carinfg.core.network.result.ApiResult
 import com.jonesl7l.carinfg.core.sync.FakeSyncScheduler
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Rule
@@ -28,7 +29,7 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 class AccountViewModelTest {
     @get:Rule
-    val mainDispatcherRule = MainDispatcherRule()
+    val mainDispatcherRule = MainDispatcherRule(dispatcher = StandardTestDispatcher())
 
     private val database: AppDatabase = inMemoryDatabase()
     private val sessionStore = FakeSessionStore(initial = technician)
