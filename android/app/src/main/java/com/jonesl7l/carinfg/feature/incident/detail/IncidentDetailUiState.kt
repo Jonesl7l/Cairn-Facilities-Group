@@ -10,9 +10,13 @@ data class IncidentDetailUiState(
     val canEdit: Boolean = false,
     val canDelete: Boolean = false,
     val deleteOutcome: DeleteOutcome? = null,
+    val isResolveFailed: Boolean = false,
 ) {
     val needsAttention: Boolean
         get() = detail?.incident?.syncStatus?.state == SyncState.NEEDS_ATTENTION
+
+    val isLockedDelete: Boolean
+        get() = detail?.incident?.serverFields?.deletedAt != null
 
     val isLocked: Boolean
         get() = isMine && !canEdit && !needsAttention

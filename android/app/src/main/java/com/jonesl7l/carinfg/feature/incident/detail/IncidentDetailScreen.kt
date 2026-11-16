@@ -6,6 +6,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -24,7 +26,10 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -79,6 +84,11 @@ private val referenceTextSize = 13.sp
 private val labelTextSize = 12.sp
 private val valueTextSize = 15.sp
 private val headerTextSize = 13.sp
+private val deletedRemotelyResolutions =
+    listOf(
+        Resolution.DISCARD,
+        Resolution.SUBMIT_AS_NEW,
+    )
 private val occurredFormatter = DateTimeFormatter.ofPattern("d MMM, HH:mm")
 private val reportedFormatter = DateTimeFormatter.ofPattern("d MMM yyyy, HH:mm")
 
@@ -102,6 +112,8 @@ fun IncidentDetailScreen(
         onBack = onBack,
         onEdit = onEdit,
         onDelete = viewModel::delete,
+        onResolve = { resolution -> if (resolution == Resolution.FIX_IN_FORM) onEdit() else viewModel.resolve(resolution = resolution) },
+        onResolveFailureShow = viewModel::consumeResolveFailure,
     )
 }
 
@@ -112,10 +124,21 @@ fun IncidentDetailContent(
     onBack: () -> Unit,
     onEdit: () -> Unit,
     onDelete: () -> Unit,
+    onResolve: (Resolution) -> Unit,
+    onResolveFailureShow: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val snackbarHostState = remember { SnackbarHostState() }
+    val resolveFailedMessage = stringResource(id = R.string.resolve_failed)
+    val currentOnResolveFailureShow by rememberUpdatedState(onResolveFailureShow)
+    LaunchedEffect(uiState.isResolveFailed) {
+        if (!uiState.isResolveFailed) return@LaunchedEffect
+        snackbarHostState.showSnackbar(message = resolveFailedMessage)
+        currentOnResolveFailureShow()
+    }
     Scaffold(
         modifier = modifier,
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = { Text(text = stringResource(id = R.string.detail_title)) },
@@ -155,6 +178,7 @@ fun IncidentDetailContent(
                 else -> DetailBody(
                     uiState = uiState,
                     detail = detail,
+                    onResolve = onResolve,
                 )
             }
         }
@@ -165,6 +189,7 @@ fun IncidentDetailContent(
 private fun DetailBody(
     uiState: IncidentDetailUiState,
     detail: IncidentDetail,
+    onResolve: (Resolution) -> Unit,
 ) {
     val incident = detail.incident
     Column(
@@ -176,7 +201,13 @@ private fun DetailBody(
             names = detail.names,
             isMine = uiState.isMine,
         )
-        if (uiState.needsAttention) AttentionNote(reason = incident.syncStatus.conflictReason)
+        if (uiState.needsAttention) {
+            AttentionNote(
+                reason = incident.syncStatus.conflictReason,
+                isLockedDelete = uiState.isLockedDelete,
+                onResolve = onResolve,
+            )
+        }
         if (uiState.isLocked) LockedNote()
         DetailsSection(incident = incident)
         LocationSection(
@@ -361,21 +392,54 @@ private fun PeopleSection(incident: Incident) {
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun AttentionNote(reason: ConflictReason?) {
+private fun AttentionNote(
+    reason: ConflictReason?,
+    isLockedDelete: Boolean,
+    onResolve: (Resolution) -> Unit,
+) {
     val colors = LocalStatusColors.current
+    val resolutions =
+        when {
+            reason == ConflictReason.DELETED_REMOTELY -> deletedRemotelyResolutions
+            reason == ConflictReason.STATUS_LOCKED && isLockedDelete -> listOf(Resolution.KEEP_INCIDENT)
+            reason == ConflictReason.STATUS_LOCKED -> listOf(Resolution.DISCARD_MY_CHANGES)
+            else -> listOf(Resolution.FIX_IN_FORM)
+        }
     Note(
         icon = R.drawable.ic_warning,
         title = R.string.attention_title,
         body =
-            when (reason) {
-                ConflictReason.DELETED_REMOTELY -> R.string.attention_deleted_remotely
-                ConflictReason.STATUS_LOCKED -> R.string.attention_status_locked
-                ConflictReason.VALIDATION, null -> R.string.attention_validation
+            when {
+                reason == ConflictReason.DELETED_REMOTELY -> R.string.attention_deleted_remotely
+                reason == ConflictReason.STATUS_LOCKED && isLockedDelete -> R.string.attention_delete_locked
+                reason == ConflictReason.STATUS_LOCKED -> R.string.attention_status_locked
+                else -> R.string.attention_validation
             },
         container = colors.attentionContainer,
         content = colors.onAttention,
-    )
+    ) {
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(space = itemSpacing)) {
+            resolutions.forEach { resolution ->
+                OutlinedButton(
+                    onClick = { onResolve(resolution) },
+                    modifier = Modifier.heightIn(min = buttonHeight),
+                ) {
+                    Text(text = stringResource(id = resolutionLabel(resolution = resolution)))
+                }
+            }
+        }
+    }
+}
+
+@StringRes
+private fun resolutionLabel(resolution: Resolution): Int = when (resolution) {
+    Resolution.DISCARD -> R.string.resolve_discard
+    Resolution.SUBMIT_AS_NEW -> R.string.resolve_submit_as_new
+    Resolution.FIX_IN_FORM -> R.string.resolve_fix_in_form
+    Resolution.KEEP_INCIDENT -> R.string.resolve_keep_incident
+    Resolution.DISCARD_MY_CHANGES -> R.string.resolve_discard_my_changes
 }
 
 @Composable
@@ -396,6 +460,7 @@ private fun Note(
     @StringRes body: Int,
     container: Color,
     content: Color,
+    actions: (@Composable () -> Unit)? = null,
 ) {
     Row(
         modifier =
@@ -422,6 +487,7 @@ private fun Note(
                 text = stringResource(id = body),
                 color = MaterialTheme.colorScheme.onSurface,
             )
+            actions?.invoke()
         }
     }
 }

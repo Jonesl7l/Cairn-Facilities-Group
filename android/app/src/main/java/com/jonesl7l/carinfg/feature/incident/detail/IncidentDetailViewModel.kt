@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.jonesl7l.carinfg.core.data.incident.DeleteResult
 import com.jonesl7l.carinfg.core.data.incident.IncidentRepository
+import com.jonesl7l.carinfg.core.data.incident.ResolveResult
 import com.jonesl7l.carinfg.core.data.session.SessionStore
 import com.jonesl7l.carinfg.core.domain.model.sync.SyncState
 import com.jonesl7l.carinfg.core.domain.policy.IncidentPolicyHelper
@@ -29,13 +30,15 @@ class IncidentDetailViewModel @AssistedInject constructor(
     sessionStore: SessionStore,
 ) : ViewModel() {
     private val deleteOutcome = MutableStateFlow<DeleteOutcome?>(null)
+    private val isResolveFailed = MutableStateFlow(false)
 
     val uiState: StateFlow<IncidentDetailUiState> =
         combine(
             incidentRepository.observeIncidentDetail(id = incidentId),
             sessionStore.session,
             deleteOutcome,
-        ) { detail, user, deleteOutcome ->
+            isResolveFailed,
+        ) { detail, user, deleteOutcome, isResolveFailed ->
             val incident = detail?.incident
             val userId = user?.id
             val isEditable = incident != null && userId != null && incident.syncStatus.state != SyncState.NEEDS_ATTENTION
@@ -56,6 +59,7 @@ class IncidentDetailViewModel @AssistedInject constructor(
                             userId = userId,
                         ),
                 deleteOutcome = deleteOutcome,
+                isResolveFailed = isResolveFailed,
             )
         }.stateIn(
             scope = viewModelScope,
@@ -80,6 +84,35 @@ class IncidentDetailViewModel @AssistedInject constructor(
         }
     }
 
+    fun resolve(resolution: Resolution) {
+        viewModelScope.launch {
+            val result =
+                when (resolution) {
+                    Resolution.DISCARD -> incidentRepository.discard(id = incidentId)
+
+                    Resolution.SUBMIT_AS_NEW -> incidentRepository.submitAsNew(
+                        id = incidentId,
+                        now = Clock.System.now(),
+                    )
+
+                    Resolution.KEEP_INCIDENT -> incidentRepository.keepIncident(id = incidentId)
+
+                    Resolution.DISCARD_MY_CHANGES -> incidentRepository.discardMyChanges(id = incidentId)
+
+                    Resolution.FIX_IN_FORM -> return@launch
+                }
+            when (result) {
+                ResolveResult.DONE -> if (resolution in removingResolutions) deleteOutcome.value = DeleteOutcome.REMOVED
+                ResolveResult.FAILED -> isResolveFailed.value = true
+                ResolveResult.NOT_ALLOWED -> Unit
+            }
+        }
+    }
+
+    fun consumeResolveFailure() {
+        isResolveFailed.value = false
+    }
+
     @AssistedFactory
     interface Factory {
         fun create(incidentId: String): IncidentDetailViewModel
@@ -87,5 +120,10 @@ class IncidentDetailViewModel @AssistedInject constructor(
 
     private companion object {
         val stopTimeout = 5.seconds
+        val removingResolutions =
+            setOf(
+                Resolution.DISCARD,
+                Resolution.SUBMIT_AS_NEW,
+            )
     }
 }

@@ -25,6 +25,7 @@ import com.jonesl7l.carinfg.core.domain.model.incident.ImmediateAction
 import com.jonesl7l.carinfg.core.domain.model.incident.IncidentSafety
 import com.jonesl7l.carinfg.core.domain.model.incident.IncidentType
 import com.jonesl7l.carinfg.core.domain.model.incident.Severity
+import com.jonesl7l.carinfg.core.domain.model.sync.ConflictReason
 import com.jonesl7l.carinfg.core.domain.model.sync.SyncState
 import com.jonesl7l.carinfg.core.domain.model.user.User
 import com.jonesl7l.carinfg.core.domain.model.user.UserRole
@@ -165,6 +166,22 @@ class IncidentFormViewModelTest {
         viewModel.submit()
         assertThat(viewModel.uiState.first { it.outcome != null }.outcome).isEqualTo(FormOutcome.SAVED)
         assertThat(storedTitle()).isEqualTo("Flooded lobby")
+    }
+
+    @Test
+    fun aValidationProblemShowsItsErrorsStraightAway() = runTest {
+        database.incidentDao().upsertIncident(
+            incident = incidentEntity(
+                reporterId = technician.id,
+                title = "",
+                syncState = SyncState.NEEDS_ATTENTION,
+                conflictReason = ConflictReason.VALIDATION,
+            ),
+        )
+
+        val viewModel = loadedViewModel(incidentId = INCIDENT_ID)
+
+        assertThat(viewModel.uiState.value.errors).isNotEmpty()
     }
 
     @Test

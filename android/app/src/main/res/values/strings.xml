@@ -199,4 +199,11 @@
     <string name="discard_body">Your changes to this incident will be lost.</string>
     <string name="discard">Discard</string>
     <string name="keep_editing">Keep editing</string>
+    <string name="attention_delete_locked">The incident moved on before your delete was sent, so it can no longer be deleted.</string>
+    <string name="resolve_discard">Discard</string>
+    <string name="resolve_submit_as_new">Submit as new</string>
+    <string name="resolve_fix_in_form">Fix in form</string>
+    <string name="resolve_keep_incident">Keep incident</string>
+    <string name="resolve_discard_my_changes">Discard my changes</string>
+    <string name="resolve_failed">Couldn\'t reach the server. Try again when you\'re online.</string>
 </resources>

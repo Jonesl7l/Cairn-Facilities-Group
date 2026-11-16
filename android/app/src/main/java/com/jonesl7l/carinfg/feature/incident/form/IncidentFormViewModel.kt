@@ -117,6 +117,7 @@ class IncidentFormViewModel @AssistedInject constructor(
     private suspend fun load() {
         val stored = incidentRepository.observeIncident(id = id).first()
         isDraftStored = stored != null
+        hasSubmitted = stored?.syncStatus?.state == SyncState.NEEDS_ATTENTION
         val incident =
             stored ?: IncidentFormHelper.newIncident(
                 id = id,

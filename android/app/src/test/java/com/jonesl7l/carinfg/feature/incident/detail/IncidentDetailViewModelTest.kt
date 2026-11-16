@@ -9,15 +9,18 @@ import assertk.assertions.isTrue
 import com.jonesl7l.carinfg.MainDispatcherRule
 import com.jonesl7l.carinfg.core.data.incident.DeleteResult
 import com.jonesl7l.carinfg.core.data.incident.FakeIncidentRepository
+import com.jonesl7l.carinfg.core.data.incident.ResolveResult
 import com.jonesl7l.carinfg.core.data.session.FakeSessionStore
 import com.jonesl7l.carinfg.core.domain.IncidentTestHelper.REPORTER_ID
 import com.jonesl7l.carinfg.core.domain.IncidentTestHelper.incident
 import com.jonesl7l.carinfg.core.domain.IncidentTestHelper.operatorFields
+import com.jonesl7l.carinfg.core.domain.IncidentTestHelper.serverFields
 import com.jonesl7l.carinfg.core.domain.IncidentTestHelper.syncStatus
 import com.jonesl7l.carinfg.core.domain.model.incident.Incident
 import com.jonesl7l.carinfg.core.domain.model.incident.IncidentDetail
 import com.jonesl7l.carinfg.core.domain.model.incident.IncidentNames
 import com.jonesl7l.carinfg.core.domain.model.incident.IncidentStatus
+import com.jonesl7l.carinfg.core.domain.model.incident.ServerFields
 import com.jonesl7l.carinfg.core.domain.model.sync.ConflictReason
 import com.jonesl7l.carinfg.core.domain.model.sync.SyncState
 import com.jonesl7l.carinfg.core.domain.model.user.User
@@ -128,6 +131,58 @@ class IncidentDetailViewModelTest {
 
         assertThat(latest().deleteOutcome).isEqualTo(DeleteOutcome.REMOVED)
     }
+
+    @Test
+    fun `discarding an incident deleted remotely leaves the screen`() = runTest {
+        show(incident = conflict(reason = ConflictReason.DELETED_REMOTELY))
+        latest()
+
+        viewModel.resolve(resolution = Resolution.DISCARD)
+
+        assertThat(repository.discardedIds).containsExactly(INCIDENT_ID)
+        assertThat(latest().deleteOutcome).isEqualTo(DeleteOutcome.REMOVED)
+    }
+
+    @Test
+    fun `keeping a locked delete stays on the screen`() = runTest {
+        show(
+            incident = conflict(
+                reason = ConflictReason.STATUS_LOCKED,
+                serverFields = serverFields(deletedAt = Instant.DISTANT_PAST),
+            ),
+        )
+        assertThat(latest().isLockedDelete).isTrue()
+
+        viewModel.resolve(resolution = Resolution.KEEP_INCIDENT)
+
+        assertThat(repository.keptIds).containsExactly(INCIDENT_ID)
+        assertThat(latest().deleteOutcome).isNull()
+    }
+
+    @Test
+    fun `discarding my changes without the server reports the failure until shown`() = runTest {
+        show(incident = conflict(reason = ConflictReason.STATUS_LOCKED))
+        repository.resolveResult = ResolveResult.FAILED
+        latest()
+
+        viewModel.resolve(resolution = Resolution.DISCARD_MY_CHANGES)
+        assertThat(latest().isResolveFailed).isTrue()
+        viewModel.consumeResolveFailure()
+
+        assertThat(latest().isResolveFailed).isFalse()
+    }
+
+    private fun conflict(
+        reason: ConflictReason,
+        serverFields: ServerFields = serverFields(),
+    ) = incident(
+        serverFields = serverFields,
+        syncStatus =
+            syncStatus(
+                state = SyncState.NEEDS_ATTENTION,
+                conflictReason = reason,
+            ),
+    )
 
     private fun show(incident: Incident) {
         repository.incidentDetail.value =
