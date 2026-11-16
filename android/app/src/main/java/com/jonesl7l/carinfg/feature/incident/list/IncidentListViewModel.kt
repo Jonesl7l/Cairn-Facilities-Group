@@ -11,6 +11,7 @@ import com.jonesl7l.carinfg.core.sync.SyncScheduler
 import com.jonesl7l.carinfg.core.sync.status.SyncStatusProvider
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
+import kotlin.time.Clock
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -22,7 +23,7 @@ import kotlinx.coroutines.launch
 
 @HiltViewModel
 class IncidentListViewModel @Inject constructor(
-    incidentRepository: IncidentRepository,
+    private val incidentRepository: IncidentRepository,
     sessionStore: SessionStore,
     private val userPreferencesStore: UserPreferencesStore,
     private val syncScheduler: SyncScheduler,
@@ -76,6 +77,24 @@ class IncidentListViewModel @Inject constructor(
 
     fun onRefresh() {
         syncScheduler.requestSync()
+    }
+
+    fun undoDelete(incidentId: String) {
+        viewModelScope.launch {
+            incidentRepository.undoDelete(
+                id = incidentId,
+                now = Clock.System.now(),
+            )
+        }
+    }
+
+    fun sendDeleteNow(incidentId: String) {
+        viewModelScope.launch {
+            incidentRepository.sendDeleteNow(
+                id = incidentId,
+                now = Clock.System.now(),
+            )
+        }
     }
 
     fun onSyncStatusClick() {

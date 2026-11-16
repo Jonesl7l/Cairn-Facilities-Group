@@ -142,6 +142,15 @@ class IncidentListViewModelTest {
     }
 
     @Test
+    fun `undo restores a deleted incident and send now sends it straight away`() {
+        viewModel.undoDelete(incidentId = "a")
+        viewModel.sendDeleteNow(incidentId = "b")
+
+        assertThat(repository.undoneIds).containsExactly("a")
+        assertThat(repository.sentNowIds).containsExactly("b")
+    }
+
+    @Test
     fun `pulling to refresh asks for a sync`() {
         viewModel.onRefresh()
 

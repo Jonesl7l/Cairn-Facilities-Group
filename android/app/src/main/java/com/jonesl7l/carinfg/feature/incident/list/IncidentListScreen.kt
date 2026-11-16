@@ -33,14 +33,20 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -62,10 +68,12 @@ import com.jonesl7l.carinfg.core.domain.model.incident.IncidentListItem
 import com.jonesl7l.carinfg.core.domain.model.incident.IncidentSort
 import com.jonesl7l.carinfg.core.ui.theme.LocalStatusColors
 import com.jonesl7l.carinfg.feature.account.AccountSheet
+import com.jonesl7l.carinfg.feature.incident.incidentUndoWindow
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Instant
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.withTimeoutOrNull
 
 private val horizontalPadding = 16.dp
 private val sectionHeaderPadding =
@@ -87,11 +95,21 @@ private val clockTick = 1.minutes
 
 @Composable
 fun IncidentListScreen(
+    pendingUndoId: String?,
+    onUndoFinish: () -> Unit,
     onOpenIncident: (String) -> Unit,
     onReportIncident: () -> Unit,
     viewModel: IncidentListViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val snackbarHostState = remember { SnackbarHostState() }
+    UndoDeleteEffect(
+        pendingUndoId = pendingUndoId,
+        snackbarHostState = snackbarHostState,
+        onUndo = viewModel::undoDelete,
+        onSend = viewModel::sendDeleteNow,
+        onFinish = onUndoFinish,
+    )
     IncidentListContent(
         uiState = uiState,
         onScopeChange = viewModel::onScopeChange,
@@ -101,7 +119,42 @@ fun IncidentListScreen(
         onSyncStatusClick = viewModel::onSyncStatusClick,
         onOpenIncident = onOpenIncident,
         onReportIncident = onReportIncident,
+        snackbarHostState = snackbarHostState,
     )
+}
+
+@Composable
+private fun UndoDeleteEffect(
+    pendingUndoId: String?,
+    snackbarHostState: SnackbarHostState,
+    onUndo: (String) -> Unit,
+    onSend: (String) -> Unit,
+    onFinish: () -> Unit,
+) {
+    val message = stringResource(id = R.string.incident_deleted)
+    val action = stringResource(id = R.string.undo)
+    val currentOnUndo by rememberUpdatedState(onUndo)
+    val currentOnSend by rememberUpdatedState(onSend)
+    val currentOnFinish by rememberUpdatedState(onFinish)
+    LaunchedEffect(pendingUndoId) {
+        val incidentId = pendingUndoId ?: return@LaunchedEffect
+        var isUndone = false
+        try {
+            val result =
+                withTimeoutOrNull(timeout = incidentUndoWindow) {
+                    snackbarHostState.showSnackbar(
+                        message = message,
+                        actionLabel = action,
+                        duration = SnackbarDuration.Indefinite,
+                    )
+                }
+            isUndone = result == SnackbarResult.ActionPerformed
+            if (isUndone) currentOnUndo(incidentId)
+        } finally {
+            if (!isUndone) currentOnSend(incidentId)
+            currentOnFinish()
+        }
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -116,6 +169,7 @@ fun IncidentListContent(
     onOpenIncident: (String) -> Unit,
     onReportIncident: () -> Unit,
     modifier: Modifier = Modifier,
+    snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
 ) {
     var showAccount by rememberSaveable { mutableStateOf(false) }
     val now by produceState(initialValue = Clock.System.now()) {
@@ -164,6 +218,7 @@ fun IncidentListContent(
                 shape = fabShape,
             )
         },
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         containerColor = MaterialTheme.colorScheme.background,
     ) { innerPadding ->
         PullToRefreshBox(

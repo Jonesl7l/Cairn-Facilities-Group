@@ -12,7 +12,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -30,6 +33,8 @@ import com.jonesl7l.carinfg.app.navigation.IncidentFormRoute
 import com.jonesl7l.carinfg.app.navigation.IncidentListRoute
 import com.jonesl7l.carinfg.app.navigation.LoginRoute
 import com.jonesl7l.carinfg.feature.auth.LoginScreen
+import com.jonesl7l.carinfg.feature.incident.detail.DeleteOutcome
+import com.jonesl7l.carinfg.feature.incident.detail.IncidentDetailScreen
 import com.jonesl7l.carinfg.feature.incident.list.IncidentListScreen
 
 @Composable
@@ -57,6 +62,7 @@ private fun AppBackStack(
 ) {
     val backStack = rememberNavBackStack(startRoute)
     val snackbarHostState = remember { SnackbarHostState() }
+    var pendingUndoId by rememberSaveable { mutableStateOf<String?>(null) }
     SessionExpiredEffect(
         isSessionExpired = isSessionExpired,
         backStack = backStack,
@@ -76,13 +82,25 @@ private fun AppBackStack(
                     entry<LoginRoute> { LoginScreen() }
                     entry<IncidentListRoute> {
                         IncidentListScreen(
+                            pendingUndoId = pendingUndoId,
+                            onUndoFinish = { pendingUndoId = null },
                             onOpenIncident = { incidentId ->
                                 backStack.add(IncidentDetailRoute(incidentId = incidentId))
                             },
                             onReportIncident = { backStack.add(IncidentFormRoute(incidentId = null)) },
                         )
                     }
-                    entry<IncidentDetailRoute> { PlaceholderScreen(route = it) }
+                    entry<IncidentDetailRoute> { route ->
+                        IncidentDetailScreen(
+                            incidentId = route.incidentId,
+                            onBack = { backStack.removeLastOrNull() },
+                            onEdit = { backStack.add(IncidentFormRoute(incidentId = route.incidentId)) },
+                            onDeleteFinish = { outcome ->
+                                if (outcome == DeleteOutcome.UNDOABLE) pendingUndoId = route.incidentId
+                                backStack.removeLastOrNull()
+                            },
+                        )
+                    }
                     entry<IncidentFormRoute> { PlaceholderScreen(route = it) }
                 },
         )

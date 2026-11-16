@@ -30,10 +30,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.jonesl7l.carinfg.R
 import com.jonesl7l.carinfg.core.domain.model.incident.IncidentListItem
-import com.jonesl7l.carinfg.core.domain.model.incident.IncidentStatus
 import com.jonesl7l.carinfg.core.domain.model.incident.Severity
 import com.jonesl7l.carinfg.core.domain.model.sync.SyncState
 import com.jonesl7l.carinfg.core.ui.theme.LocalStatusColors
+import com.jonesl7l.carinfg.feature.incident.statusLabel
 import java.time.format.DateTimeFormatter
 import kotlin.time.Instant
 import kotlinx.datetime.TimeZone
@@ -344,16 +344,3 @@ private fun relativeTime(
     RelativeTime.Yesterday -> stringResource(id = R.string.time_yesterday)
     is RelativeTime.OnDate -> relative.date.toJavaLocalDate().format(dateFormatter)
 }
-
-@Composable
-fun statusLabel(status: IncidentStatus): String = stringResource(
-    id =
-        when (status) {
-            IncidentStatus.Open -> R.string.status_open
-            IncidentStatus.Assigned -> R.string.status_assigned
-            IncidentStatus.InProgress -> R.string.status_in_progress
-            IncidentStatus.Resolved -> R.string.status_resolved
-            IncidentStatus.Closed -> R.string.status_closed
-            is IncidentStatus.Unknown -> R.string.status_unknown
-        },
-)
