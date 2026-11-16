@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">carinfg</string>
+    <string name="app_name">CairnFG Incident Report</string>
     <string name="session_expired">Session expired</string>
     <string name="log_in">Log in</string>
     <string name="login_company">Cairn Facilities Group</string>
