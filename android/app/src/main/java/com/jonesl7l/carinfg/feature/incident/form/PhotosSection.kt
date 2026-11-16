@@ -48,6 +48,7 @@ import com.jonesl7l.carinfg.core.domain.validation.IncidentValidator
 import com.jonesl7l.carinfg.core.ui.permissions.PermissionDialogs
 import com.jonesl7l.carinfg.core.ui.permissions.rememberPermissionState
 import com.jonesl7l.carinfg.core.ui.photo.imageModel
+import com.jonesl7l.carinfg.feature.incident.CoverBadge
 
 private val tileSize = 80.dp
 private val tileShape = RoundedCornerShape(size = 12.dp)
@@ -55,9 +56,6 @@ private val tileSpacing = 10.dp
 private val tileBorderWidth = 1.5.dp
 private val tileIconSize = 24.dp
 private val tileLabelSpacing = 4.dp
-private val badgePadding = 6.dp
-private val badgeShape = RoundedCornerShape(size = 6.dp)
-private val badgeVerticalPadding = 2.dp
 private const val DISABLED_ALPHA = 0.38f
 private const val MIN_MULTI_PICK = 2
 private val imageOnly = PickVisualMediaRequest(mediaType = ActivityResultContracts.PickVisualMedia.ImageOnly)
@@ -244,25 +242,4 @@ private fun PhotoTile(
             )
         }
     }
-}
-
-@Composable
-private fun CoverBadge(modifier: Modifier = Modifier) {
-    Text(
-        text = stringResource(id = R.string.photo_cover),
-        style = MaterialTheme.typography.labelSmall,
-        fontWeight = FontWeight.SemiBold,
-        color = MaterialTheme.colorScheme.inverseOnSurface,
-        modifier =
-            modifier
-                .padding(all = badgePadding)
-                .background(
-                    color = MaterialTheme.colorScheme.inverseSurface,
-                    shape = badgeShape,
-                )
-                .padding(
-                    horizontal = badgePadding,
-                    vertical = badgeVerticalPadding,
-                ),
-    )
 }

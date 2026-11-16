@@ -97,7 +97,7 @@
     <string name="value_not_set">Not set</string>
     <string name="asset_label">Asset %1$s · %2$s</string>
     <string name="out_of_service">Out of service</string>
-    <string name="location_separator"> › </string>
+    <string name="location_separator">" › "</string>
     <string name="locked_title">Editing locked by the operator</string>
     <string name="locked_body">The operator has moved this incident on, so it can no longer be edited.</string>
     <string name="attention_title">Needs attention</string>

@@ -2,6 +2,7 @@ package com.jonesl7l.carinfg.feature.incident.detail
 
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -43,6 +44,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -84,6 +86,10 @@ private val referenceTextSize = 13.sp
 private val labelTextSize = 12.sp
 private val valueTextSize = 15.sp
 private val headerTextSize = 13.sp
+private val cardShape = RoundedCornerShape(16.dp)
+private val cardBorderWidth = 1.dp
+private val editButtonShape = RoundedCornerShape(12.dp)
+private val editButtonHeight = 48.dp
 private val deletedRemotelyResolutions =
     listOf(
         Resolution.DISCARD,
@@ -144,7 +150,18 @@ fun IncidentDetailContent(
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         topBar = {
             TopAppBar(
-                title = { Text(text = stringResource(id = R.string.detail_title)) },
+                title = {
+                    if (isBesideList) {
+                        Text(
+                            text = uiState.detail?.incident?.referenceNumber ?: stringResource(id = R.string.ref_pending),
+                            fontSize = referenceTextSize,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    } else {
+                        Text(text = stringResource(id = R.string.detail_title))
+                    }
+                },
                 navigationIcon = {
                     if (!isBesideList) {
                         IconButton(onClick = onBack) {
@@ -155,10 +172,13 @@ fun IncidentDetailContent(
                         }
                     }
                 },
-                actions = { if (uiState.canDelete) OverflowMenu(onDelete = onDelete) },
+                actions = {
+                    if (isBesideList && uiState.canEdit) EditButton(onEdit = onEdit)
+                    if (uiState.canDelete) OverflowMenu(onDelete = onDelete)
+                },
             )
         },
-        bottomBar = { if (uiState.canEdit) EditBar(onEdit = onEdit) },
+        bottomBar = { if (uiState.canEdit && !isBesideList) EditBar(onEdit = onEdit) },
         containerColor = MaterialTheme.colorScheme.background,
     ) { innerPadding ->
         Box(
@@ -178,6 +198,12 @@ fun IncidentDetailContent(
                         Modifier
                             .align(alignment = Alignment.Center)
                             .padding(all = sectionPadding),
+                )
+
+                isBesideList -> WideDetailBody(
+                    uiState = uiState,
+                    detail = detail,
+                    onResolve = onResolve,
                 )
 
                 else -> DetailBody(
@@ -212,9 +238,10 @@ private fun DetailBody(
                 reason = incident.syncStatus.conflictReason,
                 isLockedDelete = uiState.isLockedDelete,
                 onResolve = onResolve,
+                modifier = Modifier.padding(horizontal = noteMargin),
             )
         }
-        if (uiState.isLocked) LockedNote()
+        if (uiState.isLocked) LockedNote(modifier = Modifier.padding(horizontal = noteMargin))
         DetailsSection(incident = incident)
         LocationSection(
             incident = incident,
@@ -270,8 +297,16 @@ private fun Header(
 }
 
 @Composable
-private fun DetailsSection(incident: Incident) {
-    Section(title = R.string.section_details) {
+internal fun DetailsSection(
+    incident: Incident,
+    modifier: Modifier = Modifier,
+    isCard: Boolean = false,
+) {
+    Section(
+        title = R.string.section_details,
+        isCard = isCard,
+        modifier = modifier,
+    ) {
         Row {
             LabelledValue(
                 label = R.string.label_type,
@@ -299,9 +334,11 @@ private fun DetailsSection(incident: Incident) {
 }
 
 @Composable
-private fun LocationSection(
+internal fun LocationSection(
     incident: Incident,
     names: IncidentNames,
+    modifier: Modifier = Modifier,
+    isCard: Boolean = false,
 ) {
     val location = incident.location
     val unknown = stringResource(id = R.string.value_unknown)
@@ -316,7 +353,11 @@ private fun LocationSection(
             location.roomId?.let { names.roomName ?: unknown } ?: location.unlistedLocation,
             location.exactSpot,
         ).joinToString(separator = ", ")
-    Section(title = R.string.section_location) {
+    Section(
+        title = R.string.section_location,
+        isCard = isCard,
+        modifier = modifier,
+    ) {
         Row(horizontalArrangement = Arrangement.spacedBy(space = itemSpacing)) {
             NoteIcon(
                 icon = R.drawable.ic_pin,
@@ -368,8 +409,16 @@ private fun LocationSection(
 }
 
 @Composable
-private fun SafetySection(incident: Incident) {
-    Section(title = R.string.section_safety) {
+internal fun SafetySection(
+    incident: Incident,
+    modifier: Modifier = Modifier,
+    isCard: Boolean = false,
+) {
+    Section(
+        title = R.string.section_safety,
+        isCard = isCard,
+        modifier = modifier,
+    ) {
         Row {
             LabelledValue(
                 label = R.string.label_injury,
@@ -386,8 +435,16 @@ private fun SafetySection(incident: Incident) {
 }
 
 @Composable
-private fun PeopleSection(incident: Incident) {
-    Section(title = R.string.section_people) {
+internal fun PeopleSection(
+    incident: Incident,
+    modifier: Modifier = Modifier,
+    isCard: Boolean = false,
+) {
+    Section(
+        title = R.string.section_people,
+        isCard = isCard,
+        modifier = modifier,
+    ) {
         incident.persons.forEach { person ->
             LabelledValue(
                 label = null,
@@ -400,10 +457,11 @@ private fun PeopleSection(incident: Incident) {
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun AttentionNote(
+internal fun AttentionNote(
     reason: ConflictReason?,
     isLockedDelete: Boolean,
     onResolve: (Resolution) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     val colors = LocalStatusColors.current
     val resolutions =
@@ -425,6 +483,7 @@ private fun AttentionNote(
             },
         container = colors.attentionContainer,
         content = colors.onAttention,
+        modifier = modifier,
     ) {
         FlowRow(horizontalArrangement = Arrangement.spacedBy(space = itemSpacing)) {
             resolutions.forEach { resolution ->
@@ -449,13 +508,14 @@ private fun resolutionLabel(resolution: Resolution): Int = when (resolution) {
 }
 
 @Composable
-private fun LockedNote() {
+internal fun LockedNote(modifier: Modifier = Modifier) {
     Note(
         icon = R.drawable.ic_lock,
         title = R.string.locked_title,
         body = R.string.locked_body,
         container = MaterialTheme.colorScheme.primaryContainer,
         content = MaterialTheme.colorScheme.onPrimaryContainer,
+        modifier = modifier,
     )
 }
 
@@ -466,12 +526,12 @@ private fun Note(
     @StringRes body: Int,
     container: Color,
     content: Color,
+    modifier: Modifier = Modifier,
     actions: (@Composable () -> Unit)? = null,
 ) {
     Row(
         modifier =
-            Modifier
-                .padding(horizontal = noteMargin)
+            modifier
                 .fillMaxWidth()
                 .background(
                     color = container,
@@ -512,11 +572,18 @@ private fun NoteIcon(
 }
 
 @Composable
-private fun Section(
+internal fun Section(
+    modifier: Modifier = Modifier,
     @StringRes title: Int? = null,
+    isCard: Boolean = false,
     content: @Composable () -> Unit,
 ) {
-    Surface(color = MaterialTheme.colorScheme.surface) {
+    Surface(
+        color = MaterialTheme.colorScheme.surface,
+        shape = if (isCard) cardShape else RectangleShape,
+        border = if (isCard) BorderStroke(width = cardBorderWidth, color = MaterialTheme.colorScheme.outlineVariant) else null,
+        modifier = modifier,
+    ) {
         Column(
             modifier =
                 Modifier
@@ -574,7 +641,7 @@ private fun LabelledValue(
 }
 
 @Composable
-private fun Chip(
+internal fun Chip(
     text: String,
     container: Color,
     content: Color,
@@ -624,6 +691,26 @@ private fun OverflowMenu(onDelete: () -> Unit) {
 }
 
 @Composable
+private fun EditButton(onEdit: () -> Unit) {
+    Button(
+        onClick = onEdit,
+        shape = editButtonShape,
+        modifier = Modifier.heightIn(min = editButtonHeight),
+    ) {
+        Icon(
+            painter = painterResource(id = R.drawable.ic_edit),
+            contentDescription = null,
+            modifier = Modifier.size(size = iconSize),
+        )
+        Text(
+            text = stringResource(id = R.string.edit_incident),
+            style = MaterialTheme.typography.labelLarge,
+            modifier = Modifier.padding(start = itemSpacing),
+        )
+    }
+}
+
+@Composable
 private fun EditBar(onEdit: () -> Unit) {
     Surface(color = MaterialTheme.colorScheme.surface) {
         Button(
@@ -651,7 +738,7 @@ private fun EditBar(onEdit: () -> Unit) {
 }
 
 @Composable
-private fun reportedLine(
+internal fun reportedLine(
     incident: Incident,
     names: IncidentNames,
     isMine: Boolean,
