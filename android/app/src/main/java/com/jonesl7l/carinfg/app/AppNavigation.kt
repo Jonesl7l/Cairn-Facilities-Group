@@ -13,6 +13,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -34,8 +35,10 @@ import com.jonesl7l.carinfg.app.navigation.LoginRoute
 import com.jonesl7l.carinfg.feature.auth.LoginScreen
 import com.jonesl7l.carinfg.feature.incident.detail.DeleteOutcome
 import com.jonesl7l.carinfg.feature.incident.detail.IncidentDetailScreen
+import com.jonesl7l.carinfg.feature.incident.form.FormOutcome
 import com.jonesl7l.carinfg.feature.incident.form.IncidentFormScreen
 import com.jonesl7l.carinfg.feature.incident.list.IncidentListScreen
+import kotlinx.coroutines.launch
 
 @Composable
 fun AppNavigation(viewModel: AppViewModel) {
@@ -62,6 +65,8 @@ private fun AppBackStack(
 ) {
     val backStack = rememberNavBackStack(startRoute)
     val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+    val draftSavedMessage = stringResource(R.string.form_draft_saved)
     var pendingUndoId by rememberSaveable { mutableStateOf<String?>(null) }
     SessionExpiredEffect(
         isSessionExpired = isSessionExpired,
@@ -104,7 +109,10 @@ private fun AppBackStack(
                     entry<IncidentFormRoute> { route ->
                         IncidentFormScreen(
                             incidentId = route.incidentId,
-                            onClose = { backStack.removeLastOrNull() },
+                            onFinish = { outcome ->
+                                backStack.removeLastOrNull()
+                                if (outcome == FormOutcome.DRAFT_SAVED) scope.launch { snackbarHostState.showSnackbar(message = draftSavedMessage) }
+                            },
                         )
                     }
                 },

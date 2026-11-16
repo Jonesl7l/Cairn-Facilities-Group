@@ -19,12 +19,6 @@ import com.jonesl7l.carinfg.core.domain.validation.FieldError
 import com.jonesl7l.carinfg.core.domain.validation.IncidentField
 
 private val touchTargetHeight = 56.dp
-private val locationFields =
-    setOf(
-        IncidentField.Site,
-        IncidentField.Building,
-        IncidentField.EquipmentOutOfService,
-    )
 
 @Composable
 fun LocationSection(

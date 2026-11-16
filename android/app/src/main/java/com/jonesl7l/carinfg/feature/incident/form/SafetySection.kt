@@ -40,12 +40,6 @@ private val actions =
         ImmediateAction.AreaEvacuated,
         ImmediateAction.Other(description = ""),
     )
-private val safetyFields =
-    setOf(
-        IncidentField.InjuryOccurred,
-        IncidentField.HazardStillPresent,
-        IncidentField.ImmediateActions,
-    )
 
 @Composable
 fun SafetySection(

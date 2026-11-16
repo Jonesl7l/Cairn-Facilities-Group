@@ -58,14 +58,6 @@ private val incidentTypes =
         IncidentType.NearMiss,
         IncidentType.Other(description = ""),
     )
-private val detailsFields =
-    setOf(
-        IncidentField.Title,
-        IncidentField.Description,
-        IncidentField.OccurredAt,
-        IncidentField.Type,
-        IncidentField.Severity,
-    )
 private val occurredFormatter = DateTimeFormatter.ofPattern("d MMM yyyy, HH:mm")
 
 @Composable

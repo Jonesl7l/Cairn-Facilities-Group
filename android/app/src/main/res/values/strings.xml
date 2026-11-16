@@ -193,4 +193,10 @@
     <string name="treatment_first_aid">First aid</string>
     <string name="treatment_medical">Medical treatment</string>
     <string name="treatment_hospital">Hospital</string>
+    <string name="form_draft_saved">Saved as draft</string>
+    <string name="form_not_allowed">This incident can no longer be edited</string>
+    <string name="discard_title">Discard changes?</string>
+    <string name="discard_body">Your changes to this incident will be lost.</string>
+    <string name="discard">Discard</string>
+    <string name="keep_editing">Keep editing</string>
 </resources>
