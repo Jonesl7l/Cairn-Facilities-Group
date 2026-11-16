@@ -19,12 +19,15 @@ import com.jonesl7l.carinfg.core.database.EntityTestHelper.buildingEntity
 import com.jonesl7l.carinfg.core.database.EntityTestHelper.draftIncidentEntity
 import com.jonesl7l.carinfg.core.database.EntityTestHelper.incidentEntity
 import com.jonesl7l.carinfg.core.database.EntityTestHelper.now
+import com.jonesl7l.carinfg.core.database.EntityTestHelper.photoEntity
 import com.jonesl7l.carinfg.core.database.EntityTestHelper.referenceEntities
 import com.jonesl7l.carinfg.core.database.EntityTestHelper.siteEntity
 import com.jonesl7l.carinfg.core.database.EntityTestHelper.technicianEntity
 import com.jonesl7l.carinfg.core.database.entity.incident.IncidentEntity
 import com.jonesl7l.carinfg.core.database.entity.incident.IncidentWithPhotos
+import com.jonesl7l.carinfg.core.database.entity.photo.PhotoEntity
 import com.jonesl7l.carinfg.core.domain.model.incident.Incident
+import com.jonesl7l.carinfg.core.domain.model.photo.PhotoUploadState
 import com.jonesl7l.carinfg.core.domain.model.sync.ConflictReason
 import com.jonesl7l.carinfg.core.domain.model.sync.SyncState
 import com.jonesl7l.carinfg.core.domain.model.user.User
@@ -176,6 +179,80 @@ class IncidentRepositoryImplTest {
         )
 
         assertThat(result).isEqualTo(SaveResult.NotAllowed)
+    }
+    // endregion
+
+    // region photos
+    @Test
+    fun aDraftSavesItsPhotosInListOrder() = runTest {
+        val photos = listOf(
+            newPhoto(id = "camera"),
+            newPhoto(id = "picker"),
+        )
+
+        repository.saveDraft(
+            incident = domain(
+                entity = draftIncidentEntity(),
+                photos = photos,
+            ),
+            now = now,
+        )
+
+        assertThat(storedPhotos().map { it.id }).containsExactly(
+            "camera",
+            "picker",
+        )
+        assertThat(storedPhotos().map { it.position }).containsExactly(
+            0,
+            1,
+        )
+    }
+
+    @Test
+    fun savingWithoutAPhotoRemovesItsRow() = runTest {
+        val first = newPhoto(id = "first")
+        val second = newPhoto(id = "second")
+        dao.upsertIncident(incident = draftIncidentEntity())
+        dao.upsertPhotos(
+            photos = listOf(
+                first,
+                second.copy(position = 1),
+            ),
+        )
+
+        repository.saveDraft(
+            incident = domain(
+                entity = draftIncidentEntity(),
+                photos = listOf(second),
+            ),
+            now = now,
+        )
+
+        assertThat(storedPhotos()).containsExactly(second)
+    }
+
+    @Test
+    fun editingKeepsUploadedPhotosAndAddsNewOnes() = runTest {
+        val uploaded = photoEntity()
+        val added = newPhoto(id = "added")
+        dao.upsertIncident(incident = incidentEntity(reporterId = reporter.id))
+        dao.upsertPhotos(photos = listOf(uploaded))
+
+        repository.saveEdit(
+            incident = domain(
+                entity = incidentEntity(reporterId = reporter.id),
+                photos = listOf(
+                    added,
+                    uploaded,
+                ),
+            ),
+            now = now,
+        )
+
+        assertThat(storedPhotos()).containsExactly(
+            added,
+            uploaded.copy(position = 1),
+        )
     }
     // endregion
 
@@ -369,9 +446,21 @@ class IncidentRepositoryImplTest {
 
     private suspend fun stored(): IncidentEntity? = dao.getIncident(id = INCIDENT_ID)?.incident
 
-    private fun domain(entity: IncidentEntity): Incident = IncidentWithPhotos(
+    private suspend fun storedPhotos(): List<PhotoEntity> = dao.getIncident(id = INCIDENT_ID)?.photos.orEmpty().sortedBy { it.position }
+
+    private fun newPhoto(id: String) = photoEntity(
+        id = id,
+        localPath = "incidents/$INCIDENT_ID/photos/$id.jpg",
+        remoteUrl = null,
+        uploadState = PhotoUploadState.PENDING,
+    )
+
+    private fun domain(
+        entity: IncidentEntity,
+        photos: List<PhotoEntity> = emptyList(),
+    ): Incident = IncidentWithPhotos(
         incident = entity,
-        photos = emptyList(),
+        photos = photos,
     ).toDomain()
 
     private companion object {

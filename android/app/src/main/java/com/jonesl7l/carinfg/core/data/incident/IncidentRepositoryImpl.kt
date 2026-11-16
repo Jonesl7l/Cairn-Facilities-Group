@@ -84,6 +84,7 @@ class IncidentRepositoryImpl @Inject constructor(
             )
                 ?: return@withWriteTransaction SaveResult.NotAllowed
         incidentDao.upsertIncident(incident = draft)
+        replacePhotos(incident = incident)
         SaveResult.Saved
     }
 
@@ -107,6 +108,7 @@ class IncidentRepositoryImpl @Inject constructor(
                     now = now,
                 ) ?: return@withWriteTransaction SaveResult.NotAllowed
             incidentDao.upsertIncident(incident = submitted)
+            replacePhotos(incident = incident)
             SaveResult.Saved
         }
         if (result == SaveResult.Saved) syncScheduler.requestSync()
@@ -142,6 +144,7 @@ class IncidentRepositoryImpl @Inject constructor(
                 )
                     ?: return@withWriteTransaction SaveResult.NotAllowed
             incidentDao.upsertIncident(incident = edited)
+            replacePhotos(incident = incident)
             SaveResult.Saved
         }
         if (result == SaveResult.Saved) syncScheduler.requestSync()
@@ -314,6 +317,11 @@ class IncidentRepositoryImpl @Inject constructor(
             assetCode = asset?.code,
             reporterName = technicians[incident.reporterId],
         )
+    }
+
+    private suspend fun replacePhotos(incident: Incident) {
+        incidentDao.deletePhotos(incidentId = incident.id)
+        incidentDao.upsertPhotos(photos = incident.photos.mapIndexed { index, photo -> photo.copy(position = index).toEntity() })
     }
 
     private suspend fun currentUserId(): String? = sessionStore.session.first()?.id
