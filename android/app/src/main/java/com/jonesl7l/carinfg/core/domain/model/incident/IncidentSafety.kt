@@ -1,7 +1,7 @@
 package com.jonesl7l.carinfg.core.domain.model.incident
 
 data class IncidentSafety(
-    val injuryOccurred: Boolean?,
-    val hazardStillPresent: Boolean?,
-    val immediateActions: Set<ImmediateAction>,
+    val injuryOccurred: Boolean? = null,
+    val hazardStillPresent: Boolean? = null,
+    val immediateActions: Set<ImmediateAction> = emptySet(),
 )

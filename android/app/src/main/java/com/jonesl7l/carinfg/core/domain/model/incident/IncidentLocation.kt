@@ -1,13 +1,13 @@
 package com.jonesl7l.carinfg.core.domain.model.incident
 
 data class IncidentLocation(
-    val siteId: String?,
-    val buildingId: String?,
-    val floorId: String?,
-    val roomId: String?,
+    val siteId: String? = null,
+    val buildingId: String? = null,
+    val floorId: String? = null,
+    val roomId: String? = null,
     /** free text when the building isnt listed */
-    val unlistedLocation: String?,
-    val exactSpot: String?,
-    val assetId: String?,
-    val equipmentOutOfService: Boolean,
+    val unlistedLocation: String? = null,
+    val exactSpot: String? = null,
+    val assetId: String? = null,
+    val equipmentOutOfService: Boolean = false,
 )

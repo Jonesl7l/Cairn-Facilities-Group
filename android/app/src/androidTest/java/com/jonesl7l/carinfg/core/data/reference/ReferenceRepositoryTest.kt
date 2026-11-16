@@ -37,7 +37,7 @@ class ReferenceRepositoryTest {
     }
 
     @Test
-    fun childListsAreFilteredByParentSortedAndMappedToTheDomain() = runTest {
+    fun listsAreSortedAndMappedToTheDomain() = runTest {
         val zebra = buildingEntity(
             id = "building-2",
             name = "Zebra House",
@@ -46,14 +46,9 @@ class ReferenceRepositoryTest {
             id = "building-3",
             name = "Alpha House",
         )
-        val elsewhere = buildingEntity(
-            id = "building-4",
-            siteId = "site-2",
-            name = "Elsewhere",
-        )
-        dao.replaceAll(entities = referenceEntities(buildings = listOf(zebra, alpha, elsewhere)))
+        dao.replaceAll(entities = referenceEntities(buildings = listOf(zebra, alpha)))
 
-        val buildings = repository(scope = backgroundScope).observeBuildings(siteId = "site-1").first()
+        val buildings = repository(scope = backgroundScope).observeBuildings().first()
 
         assertThat(buildings).containsExactly(
             Building(

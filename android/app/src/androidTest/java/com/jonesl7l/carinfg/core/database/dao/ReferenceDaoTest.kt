@@ -58,8 +58,7 @@ class ReferenceDaoTest {
         )
 
         assertThat(dao.observeSites().first()).containsExactly(newSite)
-        assertThat(dao.observeBuildings(siteId = "site-1").first()).isEqualTo(emptyList())
-        assertThat(dao.observeBuildings(siteId = "site-2").first()).containsExactly(newBuilding)
+        assertThat(dao.observeBuildings().first()).containsExactly(newBuilding)
     }
 
     @Test
@@ -76,7 +75,7 @@ class ReferenceDaoTest {
     }
 
     @Test
-    fun childListsAreFilteredByParentAndSortedByName() = runTest {
+    fun listsAreSortedByName() = runTest {
         val zebra = buildingEntity(
             id = "building-2",
             name = "Zebra House",
@@ -85,14 +84,9 @@ class ReferenceDaoTest {
             id = "building-3",
             name = "Alpha House",
         )
-        val elsewhere = buildingEntity(
-            id = "building-4",
-            siteId = "site-2",
-            name = "Elsewhere",
-        )
 
-        dao.replaceAll(entities = referenceEntities(buildings = listOf(zebra, alpha, elsewhere)))
+        dao.replaceAll(entities = referenceEntities(buildings = listOf(zebra, alpha)))
 
-        assertThat(dao.observeBuildings(siteId = "site-1").first()).containsExactly(alpha, zebra)
+        assertThat(dao.observeBuildings().first()).containsExactly(alpha, zebra)
     }
 }

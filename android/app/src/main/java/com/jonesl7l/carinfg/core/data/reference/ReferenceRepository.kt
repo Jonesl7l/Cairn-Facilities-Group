@@ -32,19 +32,19 @@ class ReferenceRepository @Inject constructor(
         .map { sites -> sites.map { it.toDomain() } }
         .distinctUntilChanged()
 
-    fun observeBuildings(siteId: String): Flow<List<Building>> = referenceDao.observeBuildings(siteId = siteId)
+    fun observeBuildings(): Flow<List<Building>> = referenceDao.observeBuildings()
         .map { buildings -> buildings.map { it.toDomain() } }
         .distinctUntilChanged()
 
-    fun observeFloors(buildingId: String): Flow<List<Floor>> = referenceDao.observeFloors(buildingId = buildingId)
+    fun observeFloors(): Flow<List<Floor>> = referenceDao.observeFloors()
         .map { floors -> floors.map { it.toDomain() } }
         .distinctUntilChanged()
 
-    fun observeRooms(floorId: String): Flow<List<Room>> = referenceDao.observeRooms(floorId = floorId)
+    fun observeRooms(): Flow<List<Room>> = referenceDao.observeRooms()
         .map { rooms -> rooms.map { it.toDomain() } }
         .distinctUntilChanged()
 
-    fun observeAssets(roomId: String): Flow<List<Asset>> = referenceDao.observeAssets(roomId = roomId)
+    fun observeAssets(): Flow<List<Asset>> = referenceDao.observeAssets()
         .map { assets -> assets.map { it.toDomain() } }
         .distinctUntilChanged()
 

@@ -212,10 +212,10 @@ class IncidentRepositoryImpl @Inject constructor(
 
     private fun observeReferenceLookup(): Flow<ReferenceLookup> = combine(
         referenceDao.observeSites(),
-        referenceDao.observeAllBuildings(),
-        referenceDao.observeAllFloors(),
-        referenceDao.observeAllRooms(),
-        referenceDao.observeAllAssets(),
+        referenceDao.observeBuildings(),
+        referenceDao.observeFloors(),
+        referenceDao.observeRooms(),
+        referenceDao.observeAssets(),
     ) { sites, buildings, floors, rooms, assets ->
         ReferenceLookup(
             sites = sites.associate { it.id to it.name },
