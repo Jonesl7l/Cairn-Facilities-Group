@@ -2,13 +2,17 @@ package com.jonesl7l.carinfg.core.data.incident
 
 import assertk.assertThat
 import assertk.assertions.isEqualTo
+import assertk.assertions.isFalse
 import assertk.assertions.isNull
+import assertk.assertions.isTrue
 import com.jonesl7l.carinfg.core.database.EntityTestHelper.draftIncidentEntity
 import com.jonesl7l.carinfg.core.database.EntityTestHelper.incidentEntity
 import com.jonesl7l.carinfg.core.database.EntityTestHelper.now
+import com.jonesl7l.carinfg.core.domain.model.sync.ConflictReason
 import com.jonesl7l.carinfg.core.domain.model.sync.SyncState
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.seconds
+import kotlin.time.Instant
 import org.junit.Test
 
 class IncidentTransitionHelperTest {
@@ -97,6 +101,81 @@ class IncidentTransitionHelperTest {
         listOf(SyncState.DRAFT, SyncState.PENDING_DELETE, SyncState.NEEDS_ATTENTION).forEach { state ->
             assertThat(IncidentTransitionHelper.edit(entity = incidentEntity(syncState = state))).isNull()
         }
+    }
+
+    @Test
+    fun `fixing a validation problem sends the incident again`() {
+        val updated = IncidentTransitionHelper.edit(entity = conflict(reason = ConflictReason.VALIDATION))
+        val created = IncidentTransitionHelper.edit(
+            entity = conflict(
+                reason = ConflictReason.VALIDATION,
+                serverVersion = null,
+            ),
+        )
+
+        assertThat(updated?.syncState).isEqualTo(SyncState.PENDING_UPDATE)
+        assertThat(updated?.conflictReason).isNull()
+        assertThat(created?.syncState).isEqualTo(SyncState.PENDING_CREATE)
+    }
+
+    @Test
+    fun `other conflicts cannot be edited`() {
+        assertThat(IncidentTransitionHelper.edit(entity = conflict(reason = ConflictReason.STATUS_LOCKED))).isNull()
+    }
+    // endregion
+
+    // region resolve
+    @Test
+    fun `submitting as new copies the report under a new id with no server fields`() {
+        val copy = IncidentTransitionHelper.submitAsNew(
+            entity = conflict(reason = ConflictReason.DELETED_REMOTELY),
+            newId = "incident-2",
+            now = now,
+        )
+
+        assertThat(copy?.id).isEqualTo("incident-2")
+        assertThat(copy?.title).isEqualTo(incidentEntity().title)
+        assertThat(copy?.referenceNumber).isNull()
+        assertThat(copy?.serverVersion).isNull()
+        assertThat(copy?.status).isEqualTo("OPEN")
+        assertThat(copy?.syncState).isEqualTo(SyncState.PENDING_CREATE)
+        assertThat(copy?.conflictReason).isNull()
+    }
+
+    @Test
+    fun `only an incident deleted remotely can be discarded or submitted as new`() {
+        val locked = conflict(reason = ConflictReason.STATUS_LOCKED)
+
+        assertThat(IncidentTransitionHelper.canDiscard(entity = locked)).isFalse()
+        assertThat(
+            IncidentTransitionHelper.submitAsNew(
+                entity = locked,
+                newId = "incident-2",
+                now = now,
+            ),
+        ).isNull()
+    }
+
+    @Test
+    fun `keeping a locked delete restores its previous state`() {
+        val kept = IncidentTransitionHelper.keepIncident(
+            entity = conflict(
+                reason = ConflictReason.STATUS_LOCKED,
+                deletedAt = now,
+            ),
+        )
+
+        assertThat(kept?.syncState).isEqualTo(SyncState.SYNCED)
+        assertThat(kept?.deletedAt).isNull()
+        assertThat(kept?.conflictReason).isNull()
+    }
+
+    @Test
+    fun `a locked edit can discard its changes but not be kept`() {
+        val lockedEdit = conflict(reason = ConflictReason.STATUS_LOCKED)
+
+        assertThat(IncidentTransitionHelper.canDiscardMyChanges(entity = lockedEdit)).isTrue()
+        assertThat(IncidentTransitionHelper.keepIncident(entity = lockedEdit)).isNull()
     }
     // endregion
 
@@ -209,4 +288,17 @@ class IncidentTransitionHelperTest {
         ).isNull()
     }
     // endregion
+
+    private fun conflict(
+        reason: ConflictReason,
+        serverVersion: Int? = 1,
+        deletedAt: Instant? = null,
+    ) = incidentEntity(
+        serverVersion = serverVersion,
+        syncState = SyncState.NEEDS_ATTENTION,
+        conflictReason = reason,
+        previousSyncState = deletedAt?.let { SyncState.SYNCED },
+        deletedAt = deletedAt,
+        deletedBy = deletedAt?.let { "u1" },
+    )
 }

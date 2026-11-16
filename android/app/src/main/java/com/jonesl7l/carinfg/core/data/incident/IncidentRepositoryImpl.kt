@@ -13,10 +13,16 @@ import com.jonesl7l.carinfg.core.domain.model.incident.Incident
 import com.jonesl7l.carinfg.core.domain.model.incident.IncidentDetail
 import com.jonesl7l.carinfg.core.domain.model.incident.IncidentListItem
 import com.jonesl7l.carinfg.core.domain.model.incident.IncidentNames
+import com.jonesl7l.carinfg.core.domain.model.sync.ConflictReason
 import com.jonesl7l.carinfg.core.domain.model.sync.SyncState
 import com.jonesl7l.carinfg.core.domain.policy.IncidentPolicyHelper
 import com.jonesl7l.carinfg.core.domain.validation.IncidentValidator
+import com.jonesl7l.carinfg.core.network.datasource.IncidentRemoteDataSource
+import com.jonesl7l.carinfg.core.network.result.ApiError
+import com.jonesl7l.carinfg.core.network.result.ApiResult
 import com.jonesl7l.carinfg.core.sync.SyncScheduler
+import com.jonesl7l.carinfg.core.sync.toPhotoEntitiesKeepingPaths
+import java.util.UUID
 import javax.inject.Inject
 import kotlin.time.Duration
 import kotlin.time.Instant
@@ -32,6 +38,7 @@ class IncidentRepositoryImpl @Inject constructor(
     private val referenceDao: ReferenceDao,
     private val sessionStore: SessionStore,
     private val syncScheduler: SyncScheduler,
+    private val incidentRemoteDataSource: IncidentRemoteDataSource,
 ) : IncidentRepository {
     override fun observeIncident(id: String): Flow<Incident?> = incidentDao.observeIncident(id = id)
         .map { it?.toDomain() }
@@ -209,6 +216,73 @@ class IncidentRepositoryImpl @Inject constructor(
             }
         if (sent) syncScheduler.requestSync()
     }
+
+    // region resolve
+    override suspend fun discard(id: String): ResolveResult = database.withWriteTransaction {
+        val stored = incidentDao.getIncident(id = id)?.incident ?: return@withWriteTransaction ResolveResult.NOT_ALLOWED
+        if (!IncidentTransitionHelper.canDiscard(entity = stored)) return@withWriteTransaction ResolveResult.NOT_ALLOWED
+        incidentDao.deleteIncident(id = id)
+        ResolveResult.DONE
+    }
+
+    override suspend fun submitAsNew(
+        id: String,
+        now: Instant,
+    ): ResolveResult {
+        val result =
+            database.withWriteTransaction {
+                val stored = incidentDao.getIncident(id = id)?.incident ?: return@withWriteTransaction ResolveResult.NOT_ALLOWED
+                val copy =
+                    IncidentTransitionHelper.submitAsNew(
+                        entity = stored,
+                        newId = UUID.randomUUID().toString(),
+                        now = now,
+                    ) ?: return@withWriteTransaction ResolveResult.NOT_ALLOWED
+                incidentDao.deleteIncident(id = id)
+                incidentDao.upsertIncident(incident = copy)
+                ResolveResult.DONE
+            }
+        if (result == ResolveResult.DONE) syncScheduler.requestSync()
+        return result
+    }
+
+    override suspend fun keepIncident(id: String): ResolveResult {
+        val result =
+            database.withWriteTransaction {
+                val stored = incidentDao.getIncident(id = id)?.incident ?: return@withWriteTransaction ResolveResult.NOT_ALLOWED
+                val kept = IncidentTransitionHelper.keepIncident(entity = stored) ?: return@withWriteTransaction ResolveResult.NOT_ALLOWED
+                incidentDao.upsertIncident(incident = kept)
+                ResolveResult.DONE
+            }
+        if (result == ResolveResult.DONE) syncScheduler.requestSync()
+        return result
+    }
+
+    override suspend fun discardMyChanges(id: String): ResolveResult {
+        val stored = incidentDao.getIncident(id = id)?.incident ?: return ResolveResult.NOT_ALLOWED
+        if (!IncidentTransitionHelper.canDiscardMyChanges(entity = stored)) return ResolveResult.NOT_ALLOWED
+        val remote =
+            when (val result = incidentRemoteDataSource.getIncident(id = id)) {
+                is ApiResult.Success -> result.value.takeIf { it.deletedAt == null }
+
+                is ApiResult.Failure -> when (result.error) {
+                    ApiError.NotFound, is ApiError.IncidentDeleted -> null
+                    else -> return ResolveResult.FAILED
+                }
+            }
+        database.withWriteTransaction {
+            val local = incidentDao.getIncident(id = id) ?: return@withWriteTransaction
+            if (remote == null) {
+                incidentDao.upsertIncident(incident = local.incident.copy(conflictReason = ConflictReason.DELETED_REMOTELY))
+                return@withWriteTransaction
+            }
+            incidentDao.upsertIncident(incident = remote.toEntity())
+            incidentDao.deletePhotos(incidentId = id)
+            incidentDao.upsertPhotos(photos = remote.toPhotoEntitiesKeepingPaths(localPhotos = local.photos))
+        }
+        return ResolveResult.DONE
+    }
+    // endregion
 
     private fun observeReferenceLookup(): Flow<ReferenceLookup> = combine(
         referenceDao.observeSites(),

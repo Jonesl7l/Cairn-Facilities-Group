@@ -28,6 +28,7 @@ import com.jonesl7l.carinfg.core.domain.model.incident.Severity
 import com.jonesl7l.carinfg.core.domain.model.sync.SyncState
 import com.jonesl7l.carinfg.core.domain.model.user.User
 import com.jonesl7l.carinfg.core.domain.model.user.UserRole
+import com.jonesl7l.carinfg.core.network.datasource.FakeIncidentRemoteDataSource
 import com.jonesl7l.carinfg.core.network.datasource.FakeReferenceRemoteDataSource
 import com.jonesl7l.carinfg.core.network.result.ApiError
 import com.jonesl7l.carinfg.core.network.result.ApiResult
@@ -57,6 +58,7 @@ class IncidentFormViewModelTest {
             referenceDao = database.referenceDao(),
             sessionStore = FakeSessionStore(initial = technician),
             syncScheduler = FakeSyncScheduler(),
+            incidentRemoteDataSource = FakeIncidentRemoteDataSource(),
         )
     private val referenceRepository =
         ReferenceRepository(

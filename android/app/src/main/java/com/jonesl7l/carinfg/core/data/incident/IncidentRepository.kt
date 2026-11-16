@@ -44,4 +44,15 @@ interface IncidentRepository {
         id: String,
         now: Instant,
     )
+
+    suspend fun discard(id: String): ResolveResult
+
+    suspend fun submitAsNew(
+        id: String,
+        now: Instant,
+    ): ResolveResult
+
+    suspend fun keepIncident(id: String): ResolveResult
+
+    suspend fun discardMyChanges(id: String): ResolveResult
 }

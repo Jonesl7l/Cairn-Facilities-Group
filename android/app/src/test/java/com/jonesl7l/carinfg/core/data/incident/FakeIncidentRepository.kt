@@ -15,6 +15,11 @@ class FakeIncidentRepository : IncidentRepository {
     val deletedIds = mutableListOf<String>()
     val undoneIds = mutableListOf<String>()
     val sentNowIds = mutableListOf<String>()
+    val discardedIds = mutableListOf<String>()
+    val submittedAsNewIds = mutableListOf<String>()
+    val keptIds = mutableListOf<String>()
+    val discardedChangesIds = mutableListOf<String>()
+    var resolveResult = ResolveResult.DONE
 
     override fun observeIncident(id: String): Flow<Incident?> = unused()
 
@@ -59,6 +64,29 @@ class FakeIncidentRepository : IncidentRepository {
         now: Instant,
     ) {
         sentNowIds += id
+    }
+
+    override suspend fun discard(id: String): ResolveResult {
+        discardedIds += id
+        return resolveResult
+    }
+
+    override suspend fun submitAsNew(
+        id: String,
+        now: Instant,
+    ): ResolveResult {
+        submittedAsNewIds += id
+        return resolveResult
+    }
+
+    override suspend fun keepIncident(id: String): ResolveResult {
+        keptIds += id
+        return resolveResult
+    }
+
+    override suspend fun discardMyChanges(id: String): ResolveResult {
+        discardedChangesIds += id
+        return resolveResult
     }
 
     private fun unused(): Nothing = throw UnsupportedOperationException("not used by these tests")

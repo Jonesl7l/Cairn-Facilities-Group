@@ -6,6 +6,7 @@ import assertk.assertions.containsExactly
 import assertk.assertions.isEmpty
 import assertk.assertions.isEqualTo
 import assertk.assertions.isInstanceOf
+import assertk.assertions.isNotEqualTo
 import assertk.assertions.isNull
 import assertk.assertions.isTrue
 import com.jonesl7l.carinfg.core.data.mapper.toDomain
@@ -24,11 +25,17 @@ import com.jonesl7l.carinfg.core.database.EntityTestHelper.technicianEntity
 import com.jonesl7l.carinfg.core.database.entity.incident.IncidentEntity
 import com.jonesl7l.carinfg.core.database.entity.incident.IncidentWithPhotos
 import com.jonesl7l.carinfg.core.domain.model.incident.Incident
+import com.jonesl7l.carinfg.core.domain.model.sync.ConflictReason
 import com.jonesl7l.carinfg.core.domain.model.sync.SyncState
 import com.jonesl7l.carinfg.core.domain.model.user.User
 import com.jonesl7l.carinfg.core.domain.model.user.UserRole
+import com.jonesl7l.carinfg.core.network.datasource.FakeIncidentRemoteDataSource
+import com.jonesl7l.carinfg.core.network.result.ApiError
+import com.jonesl7l.carinfg.core.network.result.ApiResult
 import com.jonesl7l.carinfg.core.sync.FakeSyncScheduler
+import java.io.IOException
 import kotlin.time.Duration.Companion.seconds
+import kotlin.time.Instant
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.After
@@ -41,6 +48,7 @@ class IncidentRepositoryImplTest {
     private val dao = database.incidentDao()
     private val sessionStore = FakeSessionStore(initial = reporter)
     private val syncScheduler = FakeSyncScheduler()
+    private val remoteDataSource = FakeIncidentRemoteDataSource()
     private val repository =
         IncidentRepositoryImpl(
             database = database,
@@ -48,6 +56,7 @@ class IncidentRepositoryImplTest {
             referenceDao = database.referenceDao(),
             sessionStore = sessionStore,
             syncScheduler = syncScheduler,
+            incidentRemoteDataSource = remoteDataSource,
         )
     private val undoWindow = 5.seconds
 
@@ -277,6 +286,86 @@ class IncidentRepositoryImplTest {
         assertThat(names?.roomName).isNull()
     }
     // endregion
+
+    // region resolve
+    @Test
+    fun discardRemovesAnIncidentDeletedRemotely() = runTest {
+        dao.upsertIncident(incident = conflict(reason = ConflictReason.DELETED_REMOTELY))
+
+        assertThat(repository.discard(id = INCIDENT_ID)).isEqualTo(ResolveResult.DONE)
+        assertThat(stored()).isNull()
+    }
+
+    @Test
+    fun resolutionsOnlyApplyToTheirOwnReason() = runTest {
+        dao.upsertIncident(incident = conflict(reason = ConflictReason.VALIDATION))
+
+        assertThat(repository.discard(id = INCIDENT_ID)).isEqualTo(ResolveResult.NOT_ALLOWED)
+        assertThat(repository.keepIncident(id = INCIDENT_ID)).isEqualTo(ResolveResult.NOT_ALLOWED)
+        assertThat(repository.discardMyChanges(id = INCIDENT_ID)).isEqualTo(ResolveResult.NOT_ALLOWED)
+    }
+
+    @Test
+    fun submitAsNewQueuesACopyUnderANewId() = runTest {
+        dao.upsertIncident(incident = conflict(reason = ConflictReason.DELETED_REMOTELY))
+
+        val result = repository.submitAsNew(
+            id = INCIDENT_ID,
+            now = now,
+        )
+
+        val copy = dao.observeIncidents().first().single()
+        assertThat(result).isEqualTo(ResolveResult.DONE)
+        assertThat(copy.id).isNotEqualTo(INCIDENT_ID)
+        assertThat(copy.title).isEqualTo(incidentEntity().title)
+        assertThat(copy.syncState).isEqualTo(SyncState.PENDING_CREATE)
+        assertThat(syncScheduler.syncRequests).isEqualTo(1)
+    }
+
+    @Test
+    fun keepIncidentCancelsALockedDelete() = runTest {
+        dao.upsertIncident(
+            incident = conflict(
+                reason = ConflictReason.STATUS_LOCKED,
+                deletedAt = now,
+            ),
+        )
+
+        assertThat(repository.keepIncident(id = INCIDENT_ID)).isEqualTo(ResolveResult.DONE)
+        assertThat(stored()?.syncState).isEqualTo(SyncState.SYNCED)
+        assertThat(stored()?.deletedAt).isNull()
+    }
+
+    @Test
+    fun discardMyChangesNeedsTheServer() = runTest {
+        dao.upsertIncident(incident = conflict(reason = ConflictReason.STATUS_LOCKED))
+        remoteDataSource.incidentResults += ApiResult.Failure(error = ApiError.Network(cause = IOException()))
+
+        assertThat(repository.discardMyChanges(id = INCIDENT_ID)).isEqualTo(ResolveResult.FAILED)
+        assertThat(stored()?.conflictReason).isEqualTo(ConflictReason.STATUS_LOCKED)
+    }
+
+    @Test
+    fun discardMyChangesOnAnIncidentGoneFromTheServerMarksItDeletedRemotely() = runTest {
+        dao.upsertIncident(incident = conflict(reason = ConflictReason.STATUS_LOCKED))
+        remoteDataSource.incidentResults += ApiResult.Failure(error = ApiError.NotFound)
+
+        assertThat(repository.discardMyChanges(id = INCIDENT_ID)).isEqualTo(ResolveResult.DONE)
+        assertThat(stored()?.conflictReason).isEqualTo(ConflictReason.DELETED_REMOTELY)
+    }
+    // endregion
+
+    private fun conflict(
+        reason: ConflictReason,
+        deletedAt: Instant? = null,
+    ) = incidentEntity(
+        reporterId = reporter.id,
+        syncState = SyncState.NEEDS_ATTENTION,
+        conflictReason = reason,
+        previousSyncState = deletedAt?.let { SyncState.SYNCED },
+        deletedAt = deletedAt,
+        deletedBy = deletedAt?.let { reporter.id },
+    )
 
     private suspend fun stored(): IncidentEntity? = dao.getIncident(id = INCIDENT_ID)?.incident
 
