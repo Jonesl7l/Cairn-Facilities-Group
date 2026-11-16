@@ -75,6 +75,7 @@ fun IncidentWithPhotos.toWriteRequest(): IncidentWriteRequest? {
     val siteId = incident.siteId ?: return null
     val injuryOccurred = incident.injuryOccurred ?: return null
     val hazardStillPresent = incident.hazardStillPresent ?: return null
+    val persons = incident.persons.map { it.toDto() ?: return null }
     return IncidentWriteRequest(
         id = incident.id,
         reporterId = incident.reporterId,
@@ -99,7 +100,7 @@ fun IncidentWithPhotos.toWriteRequest(): IncidentWriteRequest? {
         hazardStillPresent = hazardStillPresent,
         immediateActions = incident.immediateActions,
         immediateActionsOther = incident.immediateActionsOther,
-        persons = incident.persons.map { it.toDto() },
+        persons = persons,
         photos = photos.sortedBy { it.position }.mapNotNull { it.toUploadedDto() },
         additionalNotes = incident.additionalNotes,
     )
@@ -208,8 +209,8 @@ private fun GpsLocationColumns.toDto() = GpsLocationDto(
 private fun PersonColumn.toDomain() = Person(
     id = id,
     name = name,
-    type = WireValueMapper.toPersonType(raw = personType),
-    role = WireValueMapper.toPersonRole(raw = role),
+    type = personType?.let(WireValueMapper::toPersonType),
+    role = role?.let(WireValueMapper::toPersonRole),
     department = department,
     position = position,
     company = company,
@@ -217,33 +218,40 @@ private fun PersonColumn.toDomain() = Person(
     injury = injury?.toDomain(),
 )
 
-private fun PersonColumn.toDto() = PersonDto(
-    id = id,
-    name = name,
-    personType = personType,
-    role = role,
-    department = department,
-    position = position,
-    company = company,
-    contactNumber = contactNumber,
-    injury = injury?.toDto(),
-)
+private fun PersonColumn.toDto(): PersonDto? {
+    val personType = personType ?: return null
+    val role = role ?: return null
+    return PersonDto(
+        id = id,
+        name = name,
+        personType = personType,
+        role = role,
+        department = department,
+        position = position,
+        company = company,
+        contactNumber = contactNumber,
+        injury = injury?.let { it.toDto() ?: return null },
+    )
+}
 // endregion
 
 // region InjuryColumn
 private fun InjuryColumn.toDomain() = InjuryDetails(
     nature = nature,
     bodyPart = bodyPart,
-    treatment = WireValueMapper.toTreatment(raw = treatment),
+    treatment = treatment?.let(WireValueMapper::toTreatment),
     notes = notes,
 )
 
-private fun InjuryColumn.toDto() = InjuryDto(
-    nature = nature,
-    bodyPart = bodyPart,
-    treatment = treatment,
-    notes = notes,
-)
+private fun InjuryColumn.toDto(): InjuryDto? {
+    val treatment = treatment ?: return null
+    return InjuryDto(
+        nature = nature,
+        bodyPart = bodyPart,
+        treatment = treatment,
+        notes = notes,
+    )
+}
 // endregion
 
 // region PhotoEntity

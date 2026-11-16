@@ -6,6 +6,6 @@ import kotlinx.serialization.Serializable
 data class InjuryColumn(
     val nature: String,
     val bodyPart: String,
-    val treatment: String,
+    val treatment: String?,
     val notes: String? = null,
 )

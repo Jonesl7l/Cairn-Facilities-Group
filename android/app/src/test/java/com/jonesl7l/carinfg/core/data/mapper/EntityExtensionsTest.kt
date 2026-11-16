@@ -4,7 +4,9 @@ import assertk.assertThat
 import assertk.assertions.isEqualTo
 import assertk.assertions.isNull
 import com.jonesl7l.carinfg.core.database.EntityTestHelper.incidentEntity
+import com.jonesl7l.carinfg.core.database.EntityTestHelper.injuryColumn
 import com.jonesl7l.carinfg.core.database.EntityTestHelper.now
+import com.jonesl7l.carinfg.core.database.EntityTestHelper.personColumn
 import com.jonesl7l.carinfg.core.database.EntityTestHelper.photoEntity
 import com.jonesl7l.carinfg.core.database.entity.incident.IncidentEntity
 import com.jonesl7l.carinfg.core.database.entity.incident.IncidentWithPhotos
@@ -173,6 +175,9 @@ class EntityExtensionsTest {
                 incidentEntity(siteId = null),
                 incidentEntity(injuryOccurred = null),
                 incidentEntity(hazardStillPresent = null),
+                incidentEntity(persons = listOf(personColumn(personType = null))),
+                incidentEntity(persons = listOf(personColumn(role = null))),
+                incidentEntity(persons = listOf(personColumn(injury = injuryColumn(treatment = null)))),
             )
 
         incomplete.forEach { entity ->

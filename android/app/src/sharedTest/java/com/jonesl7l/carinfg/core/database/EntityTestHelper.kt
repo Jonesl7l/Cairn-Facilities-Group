@@ -249,8 +249,8 @@ object EntityTestHelper {
     fun personColumn(
         id: String = "person-1",
         name: String = "Alex Smith",
-        personType: String = "EMPLOYEE",
-        role: String = "INJURED",
+        personType: String? = "EMPLOYEE",
+        role: String? = "INJURED",
         department: String? = "Facilities",
         position: String? = "Cleaner",
         company: String? = null,
@@ -271,7 +271,7 @@ object EntityTestHelper {
     fun injuryColumn(
         nature: String = "Sprain",
         bodyPart: String = "Left ankle",
-        treatment: String = "FIRST_AID",
+        treatment: String? = "FIRST_AID",
         notes: String? = null,
     ) = InjuryColumn(
         nature = nature,

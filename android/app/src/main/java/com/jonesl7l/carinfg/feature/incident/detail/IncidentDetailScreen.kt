@@ -355,7 +355,7 @@ private fun PeopleSection(incident: Incident) {
             LabelledValue(
                 label = null,
                 value = person.name,
-                detail = roleLabel(role = person.role),
+                detail = person.role?.let { roleLabel(role = it) } ?: stringResource(id = R.string.value_unknown),
             )
         }
     }

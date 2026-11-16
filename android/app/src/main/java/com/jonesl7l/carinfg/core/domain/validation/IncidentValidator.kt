@@ -246,19 +246,35 @@ object IncidentValidator {
                 reason = Required,
             )
         }
-        if (person.type is PersonType.Unknown) {
-            addPersonError(
+        when (person.type) {
+            null -> addPersonError(
+                index = index,
+                field = PersonField.TYPE,
+                reason = Required,
+            )
+
+            is PersonType.Unknown -> addPersonError(
                 index = index,
                 field = PersonField.TYPE,
                 reason = UnknownValue,
             )
+
+            else -> Unit
         }
-        if (person.role is PersonRole.Unknown) {
-            addPersonError(
+        when (person.role) {
+            null -> addPersonError(
+                index = index,
+                field = PersonField.ROLE,
+                reason = Required,
+            )
+
+            is PersonRole.Unknown -> addPersonError(
                 index = index,
                 field = PersonField.ROLE,
                 reason = UnknownValue,
             )
+
+            else -> Unit
         }
         if (person.role == PersonRole.Injured) {
             validateInjury(
@@ -304,12 +320,20 @@ object IncidentValidator {
                 reason = Required,
             )
         }
-        if (injury.treatment is Treatment.Unknown) {
-            addPersonError(
+        when (injury.treatment) {
+            null -> addPersonError(
+                index = index,
+                field = PersonField.INJURY_TREATMENT,
+                reason = Required,
+            )
+
+            is Treatment.Unknown -> addPersonError(
                 index = index,
                 field = PersonField.INJURY_TREATMENT,
                 reason = UnknownValue,
             )
+
+            else -> Unit
         }
     }
 

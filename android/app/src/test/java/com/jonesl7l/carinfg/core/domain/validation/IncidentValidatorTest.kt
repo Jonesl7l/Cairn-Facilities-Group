@@ -312,6 +312,34 @@ class IncidentValidatorTest {
     }
 
     @Test
+    fun `persons need a type, role and treatment chosen`() {
+        val unchosen = person(
+            type = null,
+            role = PersonRole.Injured,
+            injury = injuryDetails(treatment = null),
+        )
+        val noRole = person(role = null)
+
+        assertThat(incident(persons = listOf(unchosen, noRole)).errors()).containsExactlyInAnyOrder(
+            personError(
+                index = 0,
+                field = PersonField.TYPE,
+                reason = Required,
+            ),
+            personError(
+                index = 0,
+                field = PersonField.INJURY_TREATMENT,
+                reason = Required,
+            ),
+            personError(
+                index = 1,
+                field = PersonField.ROLE,
+                reason = Required,
+            ),
+        )
+    }
+
+    @Test
     fun `injured persons need injury details`() {
         val missing = person(
             role = PersonRole.Injured,

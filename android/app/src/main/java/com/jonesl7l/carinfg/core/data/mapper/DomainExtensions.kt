@@ -86,8 +86,8 @@ private fun GpsLocation.toColumns() = GpsLocationColumns(
 private fun Person.toColumn() = PersonColumn(
     id = id,
     name = name,
-    personType = WireValueMapper.toWire(type = type),
-    role = WireValueMapper.toWire(role = role),
+    personType = type?.let { WireValueMapper.toWire(type = it) },
+    role = role?.let { WireValueMapper.toWire(role = it) },
     department = department,
     position = position,
     company = company,
@@ -100,7 +100,7 @@ private fun Person.toColumn() = PersonColumn(
 private fun InjuryDetails.toColumn() = InjuryColumn(
     nature = nature,
     bodyPart = bodyPart,
-    treatment = WireValueMapper.toWire(treatment = treatment),
+    treatment = treatment?.let { WireValueMapper.toWire(treatment = it) },
     notes = notes,
 )
 // endregion

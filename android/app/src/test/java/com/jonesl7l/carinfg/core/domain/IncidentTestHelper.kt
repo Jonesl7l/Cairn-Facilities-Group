@@ -154,8 +154,8 @@ object IncidentTestHelper {
     fun person(
         id: String = "person-1",
         name: String = "Sam Taylor",
-        type: PersonType = PersonType.Employee,
-        role: PersonRole = PersonRole.Witness,
+        type: PersonType? = PersonType.Employee,
+        role: PersonRole? = PersonRole.Witness,
         department: String? = null,
         position: String? = null,
         company: String? = null,
@@ -176,7 +176,7 @@ object IncidentTestHelper {
     fun injuryDetails(
         nature: String = "Cut",
         bodyPart: String = "Hand",
-        treatment: Treatment = Treatment.FirstAid,
+        treatment: Treatment? = Treatment.FirstAid,
         notes: String? = null,
     ) = InjuryDetails(
         nature = nature,
