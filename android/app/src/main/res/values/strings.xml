@@ -166,6 +166,7 @@
     <string name="photo_cover_description">Photo %1$d of %2$d, cover photo</string>
     <string name="photo_cover">Cover</string>
     <string name="photo_page">%1$d of %2$d</string>
+    <string name="detail_placeholder">Select an incident to see its details</string>
     <string name="photo_make_cover">Make cover</string>
     <string name="photo_remove">Remove</string>
     <string name="label_injury_occurred">Was anyone injured?</string>

@@ -95,6 +95,7 @@ private val reportedFormatter = DateTimeFormatter.ofPattern("d MMM yyyy, HH:mm")
 @Composable
 fun IncidentDetailScreen(
     incidentId: String,
+    isBesideList: Boolean,
     onBack: () -> Unit,
     onEdit: () -> Unit,
     onDeleteFinish: (DeleteOutcome) -> Unit,
@@ -109,6 +110,7 @@ fun IncidentDetailScreen(
     LaunchedEffect(uiState.deleteOutcome) { uiState.deleteOutcome?.let { currentOnDeleteFinish(it) } }
     IncidentDetailContent(
         uiState = uiState,
+        isBesideList = isBesideList,
         onBack = onBack,
         onEdit = onEdit,
         onDelete = viewModel::delete,
@@ -121,6 +123,7 @@ fun IncidentDetailScreen(
 @Composable
 fun IncidentDetailContent(
     uiState: IncidentDetailUiState,
+    isBesideList: Boolean,
     onBack: () -> Unit,
     onEdit: () -> Unit,
     onDelete: () -> Unit,
@@ -143,11 +146,13 @@ fun IncidentDetailContent(
             TopAppBar(
                 title = { Text(text = stringResource(id = R.string.detail_title)) },
                 navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.ic_back),
-                            contentDescription = stringResource(id = R.string.back),
-                        )
+                    if (!isBesideList) {
+                        IconButton(onClick = onBack) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_back),
+                                contentDescription = stringResource(id = R.string.back),
+                            )
+                        }
                     }
                 },
                 actions = { if (uiState.canDelete) OverflowMenu(onDelete = onDelete) },

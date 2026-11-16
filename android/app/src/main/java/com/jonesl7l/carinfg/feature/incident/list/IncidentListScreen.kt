@@ -104,6 +104,7 @@ private const val INCIDENTS_HEADER_KEY = "header-incidents"
 @Composable
 fun IncidentListScreen(
     pendingUndoId: String?,
+    selectedIncidentId: String?,
     onUndoFinish: () -> Unit,
     onOpenIncident: (String) -> Unit,
     onReportIncident: () -> Unit,
@@ -120,6 +121,7 @@ fun IncidentListScreen(
     )
     IncidentListContent(
         uiState = uiState,
+        selectedIncidentId = selectedIncidentId,
         onScopeChange = viewModel::onScopeChange,
         onStatusFilterChange = viewModel::onStatusFilterChange,
         onSortChange = viewModel::onSortChange,
@@ -169,6 +171,7 @@ private fun UndoDeleteEffect(
 @Composable
 fun IncidentListContent(
     uiState: IncidentListUiState,
+    selectedIncidentId: String?,
     onScopeChange: (IncidentScope) -> Unit,
     onStatusFilterChange: (StatusFilter) -> Unit,
     onSortChange: (IncidentSort) -> Unit,
@@ -264,6 +267,7 @@ fun IncidentListContent(
 
                     else -> sections(
                         uiState = uiState,
+                        selectedIncidentId = selectedIncidentId,
                         now = now,
                         onOpenIncident = onOpenIncident,
                     )
@@ -276,6 +280,7 @@ fun IncidentListContent(
 
 private fun LazyListScope.sections(
     uiState: IncidentListUiState,
+    selectedIncidentId: String?,
     now: Instant,
     onOpenIncident: (String) -> Unit,
 ) {
@@ -290,6 +295,7 @@ private fun LazyListScope.sections(
         }
         rows(
             items = sections.needsAttention,
+            selectedIncidentId = selectedIncidentId,
             now = now,
             onOpenIncident = onOpenIncident,
         )
@@ -304,6 +310,7 @@ private fun LazyListScope.sections(
         }
         rows(
             items = sections.drafts,
+            selectedIncidentId = selectedIncidentId,
             now = now,
             onOpenIncident = onOpenIncident,
         )
@@ -318,6 +325,7 @@ private fun LazyListScope.sections(
         }
         rows(
             items = sections.incidents,
+            selectedIncidentId = selectedIncidentId,
             now = now,
             onOpenIncident = onOpenIncident,
         )
@@ -326,6 +334,7 @@ private fun LazyListScope.sections(
 
 private fun LazyListScope.rows(
     items: List<IncidentListItem>,
+    selectedIncidentId: String?,
     now: Instant,
     onOpenIncident: (String) -> Unit,
 ) {
@@ -336,6 +345,7 @@ private fun LazyListScope.rows(
         Column(modifier = Modifier.animateItem()) {
             IncidentRow(
                 item = item,
+                isSelected = item.id == selectedIncidentId,
                 now = now,
                 onClick = { onOpenIncident(item.id) },
             )

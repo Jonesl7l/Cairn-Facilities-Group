@@ -68,6 +68,7 @@ private val dateFormatter = DateTimeFormatter.ofPattern("d MMM")
 @Composable
 fun IncidentRow(
     item: IncidentListItem,
+    isSelected: Boolean,
     now: Instant,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
@@ -77,7 +78,7 @@ fun IncidentRow(
         modifier =
             modifier
                 .fillMaxWidth()
-                .background(color = MaterialTheme.colorScheme.surface)
+                .background(color = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface)
                 .clickable(onClick = onClick)
                 .padding(
                     horizontal = rowPadding,
@@ -93,7 +94,8 @@ fun IncidentRow(
             Text(
                 text = item.title,
                 fontSize = titleSize,
-                fontWeight = FontWeight.SemiBold,
+                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.SemiBold,
+                color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer else Color.Unspecified,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )

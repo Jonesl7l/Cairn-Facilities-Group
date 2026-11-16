@@ -8,6 +8,11 @@ import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
+import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
+import androidx.compose.material3.adaptive.navigation.BackNavigationBehavior
+import androidx.compose.material3.adaptive.navigation3.ListDetailSceneStrategy
+import androidx.compose.material3.adaptive.navigation3.LocalListDetailSceneScope
+import androidx.compose.material3.adaptive.navigation3.rememberListDetailSceneStrategy
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -34,6 +39,7 @@ import com.jonesl7l.carinfg.app.navigation.IncidentListRoute
 import com.jonesl7l.carinfg.app.navigation.LoginRoute
 import com.jonesl7l.carinfg.feature.auth.LoginScreen
 import com.jonesl7l.carinfg.feature.incident.detail.DeleteOutcome
+import com.jonesl7l.carinfg.feature.incident.detail.IncidentDetailPlaceholder
 import com.jonesl7l.carinfg.feature.incident.detail.IncidentDetailScreen
 import com.jonesl7l.carinfg.feature.incident.form.FormOutcome
 import com.jonesl7l.carinfg.feature.incident.form.IncidentFormScreen
@@ -58,6 +64,7 @@ fun AppNavigation(viewModel: AppViewModel) {
     }
 }
 
+@OptIn(ExperimentalMaterial3AdaptiveApi::class)
 @Composable
 private fun AppBackStack(
     startRoute: NavKey,
@@ -68,6 +75,7 @@ private fun AppBackStack(
     val scope = rememberCoroutineScope()
     val draftSavedMessage = stringResource(R.string.form_draft_saved)
     var pendingUndoId by rememberSaveable { mutableStateOf<String?>(null) }
+    val selectedIncidentId = (backStack.lastOrNull() as? IncidentDetailRoute)?.incidentId
     SessionExpiredEffect(
         isSessionExpired = isSessionExpired,
         backStack = backStack,
@@ -77,6 +85,7 @@ private fun AppBackStack(
         NavDisplay(
             backStack = backStack,
             onBack = { backStack.removeLastOrNull() },
+            sceneStrategies = listOf(rememberListDetailSceneStrategy(backNavigationBehavior = BackNavigationBehavior.PopLatest)),
             entryDecorators =
                 listOf(
                     rememberSaveableStateHolderNavEntryDecorator(),
@@ -85,19 +94,24 @@ private fun AppBackStack(
             entryProvider =
                 entryProvider {
                     entry<LoginRoute> { LoginScreen() }
-                    entry<IncidentListRoute> {
+                    entry<IncidentListRoute>(
+                        metadata = ListDetailSceneStrategy.listPane(detailPlaceholder = { IncidentDetailPlaceholder() }),
+                    ) {
                         IncidentListScreen(
                             pendingUndoId = pendingUndoId,
+                            selectedIncidentId = selectedIncidentId,
                             onUndoFinish = { pendingUndoId = null },
                             onOpenIncident = { incidentId ->
+                                if (backStack.lastOrNull() is IncidentDetailRoute) backStack.removeLastOrNull()
                                 backStack.add(IncidentDetailRoute(incidentId = incidentId))
                             },
                             onReportIncident = { backStack.add(IncidentFormRoute(incidentId = null)) },
                         )
                     }
-                    entry<IncidentDetailRoute> { route ->
+                    entry<IncidentDetailRoute>(metadata = ListDetailSceneStrategy.detailPane()) { route ->
                         IncidentDetailScreen(
                             incidentId = route.incidentId,
+                            isBesideList = LocalListDetailSceneScope.current != null,
                             onBack = { backStack.removeLastOrNull() },
                             onEdit = { backStack.add(IncidentFormRoute(incidentId = route.incidentId)) },
                             onDeleteFinish = { outcome ->
