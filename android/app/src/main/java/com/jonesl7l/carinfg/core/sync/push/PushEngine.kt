@@ -68,12 +68,12 @@ class PushEngine @Inject constructor(
         local: IncidentWithPhotos,
         userId: String,
     ): IncidentPushOutcome {
-        val canAddPhotos =
-            IncidentPolicyHelper.canAddPhotos(
+        val canEdit =
+            IncidentPolicyHelper.canEdit(
                 incident = local.toDomain(),
                 userId = userId,
             )
-        if (!canAddPhotos) {
+        if (!canEdit) {
             return needsAttention(
                 local = local,
                 reason = ConflictReason.STATUS_LOCKED,

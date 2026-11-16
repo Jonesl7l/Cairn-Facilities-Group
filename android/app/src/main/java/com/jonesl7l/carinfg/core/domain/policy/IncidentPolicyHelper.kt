@@ -6,18 +6,10 @@ import com.jonesl7l.carinfg.core.domain.model.incident.IncidentStatus
 object IncidentPolicyHelper {
     private val editableStatuses = setOf(IncidentStatus.Open, IncidentStatus.Assigned)
 
-    // photos can still be added once work starts
-    private val photoStatuses = editableStatuses + IncidentStatus.InProgress
-
     fun canEdit(
         incident: Incident,
         userId: String,
     ): Boolean = incident.isOwnedBy(userId) && incident.status in editableStatuses
-
-    fun canAddPhotos(
-        incident: Incident,
-        userId: String,
-    ): Boolean = incident.isOwnedBy(userId) && incident.status in photoStatuses
 
     fun canDelete(
         incident: Incident,

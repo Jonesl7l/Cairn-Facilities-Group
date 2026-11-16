@@ -12,7 +12,7 @@ import org.junit.Test
 
 class IncidentPolicyHelperTest {
     @Test
-    fun `owner can edit, add photos and delete while open`() {
+    fun `owner can edit and delete while open`() {
         val incident = incidentWithStatus(status = IncidentStatus.Open)
 
         assertThat(
@@ -22,12 +22,6 @@ class IncidentPolicyHelperTest {
             ),
         ).isTrue()
         assertThat(
-            IncidentPolicyHelper.canAddPhotos(
-                incident = incident,
-                userId = REPORTER_ID,
-            ),
-        ).isTrue()
-        assertThat(
             IncidentPolicyHelper.canDelete(
                 incident = incident,
                 userId = REPORTER_ID,
@@ -36,7 +30,7 @@ class IncidentPolicyHelperTest {
     }
 
     @Test
-    fun `owner can edit and add photos but not delete while assigned`() {
+    fun `owner can edit but not delete while assigned`() {
         val incident = incidentWithStatus(status = IncidentStatus.Assigned)
 
         assertThat(
@@ -46,12 +40,6 @@ class IncidentPolicyHelperTest {
             ),
         ).isTrue()
         assertThat(
-            IncidentPolicyHelper.canAddPhotos(
-                incident = incident,
-                userId = REPORTER_ID,
-            ),
-        ).isTrue()
-        assertThat(
             IncidentPolicyHelper.canDelete(
                 incident = incident,
                 userId = REPORTER_ID,
@@ -60,7 +48,7 @@ class IncidentPolicyHelperTest {
     }
 
     @Test
-    fun `owner can only add photos while in progress`() {
+    fun `owner cannot change an incident in progress`() {
         val incident = incidentWithStatus(status = IncidentStatus.InProgress)
 
         assertThat(
@@ -69,12 +57,6 @@ class IncidentPolicyHelperTest {
                 userId = REPORTER_ID,
             ),
         ).isFalse()
-        assertThat(
-            IncidentPolicyHelper.canAddPhotos(
-                incident = incident,
-                userId = REPORTER_ID,
-            ),
-        ).isTrue()
         assertThat(
             IncidentPolicyHelper.canDelete(
                 incident = incident,
@@ -100,12 +82,6 @@ class IncidentPolicyHelperTest {
                 ),
             ).isFalse()
             assertThat(
-                IncidentPolicyHelper.canAddPhotos(
-                    incident = incident,
-                    userId = REPORTER_ID,
-                ),
-            ).isFalse()
-            assertThat(
                 IncidentPolicyHelper.canDelete(
                     incident = incident,
                     userId = REPORTER_ID,
@@ -120,12 +96,6 @@ class IncidentPolicyHelperTest {
 
         assertThat(
             IncidentPolicyHelper.canEdit(
-                incident = incident,
-                userId = "tech2",
-            ),
-        ).isFalse()
-        assertThat(
-            IncidentPolicyHelper.canAddPhotos(
                 incident = incident,
                 userId = "tech2",
             ),
