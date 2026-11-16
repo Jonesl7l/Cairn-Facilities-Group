@@ -19,12 +19,19 @@ import com.jonesl7l.carinfg.core.domain.validation.FieldError
 import com.jonesl7l.carinfg.core.domain.validation.IncidentField
 
 private val touchTargetHeight = 56.dp
+private val locationFields =
+    setOf(
+        IncidentField.Site,
+        IncidentField.Building,
+        IncidentField.EquipmentOutOfService,
+    )
 
 @Composable
 fun LocationSection(
     fields: IncidentFormFields,
     options: ReferenceOptions,
     errors: List<FieldError>,
+    remainingErrors: List<FieldError>,
     onChange: ((IncidentFormFields) -> IncidentFormFields) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -36,6 +43,8 @@ fun LocationSection(
     FormSection(
         title = R.string.section_location,
         modifier = modifier,
+        errorCount = errors.count { it.field in locationFields },
+        isComplete = remainingErrors.none { it.field in locationFields },
     ) {
         FormDropdown(
             label = R.string.label_site,

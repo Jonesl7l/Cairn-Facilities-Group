@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuAnchorType
@@ -25,6 +26,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.jonesl7l.carinfg.R
 import com.jonesl7l.carinfg.core.domain.validation.ValidationReason
@@ -42,6 +44,7 @@ fun FormTextField(
     modifier: Modifier = Modifier,
     error: ValidationReason? = null,
     singleLine: Boolean = true,
+    keyboardType: KeyboardType = KeyboardType.Text,
 ) {
     FieldColumn(
         label = label,
@@ -55,6 +58,7 @@ fun FormTextField(
             minLines = if (singleLine) 1 else MULTILINE_MIN_LINES,
             isError = error != null,
             supportingText = error?.let { { Text(text = errorText(reason = it)) } },
+            keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
             shape = fieldShape,
             modifier =
                 Modifier

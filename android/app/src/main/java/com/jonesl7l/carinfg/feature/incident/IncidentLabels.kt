@@ -3,10 +3,13 @@ package com.jonesl7l.carinfg.feature.incident
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
 import com.jonesl7l.carinfg.R
+import com.jonesl7l.carinfg.core.domain.model.incident.ImmediateAction
 import com.jonesl7l.carinfg.core.domain.model.incident.IncidentStatus
 import com.jonesl7l.carinfg.core.domain.model.incident.IncidentType
 import com.jonesl7l.carinfg.core.domain.model.incident.Severity
 import com.jonesl7l.carinfg.core.domain.model.person.PersonRole
+import com.jonesl7l.carinfg.core.domain.model.person.PersonType
+import com.jonesl7l.carinfg.core.domain.model.person.Treatment
 
 @Composable
 fun statusLabel(status: IncidentStatus): String = stringResource(
@@ -62,5 +65,45 @@ fun roleLabel(role: PersonRole): String = stringResource(
             PersonRole.Witness -> R.string.role_witness
             PersonRole.Involved -> R.string.role_involved
             is PersonRole.Unknown -> R.string.role_unknown
+        },
+)
+
+@Composable
+fun personTypeLabel(type: PersonType): String = stringResource(
+    id =
+        when (type) {
+            PersonType.Employee -> R.string.person_type_employee
+            PersonType.Contractor -> R.string.person_type_contractor
+            PersonType.Visitor -> R.string.person_type_visitor
+            PersonType.MemberOfPublic -> R.string.person_type_member_of_public
+            is PersonType.Unknown -> R.string.value_unknown
+        },
+)
+
+@Composable
+fun treatmentLabel(treatment: Treatment): String = stringResource(
+    id =
+        when (treatment) {
+            Treatment.None -> R.string.treatment_none
+            Treatment.FirstAid -> R.string.treatment_first_aid
+            Treatment.MedicalTreatment -> R.string.treatment_medical
+            Treatment.Hospital -> R.string.treatment_hospital
+            is Treatment.Unknown -> R.string.value_unknown
+        },
+)
+
+@Composable
+fun actionLabel(action: ImmediateAction): String = stringResource(
+    id =
+        when (action) {
+            ImmediateAction.None -> R.string.action_none
+            ImmediateAction.AreaCordonedOff -> R.string.action_area_cordoned_off
+            ImmediateAction.EquipmentIsolated -> R.string.action_equipment_isolated
+            ImmediateAction.FirstAidGiven -> R.string.action_first_aid_given
+            ImmediateAction.EmergencyServicesCalled -> R.string.action_emergency_services_called
+            ImmediateAction.SupervisorNotified -> R.string.action_supervisor_notified
+            ImmediateAction.AreaEvacuated -> R.string.action_area_evacuated
+            is ImmediateAction.Other -> R.string.action_other
+            is ImmediateAction.Unknown -> R.string.value_unknown
         },
 )

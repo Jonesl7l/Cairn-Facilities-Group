@@ -164,6 +164,11 @@ class IncidentFormViewModel @AssistedInject constructor(
 
     private fun render(fields: IncidentFormFields) {
         val base = base ?: return
+        val remainingErrors =
+            IncidentValidator.validate(
+                incident = fields.applyTo(incident = base),
+                now = Clock.System.now(),
+            )
         _uiState.update {
             it.copy(
                 fields = fields,
@@ -172,15 +177,8 @@ class IncidentFormViewModel @AssistedInject constructor(
                     references = references,
                     location = fields.location,
                 ),
-                errors =
-                    if (hasSubmitted) {
-                        IncidentValidator.validate(
-                            incident = fields.applyTo(incident = base),
-                            now = Clock.System.now(),
-                        )
-                    } else {
-                        emptyList()
-                    },
+                errors = if (hasSubmitted) remainingErrors else emptyList(),
+                remainingErrors = remainingErrors,
                 hasChanges = fields != base.toFormFields(),
                 canAddPerson = IncidentFormHelper.canAddPerson(persons = fields.persons),
             )

@@ -51,6 +51,8 @@ fun IncidentFormScreen(
     IncidentFormContent(
         uiState = uiState,
         onChange = viewModel::update,
+        onAddPerson = viewModel::addPerson,
+        onRemovePerson = viewModel::removePerson,
         onSubmit = viewModel::submit,
         onClose = onClose,
     )
@@ -61,6 +63,8 @@ fun IncidentFormScreen(
 fun IncidentFormContent(
     uiState: IncidentFormUiState,
     onChange: ((IncidentFormFields) -> IncidentFormFields) -> Unit,
+    onAddPerson: () -> Unit,
+    onRemovePerson: (Int) -> Unit,
     onSubmit: () -> Unit,
     onClose: () -> Unit,
     modifier: Modifier = Modifier,
@@ -107,12 +111,33 @@ fun IncidentFormContent(
                     DetailsSection(
                         fields = fields,
                         errors = uiState.errors,
+                        remainingErrors = uiState.remainingErrors,
                         onChange = onChange,
                     )
                     LocationSection(
                         fields = fields,
                         options = uiState.options,
                         errors = uiState.errors,
+                        remainingErrors = uiState.remainingErrors,
+                        onChange = onChange,
+                    )
+                    SafetySection(
+                        fields = fields,
+                        errors = uiState.errors,
+                        remainingErrors = uiState.remainingErrors,
+                        onChange = onChange,
+                    )
+                    PeopleSection(
+                        fields = fields,
+                        errors = uiState.errors,
+                        remainingErrors = uiState.remainingErrors,
+                        canAddPerson = uiState.canAddPerson,
+                        onChange = onChange,
+                        onAddPerson = onAddPerson,
+                        onRemovePerson = onRemovePerson,
+                    )
+                    NotesSection(
+                        fields = fields,
                         onChange = onChange,
                     )
                 }

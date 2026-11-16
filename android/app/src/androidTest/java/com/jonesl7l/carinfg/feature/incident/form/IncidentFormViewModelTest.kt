@@ -125,8 +125,10 @@ class IncidentFormViewModelTest {
     }
 
     @Test
-    fun anIncompleteReportShowsItsErrors() = runTest {
+    fun anIncompleteReportShowsItsErrorsOnlyAfterSubmit() = runTest {
         val viewModel = loadedViewModel()
+        assertThat(viewModel.uiState.value.errors).isEmpty()
+        assertThat(viewModel.uiState.value.remainingErrors).isNotEmpty()
 
         viewModel.submit()
 

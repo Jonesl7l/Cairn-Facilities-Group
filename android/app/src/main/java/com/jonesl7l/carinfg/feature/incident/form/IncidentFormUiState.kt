@@ -7,6 +7,7 @@ data class IncidentFormUiState(
     val isDraft: Boolean = true,
     val options: ReferenceOptions = ReferenceOptions(),
     val errors: List<FieldError> = emptyList(),
+    val remainingErrors: List<FieldError> = emptyList(),
     val hasChanges: Boolean = false,
     val canAddPerson: Boolean = true,
     val outcome: FormOutcome? = null,

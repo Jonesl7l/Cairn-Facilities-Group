@@ -58,12 +58,21 @@ private val incidentTypes =
         IncidentType.NearMiss,
         IncidentType.Other(description = ""),
     )
+private val detailsFields =
+    setOf(
+        IncidentField.Title,
+        IncidentField.Description,
+        IncidentField.OccurredAt,
+        IncidentField.Type,
+        IncidentField.Severity,
+    )
 private val occurredFormatter = DateTimeFormatter.ofPattern("d MMM yyyy, HH:mm")
 
 @Composable
 fun DetailsSection(
     fields: IncidentFormFields,
     errors: List<FieldError>,
+    remainingErrors: List<FieldError>,
     onChange: ((IncidentFormFields) -> IncidentFormFields) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -72,6 +81,8 @@ fun DetailsSection(
     FormSection(
         title = R.string.section_details,
         modifier = modifier,
+        errorCount = errors.count { it.field in detailsFields },
+        isComplete = remainingErrors.none { it.field in detailsFields },
     ) {
         FormTextField(
             label = R.string.label_title,
