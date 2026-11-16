@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
@@ -53,19 +54,26 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.jonesl7l.carinfg.R
+import com.jonesl7l.carinfg.core.domain.model.incident.ImmediateAction
 import com.jonesl7l.carinfg.core.domain.model.incident.Incident
 import com.jonesl7l.carinfg.core.domain.model.incident.IncidentDetail
 import com.jonesl7l.carinfg.core.domain.model.incident.IncidentNames
+import com.jonesl7l.carinfg.core.domain.model.incident.OperatorFields
+import com.jonesl7l.carinfg.core.domain.model.person.Person
 import com.jonesl7l.carinfg.core.domain.model.sync.ConflictReason
 import com.jonesl7l.carinfg.core.ui.layout.contentWidth
 import com.jonesl7l.carinfg.core.ui.theme.LocalStatusColors
+import com.jonesl7l.carinfg.feature.incident.actionLabel
+import com.jonesl7l.carinfg.feature.incident.personTypeLabel
 import com.jonesl7l.carinfg.feature.incident.roleLabel
 import com.jonesl7l.carinfg.feature.incident.severityLabel
 import com.jonesl7l.carinfg.feature.incident.statusLabel
+import com.jonesl7l.carinfg.feature.incident.treatmentLabel
 import com.jonesl7l.carinfg.feature.incident.typeLabel
 import java.time.format.DateTimeFormatter
 import kotlin.time.Instant
 import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toJavaLocalDate
 import kotlinx.datetime.toJavaLocalDateTime
 import kotlinx.datetime.toLocalDateTime
 
@@ -98,6 +106,7 @@ private val deletedRemotelyResolutions =
     )
 private val occurredFormatter = DateTimeFormatter.ofPattern("d MMM, HH:mm")
 private val reportedFormatter = DateTimeFormatter.ofPattern("d MMM yyyy, HH:mm")
+private val dueDateFormatter = DateTimeFormatter.ofPattern("d MMM yyyy")
 
 @Composable
 fun IncidentDetailScreen(
@@ -253,7 +262,15 @@ private fun DetailBody(
             names = detail.names,
         )
         SafetySection(incident = incident)
+        if (incident.safety.immediateActions.isNotEmpty()) ImmediateActionsSection(incident = incident)
         if (incident.persons.isNotEmpty()) PeopleSection(incident = incident)
+        if (!incident.additionalNotes.isNullOrBlank()) NotesSection(incident = incident)
+        if (incident.operatorFields.hasDetails()) {
+            OperatorSection(
+                incident = incident,
+                names = detail.names,
+            )
+        }
     }
 }
 
@@ -440,6 +457,46 @@ internal fun SafetySection(
 }
 
 @Composable
+internal fun ImmediateActionsSection(
+    incident: Incident,
+    modifier: Modifier = Modifier,
+    isCard: Boolean = false,
+) {
+    val labels =
+        incident.safety.immediateActions.map { action ->
+            if (action is ImmediateAction.Other) "${actionLabel(action = action)}: ${action.description}" else actionLabel(action = action)
+        }
+    Section(
+        title = R.string.label_immediate_actions,
+        isCard = isCard,
+        modifier = modifier,
+    ) {
+        Text(
+            text = labels.joinToString(separator = " · "),
+            fontSize = valueTextSize,
+        )
+    }
+}
+
+@Composable
+internal fun NotesSection(
+    incident: Incident,
+    modifier: Modifier = Modifier,
+    isCard: Boolean = false,
+) {
+    Section(
+        title = R.string.section_notes,
+        isCard = isCard,
+        modifier = modifier,
+    ) {
+        Text(
+            text = incident.additionalNotes.orEmpty(),
+            fontSize = valueTextSize,
+        )
+    }
+}
+
+@Composable
 internal fun PeopleSection(
     incident: Incident,
     modifier: Modifier = Modifier,
@@ -450,11 +507,102 @@ internal fun PeopleSection(
         isCard = isCard,
         modifier = modifier,
     ) {
-        incident.persons.forEach { person ->
+        incident.persons.forEach { person -> PersonDetails(person = person) }
+    }
+}
+
+@Composable
+private fun PersonDetails(person: Person) {
+    val summary =
+        listOfNotNull(
+            person.role?.let { roleLabel(role = it) },
+            person.type?.let { personTypeLabel(type = it) },
+            person.position,
+            person.department,
+            person.company,
+        ).filter { it.isNotBlank() }
+    val injury =
+        person.injury?.let { details ->
+            listOfNotNull(
+                details.nature,
+                details.bodyPart,
+                details.treatment?.let { treatmentLabel(treatment = it) },
+                details.notes,
+            ).filter { it.isNotBlank() }
+        }.orEmpty()
+    Column(verticalArrangement = Arrangement.spacedBy(space = labelSpacing)) {
+        Text(
+            text = person.name.ifBlank { stringResource(id = R.string.value_unknown) },
+            fontSize = valueTextSize,
+            fontWeight = FontWeight.Medium,
+        )
+        if (summary.isNotEmpty()) SecondaryLine(text = summary.joinToString(separator = " · "))
+        person.contactNumber?.takeIf { it.isNotBlank() }?.let { SecondaryLine(text = stringResource(id = R.string.person_contact, it)) }
+        if (injury.isNotEmpty()) SecondaryLine(text = stringResource(id = R.string.person_injury, injury.joinToString(separator = ", ")))
+    }
+}
+
+@Composable
+private fun SecondaryLine(text: String) {
+    Text(
+        text = text,
+        fontSize = labelTextSize,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
+}
+
+internal fun OperatorFields.hasDetails(): Boolean = listOf(
+    assignedTo,
+    dueDate,
+    rootCause,
+    correctiveActions,
+    regulatoryReportable,
+    supervisorAcknowledged,
+).any { it != null }
+
+@Composable
+internal fun OperatorSection(
+    incident: Incident,
+    names: IncidentNames,
+    modifier: Modifier = Modifier,
+    isCard: Boolean = false,
+) {
+    val fields = incident.operatorFields
+    val unknown = stringResource(id = R.string.value_unknown)
+    val shortValues =
+        listOfNotNull(
+            fields.assignedTo?.let { R.string.label_assigned_to to (names.assignedToName ?: unknown) },
+            fields.dueDate?.let { R.string.label_due_date to it.toJavaLocalDate().format(dueDateFormatter) },
+            fields.regulatoryReportable?.let { R.string.label_regulatory_reportable to yesNo(value = it) },
+            fields.supervisorAcknowledged?.let { R.string.label_supervisor_acknowledged to yesNo(value = it) },
+        )
+    Section(
+        title = R.string.section_operator,
+        isCard = isCard,
+        modifier = modifier,
+    ) {
+        shortValues.chunked(size = 2).forEach { row ->
+            Row {
+                row.forEach { (label, value) ->
+                    LabelledValue(
+                        label = label,
+                        value = value,
+                        modifier = Modifier.weight(weight = 1f),
+                    )
+                }
+                if (row.size == 1) Spacer(modifier = Modifier.weight(weight = 1f))
+            }
+        }
+        fields.rootCause?.let {
             LabelledValue(
-                label = null,
-                value = person.name,
-                detail = person.role?.let { roleLabel(role = it) } ?: stringResource(id = R.string.value_unknown),
+                label = R.string.label_root_cause,
+                value = it,
+            )
+        }
+        fields.correctiveActions?.let {
+            LabelledValue(
+                label = R.string.label_corrective_actions,
+                value = it,
             )
         }
     }

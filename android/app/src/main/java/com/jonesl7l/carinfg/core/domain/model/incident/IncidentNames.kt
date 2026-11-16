@@ -8,4 +8,5 @@ data class IncidentNames(
     val assetName: String? = null,
     val assetCode: String? = null,
     val reporterName: String? = null,
+    val assignedToName: String? = null,
 )

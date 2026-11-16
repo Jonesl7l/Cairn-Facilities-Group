@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -38,7 +37,6 @@ import com.jonesl7l.carinfg.core.domain.model.incident.IncidentDetail
 import com.jonesl7l.carinfg.core.domain.model.photo.Photo
 import com.jonesl7l.carinfg.core.ui.photo.imageModel
 import com.jonesl7l.carinfg.feature.incident.CoverBadge
-import com.jonesl7l.carinfg.feature.incident.actionLabel
 import com.jonesl7l.carinfg.feature.incident.severityLabel
 import com.jonesl7l.carinfg.feature.incident.statusLabel
 
@@ -135,6 +133,7 @@ private fun sectionsFor(detail: IncidentDetail): List<@Composable (Modifier) -> 
             add { modifier ->
                 ImmediateActionsSection(
                     incident = incident,
+                    isCard = true,
                     modifier = modifier,
                 )
             }
@@ -152,6 +151,17 @@ private fun sectionsFor(detail: IncidentDetail): List<@Composable (Modifier) -> 
             add { modifier ->
                 NotesSection(
                     incident = incident,
+                    isCard = true,
+                    modifier = modifier,
+                )
+            }
+        }
+        if (incident.operatorFields.hasDetails()) {
+            add { modifier ->
+                OperatorSection(
+                    incident = incident,
+                    names = detail.names,
+                    isCard = true,
                     modifier = modifier,
                 )
             }
@@ -254,39 +264,5 @@ private fun PhotoTile(
             modifier = Modifier.fillMaxSize(),
         )
         if (isCover) CoverBadge(modifier = Modifier.align(alignment = Alignment.BottomStart))
-    }
-}
-
-@Composable
-private fun ImmediateActionsSection(
-    incident: Incident,
-    modifier: Modifier = Modifier,
-) {
-    Section(
-        title = R.string.label_immediate_actions,
-        isCard = true,
-        modifier = modifier,
-    ) {
-        Text(
-            text = incident.safety.immediateActions.map { actionLabel(action = it) }.joinToString(separator = " · "),
-            modifier = Modifier.fillMaxWidth(),
-        )
-    }
-}
-
-@Composable
-private fun NotesSection(
-    incident: Incident,
-    modifier: Modifier = Modifier,
-) {
-    Section(
-        title = R.string.section_notes,
-        isCard = true,
-        modifier = modifier,
-    ) {
-        Text(
-            text = incident.additionalNotes.orEmpty(),
-            modifier = Modifier.fillMaxWidth(),
-        )
     }
 }

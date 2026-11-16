@@ -375,7 +375,12 @@ class IncidentRepositoryImplTest {
     @Test
     fun theDetailLooksUpReferenceNamesAndLeavesUnknownIdsEmpty() = runTest {
         database.referenceDao().replaceAll(entities = referenceEntities())
-        dao.upsertIncident(incident = incidentEntity(roomId = "missing-room"))
+        dao.upsertIncident(
+            incident = incidentEntity(
+                roomId = "missing-room",
+                assignedTo = technicianEntity().id,
+            ),
+        )
 
         val names = repository.observeIncidentDetail(id = INCIDENT_ID).first()?.names
 
@@ -383,6 +388,7 @@ class IncidentRepositoryImplTest {
         assertThat(names?.buildingName).isEqualTo(buildingEntity().name)
         assertThat(names?.assetCode).isEqualTo(assetEntity().code)
         assertThat(names?.reporterName).isEqualTo(technicianEntity().displayName)
+        assertThat(names?.assignedToName).isEqualTo(technicianEntity().displayName)
         assertThat(names?.roomName).isNull()
     }
     // endregion

@@ -319,6 +319,7 @@ class IncidentRepositoryImpl @Inject constructor(
             assetName = asset?.name,
             assetCode = asset?.code,
             reporterName = technicians[incident.reporterId],
+            assignedToName = incident.operatorFields.assignedTo?.let { technicians[it] },
         )
     }
 
