@@ -8,6 +8,23 @@ Open the `android/` folder in Android Studio, not the repo root.
 
 _More setup, seeded accounts and troubleshooting to follow._
 
+## Mock server
+
+A barebones [json-server](https://github.com/typicode/json-server) 0.17 API in `server/`, with one middlewares file for change ordering, version checks, photo uploads and sync hints. It needs Node 24 (`.nvmrc`).
+
+```sh
+cd server
+npm ci
+npm start          # http://localhost:3000, creates db.json from the seed on first run
+npm run reset      # back to the seed; connected apps resync from scratch
+```
+
+Seeded accounts: `tech1`, `tech2` and `operator`, all with the password `password`.
+
+- **Emulator:** the app's default address, `10.0.2.2:3000`, reaches the server on your machine.
+- **Physical device:** run `adb reverse tcp:3000 tcp:3000`.
+- **Slow or failing network:** `LATENCY_MS=1500 npm start` delays every request, and `FAILURE_RATE=0.3 npm start` answers 30% of requests with a 503, so you can see the app's pending and retry states.
+
 ## Repo layout
 
 - `android/`: the Android app (Gradle project)
