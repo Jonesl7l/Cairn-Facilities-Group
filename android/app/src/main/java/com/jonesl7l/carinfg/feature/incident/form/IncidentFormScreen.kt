@@ -1,5 +1,6 @@
 package com.jonesl7l.carinfg.feature.incident.form
 
+import android.net.Uri
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -84,6 +85,11 @@ fun IncidentFormScreen(
         onChange = viewModel::update,
         onAddPerson = viewModel::addPerson,
         onRemovePerson = viewModel::removePerson,
+        onCameraTarget = viewModel::cameraTarget,
+        onPhotoTake = viewModel::onPhotoTaken,
+        onPick = viewModel::addPicked,
+        onMakeCover = viewModel::makeCover,
+        onRemovePhoto = viewModel::removePhoto,
         onSubmit = viewModel::submit,
         onCloseDraft = viewModel::closeDraft,
         onOutcomeConsume = viewModel::consumeOutcome,
@@ -98,6 +104,11 @@ fun IncidentFormContent(
     onChange: ((IncidentFormFields) -> IncidentFormFields) -> Unit,
     onAddPerson: () -> Unit,
     onRemovePerson: (Int) -> Unit,
+    onCameraTarget: () -> Uri,
+    onPhotoTake: (Boolean) -> Unit,
+    onPick: (List<Uri>) -> Unit,
+    onMakeCover: (Int) -> Unit,
+    onRemovePhoto: (Int) -> Unit,
     onSubmit: () -> Unit,
     onCloseDraft: () -> Unit,
     onOutcomeConsume: () -> Unit,
@@ -191,6 +202,15 @@ fun IncidentFormContent(
                     modifier = Modifier.verticalScroll(state = scrollState),
                     verticalArrangement = Arrangement.spacedBy(space = sectionSpacing),
                 ) {
+                    PhotosSection(
+                        photos = fields.photos,
+                        photosLeft = uiState.photosLeft,
+                        onCameraTarget = onCameraTarget,
+                        onPhotoTake = onPhotoTake,
+                        onPick = onPick,
+                        onMakeCover = onMakeCover,
+                        onRemove = onRemovePhoto,
+                    )
                     DetailsSection(
                         fields = fields,
                         errors = uiState.errors,

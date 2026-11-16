@@ -35,6 +35,7 @@ fun FormSection(
     modifier: Modifier = Modifier,
     errorCount: Int = 0,
     isComplete: Boolean = false,
+    hint: String? = null,
     content: @Composable () -> Unit,
 ) {
     Surface(
@@ -68,6 +69,12 @@ fun FormSection(
                         icon = R.drawable.ic_check,
                         text = stringResource(id = R.string.section_complete),
                         color = LocalStatusColors.current.upToDate,
+                    )
+
+                    hint != null -> Text(
+                        text = hint,
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
             }
