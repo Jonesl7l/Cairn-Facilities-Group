@@ -2,11 +2,56 @@
 
 Field technicians photograph and report physical incidents from a native Android app that works offline and syncs with a local mock API.
 
+The app is called CairnFG Incident Report on the device.
+
 ## Quick start
 
-Open the `android/` folder in Android Studio, not the repo root.
+You need Node 24 and a recent Android Studio.
 
-_More setup, seeded accounts and troubleshooting to follow._
+1. Start the mock server and leave it running:
+   ```sh
+   cd server
+   npm ci
+   npm start
+   ```
+2. Open the `android/` folder in Android Studio (not the repo root), pick an emulator and press Run.
+3. Log in as `tech1` with the password `password`.
+4. Optional: start the operator dashboard in a second terminal (see below) to change reports from the office side and watch the app react.
+
+Seeded accounts, all with the password `password`:
+
+| Username | Role | Use |
+|---|---|---|
+| `tech1` | Technician | The main demo account |
+| `tech2` | Technician | A second technician, for a second device |
+| `operator` | Operator | Recorded as the operator on dashboard deletes; the app only lets technicians in |
+
+**If the app never syncs on an emulator:** the app only syncs on a network Android has validated as having internet. An emulator with no internet access never validates, so turn the check off and reconnect its Wi-Fi:
+
+```sh
+adb shell settings put global captive_portal_mode 0
+adb shell svc wifi disable && adb shell svc wifi enable
+```
+
+## What it does
+
+- Report an incident with up to five photos (camera or gallery), location, safety details and the people involved. Drafts save automatically.
+- Works offline: reports and edits are saved on the device first and sent when there's a connection, with retries.
+- Live updates: the server sends change hints over server-sent events, so other people's changes arrive without a refresh.
+- Conflicts are handled rather than overwritten: if the office changed or deleted a report you edited offline, it lands in Needs attention with a clear choice.
+- Reports the operator has moved past Assigned are locked for editing.
+- Delete with undo, and filters, scope (mine or team open) and sort that all run on the device.
+- Phone and tablet layouts: list and detail side by side on wide screens, a readable column on tablets in portrait, and a compact layout for phones in landscape.
+
+## Tests
+
+From `android/`:
+
+```sh
+./gradlew testDebugUnitTest            # JVM tests
+./gradlew connectedDebugAndroidTest    # Room, repository and ViewModel tests on an emulator
+./gradlew ktlintCheck lintDebug
+```
 
 ## Mock server
 
@@ -15,11 +60,9 @@ A barebones [json-server](https://github.com/typicode/json-server) 0.17 API in `
 ```sh
 cd server
 npm ci
-npm start          # http://localhost:3000, creates db.json from the seed on first run
+npm start          # http://127.0.0.1:3000, creates db.json from the seed on first run
 npm run reset      # back to the seed; connected apps resync from scratch
 ```
-
-Seeded accounts: `tech1`, `tech2` and `operator`, all with the password `password`.
 
 - **Emulator:** the app's default address, `10.0.2.2:3000`, reaches the server on your machine.
 - **Physical device:** run `adb reverse tcp:3000 tcp:3000`.
@@ -53,7 +96,7 @@ Under `com.jonesl7l.carinfg`:
 - `core/network`: Retrofit API, DTOs and the SSE client
 - `core/sync`: push/pull engines, the sync worker and scheduler
 - `core/di`: Hilt modules
-- `core/ui`: theme, shared components and permission handling
+- `core/ui`: theme, layout helpers, photo loading and permission handling
 - `feature/auth`: sign-in
-- `feature/incidents/list`, `feature/incidents/detail`, `feature/incidents/form`: incident screens
-- `feature/account`: account and settings
+- `feature/incident/list`, `feature/incident/detail`, `feature/incident/form`: incident screens
+- `feature/account`: the account sheet and logout
