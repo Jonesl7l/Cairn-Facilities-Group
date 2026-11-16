@@ -242,6 +242,26 @@ class IncidentRepositoryImplTest {
     }
     // endregion
 
+    // region observeIncidentList
+    @Test
+    fun theListLooksUpSiteAndBuildingNamesAndHidesPendingDeletes() = runTest {
+        database.referenceDao().replaceAll(entities = referenceEntities())
+        dao.upsertIncident(incident = incidentEntity(id = "shown"))
+        dao.upsertIncident(
+            incident = incidentEntity(
+                id = "deleting",
+                syncState = SyncState.PENDING_DELETE,
+            ),
+        )
+
+        val items = repository.observeIncidentList().first()
+
+        assertThat(items.map { it.id }).containsExactly("shown")
+        assertThat(items.single().siteName).isEqualTo(siteEntity().name)
+        assertThat(items.single().buildingName).isEqualTo(buildingEntity().name)
+    }
+    // endregion
+
     // region observeIncidentDetail
     @Test
     fun theDetailLooksUpReferenceNamesAndLeavesUnknownIdsEmpty() = runTest {

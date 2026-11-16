@@ -45,8 +45,10 @@ interface ReferenceDao {
     @Query("SELECT * FROM technicians ORDER BY displayName")
     fun observeTechnicians(): Flow<List<TechnicianEntity>>
 
-    @Query("SELECT NOT EXISTS (SELECT 1 FROM sites)")
-    suspend fun isEmpty(): Boolean
+    @Query("SELECT COUNT(*) FROM sites")
+    suspend fun countSites(): Int
+
+    suspend fun isEmpty(): Boolean = countSites() == 0
 
     // one transaction, so observers never see the tables empty between delete and insert
     @Transaction

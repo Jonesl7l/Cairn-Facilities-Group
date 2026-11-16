@@ -164,9 +164,21 @@ object PullRuleHelper {
         remote: IncidentDto,
         userId: String,
         now: Instant,
-    ): Boolean = remote.reporterId == userId ||
-        remote.status !in closedStatuses ||
-        remote.updatedAt >= now - scopeWindow
+    ): Boolean = isInScope(
+        reporterId = remote.reporterId,
+        status = remote.status,
+        updatedAt = remote.updatedAt,
+        userId = userId,
+        updatedBefore = now - scopeWindow,
+    )
+
+    fun isInScope(
+        reporterId: String,
+        status: String,
+        updatedAt: Instant?,
+        userId: String,
+        updatedBefore: Instant,
+    ): Boolean = reporterId == userId || status !in closedStatuses || (updatedAt != null && updatedAt >= updatedBefore)
 
     private fun overwrite(
         remote: IncidentDto,

@@ -2,7 +2,6 @@ package com.jonesl7l.carinfg.core.data.mapper
 
 import com.jonesl7l.carinfg.core.database.entity.incident.GpsLocationColumns
 import com.jonesl7l.carinfg.core.database.entity.incident.IncidentEntity
-import com.jonesl7l.carinfg.core.database.entity.incident.IncidentListRow
 import com.jonesl7l.carinfg.core.database.entity.incident.IncidentWithPhotos
 import com.jonesl7l.carinfg.core.database.entity.incident.InjuryColumn
 import com.jonesl7l.carinfg.core.database.entity.incident.PersonColumn
@@ -163,18 +162,10 @@ private fun toTimeZone(id: String): TimeZone = try {
     TimeZone.UTC
 }
 
-fun IncidentEntity.toDeleteRequest(): DeleteIncidentRequest? {
-    val deletedAt = deletedAt ?: return null
-    val deletedBy = deletedBy ?: return null
-    return DeleteIncidentRequest(
-        deletedAt = deletedAt,
-        deletedBy = deletedBy,
-    )
-}
-// endregion
-
-// region IncidentListRow
-fun IncidentListRow.toDomain() = IncidentListItem(
+fun IncidentEntity.toListItem(
+    siteName: String?,
+    buildingName: String?,
+) = IncidentListItem(
     id = id,
     title = title,
     referenceNumber = referenceNumber,
@@ -188,6 +179,15 @@ fun IncidentListRow.toDomain() = IncidentListItem(
     siteName = siteName,
     buildingName = buildingName,
 )
+
+fun IncidentEntity.toDeleteRequest(): DeleteIncidentRequest? {
+    val deletedAt = deletedAt ?: return null
+    val deletedBy = deletedBy ?: return null
+    return DeleteIncidentRequest(
+        deletedAt = deletedAt,
+        deletedBy = deletedBy,
+    )
+}
 // endregion
 
 // region GpsLocationColumns

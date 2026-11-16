@@ -14,6 +14,7 @@ import com.jonesl7l.carinfg.core.database.EntityTestHelper.incidentEntity
 import com.jonesl7l.carinfg.core.database.EntityTestHelper.now
 import com.jonesl7l.carinfg.core.database.EntityTestHelper.photoEntity
 import com.jonesl7l.carinfg.core.database.EntityTestHelper.syncMetaEntity
+import com.jonesl7l.carinfg.core.database.entity.sync.SyncCounts
 import com.jonesl7l.carinfg.core.database.entity.sync.SyncMetaEntity
 import com.jonesl7l.carinfg.core.domain.model.photo.PhotoUploadState
 import com.jonesl7l.carinfg.core.domain.model.sync.ConflictReason
@@ -23,6 +24,7 @@ import com.jonesl7l.carinfg.core.sync.push.PushCommit
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Test
@@ -433,5 +435,35 @@ class RoomSyncLocalStoreTest {
         store.raiseAnnouncedChangeSeq(changeSeq = 5)
 
         assertThat(store.getSyncMeta().announcedChangeSeq).isEqualTo(7L)
+    }
+
+    @Test
+    fun syncCountsCountPendingAndNeedsAttention() = runTest {
+        incidentDao.upsertIncident(incident = incidentEntity(id = "synced"))
+        incidentDao.upsertIncident(
+            incident = incidentEntity(
+                id = "pending",
+                syncState = SyncState.PENDING_UPDATE,
+            ),
+        )
+        incidentDao.upsertIncident(
+            incident = incidentEntity(
+                id = "deleting",
+                syncState = SyncState.PENDING_DELETE,
+            ),
+        )
+        incidentDao.upsertIncident(
+            incident = incidentEntity(
+                id = "attention",
+                syncState = SyncState.NEEDS_ATTENTION,
+            ),
+        )
+
+        assertThat(store.observeSyncCounts().first()).isEqualTo(
+            SyncCounts(
+                pending = 2,
+                needsAttention = 1,
+            ),
+        )
     }
 }

@@ -5,12 +5,10 @@ import androidx.room3.Query
 import androidx.room3.Transaction
 import androidx.room3.Upsert
 import com.jonesl7l.carinfg.core.database.entity.incident.IncidentEntity
-import com.jonesl7l.carinfg.core.database.entity.incident.IncidentListRow
 import com.jonesl7l.carinfg.core.database.entity.incident.IncidentWithPhotos
 import com.jonesl7l.carinfg.core.database.entity.photo.PhotoEntity
-import com.jonesl7l.carinfg.core.database.entity.sync.SyncCounts
 import com.jonesl7l.carinfg.core.domain.model.sync.ConflictReason
-import kotlin.time.Instant
+import com.jonesl7l.carinfg.core.domain.model.sync.SyncState
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -53,24 +51,7 @@ interface IncidentDao {
     @Query("DELETE FROM incidents WHERE syncState = 'SYNCED'")
     suspend fun deleteSynced()
 
-    @Query(
-        "DELETE FROM incidents WHERE syncState = 'SYNCED' AND reporterId != :userId " +
-            "AND status IN (:closedStatuses) AND (updatedAt IS NULL OR updatedAt < :updatedBefore)",
-    )
-    suspend fun pruneOutOfScope(
-        userId: String,
-        closedStatuses: List<String>,
-        updatedBefore: Instant,
-    )
-
     @Transaction
-    @Query(
-        "SELECT * FROM incidents WHERE syncState IN ('PENDING_CREATE', 'PENDING_UPDATE') " +
-            "OR (syncState = 'PENDING_DELETE' AND (undoDeadline IS NULL OR undoDeadline <= :now)) " +
-            "ORDER BY localUpdatedAt",
-    )
-    suspend fun getPendingIncidents(now: Instant): List<IncidentWithPhotos>
-
     @Query("UPDATE photos SET remoteUrl = :remoteUrl, uploadState = 'UPLOADED' WHERE id = :photoId")
     suspend fun markPhotoUploaded(
         photoId: String,
@@ -100,18 +81,19 @@ interface IncidentDao {
         error: String,
     )
 
-    // pending deletes are hidden: the row collapses while the undo snackbar shows
-    @Query(
-        "SELECT i.id, i.title, i.referenceNumber, i.reporterId, i.status, i.severity, i.syncState, " +
-            "i.syncAttempts, i.occurredAt, i.localUpdatedAt, s.name AS siteName, b.name AS buildingName " +
-            "FROM incidents i LEFT JOIN sites s ON s.id = i.siteId LEFT JOIN buildings b ON b.id = i.buildingId " +
-            "WHERE i.syncState != 'PENDING_DELETE'",
-    )
-    fun observeIncidentList(): Flow<List<IncidentListRow>>
+    @Query("SELECT * FROM incidents")
+    fun observeIncidents(): Flow<List<IncidentEntity>>
 
-    @Query(
-        "SELECT COUNT(CASE WHEN syncState IN ('PENDING_CREATE', 'PENDING_UPDATE', 'PENDING_DELETE') THEN 1 END) AS pending, " +
-            "COUNT(CASE WHEN syncState = 'NEEDS_ATTENTION' THEN 1 END) AS needsAttention FROM incidents",
-    )
-    fun observeSyncCounts(): Flow<SyncCounts>
+    @Query("SELECT syncState FROM incidents")
+    fun observeSyncStates(): Flow<List<SyncState>>
+
+    @Transaction
+    @Query("SELECT * FROM incidents WHERE syncState IN (:states) ORDER BY localUpdatedAt")
+    suspend fun getIncidentsInStates(states: List<SyncState>): List<IncidentWithPhotos>
+
+    @Query("SELECT * FROM incidents WHERE syncState = 'SYNCED'")
+    suspend fun getSynced(): List<IncidentEntity>
+
+    @Query("DELETE FROM incidents WHERE id IN (:ids)")
+    suspend fun deleteIncidents(ids: List<String>)
 }

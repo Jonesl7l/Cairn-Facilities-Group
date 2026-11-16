@@ -2,7 +2,6 @@ package com.jonesl7l.carinfg.core.database.dao
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import assertk.assertThat
-import assertk.assertions.containsExactly
 import assertk.assertions.isEmpty
 import assertk.assertions.isEqualTo
 import assertk.assertions.isNotNull
@@ -11,14 +10,10 @@ import assertk.assertions.prop
 import com.jonesl7l.carinfg.core.database.AppDatabase
 import com.jonesl7l.carinfg.core.database.DatabaseTestHelper.inMemoryDatabase
 import com.jonesl7l.carinfg.core.database.EntityTestHelper.INCIDENT_ID
-import com.jonesl7l.carinfg.core.database.EntityTestHelper.buildingEntity
 import com.jonesl7l.carinfg.core.database.EntityTestHelper.draftIncidentEntity
 import com.jonesl7l.carinfg.core.database.EntityTestHelper.incidentEntity
 import com.jonesl7l.carinfg.core.database.EntityTestHelper.photoEntity
-import com.jonesl7l.carinfg.core.database.EntityTestHelper.referenceEntities
-import com.jonesl7l.carinfg.core.database.EntityTestHelper.siteEntity
 import com.jonesl7l.carinfg.core.database.entity.incident.IncidentWithPhotos
-import com.jonesl7l.carinfg.core.database.entity.sync.SyncCounts
 import com.jonesl7l.carinfg.core.domain.model.sync.SyncState
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
@@ -113,57 +108,5 @@ class IncidentDaoTest {
 
         dao.upsertIncident(incident = incidentEntity(syncState = SyncState.SYNCED))
         assertThat(dao.observeUnsyncedCount().first()).isEqualTo(0)
-    }
-
-    @Test
-    fun theListJoinsSiteAndBuildingNamesAndHidesPendingDeletes() = runTest {
-        database.referenceDao().replaceAll(entities = referenceEntities())
-        dao.upsertIncident(incident = incidentEntity(id = "shown"))
-        dao.upsertIncident(
-            incident =
-                incidentEntity(
-                    id = "deleting",
-                    syncState = SyncState.PENDING_DELETE,
-                ),
-        )
-
-        val rows = dao.observeIncidentList().first()
-
-        assertThat(rows.map { it.id }).containsExactly("shown")
-        assertThat(rows.single().siteName).isEqualTo(siteEntity().name)
-        assertThat(rows.single().buildingName).isEqualTo(buildingEntity().name)
-    }
-
-    @Test
-    fun syncCountsCountPendingAndNeedsAttention() = runTest {
-        dao.upsertIncident(incident = incidentEntity(id = "synced"))
-        dao.upsertIncident(
-            incident = incidentEntity(
-                id = "pending",
-                syncState = SyncState.PENDING_UPDATE,
-            ),
-        )
-        dao.upsertIncident(
-            incident = incidentEntity(
-                id = "failing",
-                syncState = SyncState.PENDING_CREATE,
-                syncAttempts = 2,
-            ),
-        )
-        dao.upsertIncident(
-            incident = incidentEntity(
-                id = "attention",
-                syncState = SyncState.NEEDS_ATTENTION,
-            ),
-        )
-
-        val counts = dao.observeSyncCounts().first()
-
-        assertThat(counts).isEqualTo(
-            SyncCounts(
-                pending = 2,
-                needsAttention = 1,
-            ),
-        )
     }
 }

@@ -4,16 +4,19 @@ import androidx.room3.withWriteTransaction
 import com.jonesl7l.carinfg.core.database.AppDatabase
 import com.jonesl7l.carinfg.core.database.dao.IncidentDao
 import com.jonesl7l.carinfg.core.database.dao.SyncMetaDao
+import com.jonesl7l.carinfg.core.database.entity.incident.IncidentEntity
 import com.jonesl7l.carinfg.core.database.entity.incident.IncidentWithPhotos
 import com.jonesl7l.carinfg.core.database.entity.sync.SyncCounts
 import com.jonesl7l.carinfg.core.database.entity.sync.SyncMetaEntity
 import com.jonesl7l.carinfg.core.domain.model.sync.ConflictReason
+import com.jonesl7l.carinfg.core.domain.model.sync.SyncState
 import com.jonesl7l.carinfg.core.sync.pull.PullAction
 import com.jonesl7l.carinfg.core.sync.pull.PullRuleHelper
 import com.jonesl7l.carinfg.core.sync.push.PushCommit
 import javax.inject.Inject
 import kotlin.time.Instant
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import timber.log.Timber
 
 class RoomSyncLocalStore @Inject constructor(
@@ -23,7 +26,14 @@ class RoomSyncLocalStore @Inject constructor(
 ) : SyncLocalStore {
     override suspend fun getSyncMeta(): SyncMetaEntity = syncMetaDao.get() ?: SyncMetaEntity()
 
-    override fun observeSyncCounts(): Flow<SyncCounts> = incidentDao.observeSyncCounts()
+    override fun observeSyncCounts(): Flow<SyncCounts> = incidentDao
+        .observeSyncStates()
+        .map { states ->
+            SyncCounts(
+                pending = states.count { it in pendingStates },
+                needsAttention = states.count { it == SyncState.NEEDS_ATTENTION },
+            )
+        }
 
     override suspend fun getIncidents(ids: List<String>): Map<String, IncidentWithPhotos> =
         incidentDao.getIncidents(ids = ids).associateBy { it.incident.id }
@@ -53,14 +63,24 @@ class RoomSyncLocalStore @Inject constructor(
         userId: String,
         updatedBefore: Instant,
     ) {
-        incidentDao.pruneOutOfScope(
-            userId = userId,
-            closedStatuses = PullRuleHelper.closedStatuses.toList(),
-            updatedBefore = updatedBefore,
-        )
+        database.withWriteTransaction {
+            val outOfScope =
+                incidentDao.getSynced().filterNot {
+                    PullRuleHelper.isInScope(
+                        reporterId = it.reporterId,
+                        status = it.status,
+                        updatedAt = it.updatedAt,
+                        userId = userId,
+                        updatedBefore = updatedBefore,
+                    )
+                }
+            if (outOfScope.isNotEmpty()) incidentDao.deleteIncidents(ids = outOfScope.map { it.id })
+        }
     }
 
-    override suspend fun getPendingIncidents(now: Instant): List<IncidentWithPhotos> = incidentDao.getPendingIncidents(now = now)
+    override suspend fun getPendingIncidents(now: Instant): List<IncidentWithPhotos> = incidentDao
+        .getIncidentsInStates(states = pendingStates.toList())
+        .filter { it.incident.isDue(now = now) }
 
     override suspend fun markPhotoUploaded(
         photoId: String,
@@ -161,5 +181,11 @@ class RoomSyncLocalStore @Inject constructor(
         val unchanged = incidentDao.getLocalRevision(id = id) == basedOnRevision
         if (!unchanged) Timber.i("isUnchanged: skipped pulled change for %s, edited locally since it was read", id)
         return unchanged
+    }
+
+    private fun IncidentEntity.isDue(now: Instant): Boolean = syncState != SyncState.PENDING_DELETE || undoDeadline == null || undoDeadline <= now
+
+    private companion object {
+        val pendingStates = setOf(SyncState.PENDING_CREATE, SyncState.PENDING_UPDATE, SyncState.PENDING_DELETE)
     }
 }

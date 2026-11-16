@@ -3,6 +3,7 @@ package com.jonesl7l.carinfg.core.data.incident
 import androidx.room3.withWriteTransaction
 import com.jonesl7l.carinfg.core.data.mapper.toDomain
 import com.jonesl7l.carinfg.core.data.mapper.toEntity
+import com.jonesl7l.carinfg.core.data.mapper.toListItem
 import com.jonesl7l.carinfg.core.data.session.SessionStore
 import com.jonesl7l.carinfg.core.database.AppDatabase
 import com.jonesl7l.carinfg.core.database.dao.IncidentDao
@@ -48,9 +49,19 @@ class IncidentRepositoryImpl @Inject constructor(
         }
     }
 
-    override fun observeIncidentList(): Flow<List<IncidentListItem>> = incidentDao
-        .observeIncidentList()
-        .map { rows -> rows.map { it.toDomain() } }
+    override fun observeIncidentList(): Flow<List<IncidentListItem>> = combine(
+        incidentDao.observeIncidents(),
+        observeReferenceLookup(),
+    ) { rows, lookup ->
+        rows
+            .filter { it.syncState != SyncState.PENDING_DELETE }
+            .map {
+                it.toListItem(
+                    siteName = it.siteId?.let { siteId -> lookup.sites[siteId] },
+                    buildingName = it.buildingId?.let { buildingId -> lookup.buildings[buildingId] },
+                )
+            }
+    }
 
     override suspend fun saveDraft(
         incident: Incident,
