@@ -30,7 +30,7 @@ object IncidentValidator {
     private const val TITLE_MIN_LENGTH = 3
     private const val TITLE_MAX_LENGTH = 80
     private const val DESCRIPTION_MAX_LENGTH = 2000
-    private const val MAX_PHOTOS = 5
+    const val MAX_PHOTOS = 5
     private val allowedClockSkew = 5.minutes
 
     fun validate(

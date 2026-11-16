@@ -1,9 +1,14 @@
 package com.jonesl7l.carinfg.feature.incident.form
 
+import android.content.Context
+import android.graphics.Bitmap
+import android.net.Uri
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
+import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import assertk.assertThat
+import assertk.assertions.containsExactly
 import assertk.assertions.hasSize
 import assertk.assertions.isEmpty
 import assertk.assertions.isEqualTo
@@ -12,6 +17,7 @@ import assertk.assertions.isNotEmpty
 import assertk.assertions.isTrue
 import com.jonesl7l.carinfg.MainDispatcherRule
 import com.jonesl7l.carinfg.core.data.incident.IncidentRepositoryImpl
+import com.jonesl7l.carinfg.core.data.photo.PhotoStorage
 import com.jonesl7l.carinfg.core.data.reference.ReferenceRepository
 import com.jonesl7l.carinfg.core.data.session.FakeSessionStore
 import com.jonesl7l.carinfg.core.database.AppDatabase
@@ -25,6 +31,7 @@ import com.jonesl7l.carinfg.core.domain.model.incident.ImmediateAction
 import com.jonesl7l.carinfg.core.domain.model.incident.IncidentSafety
 import com.jonesl7l.carinfg.core.domain.model.incident.IncidentType
 import com.jonesl7l.carinfg.core.domain.model.incident.Severity
+import com.jonesl7l.carinfg.core.domain.model.photo.PhotoUploadState
 import com.jonesl7l.carinfg.core.domain.model.sync.ConflictReason
 import com.jonesl7l.carinfg.core.domain.model.sync.SyncState
 import com.jonesl7l.carinfg.core.domain.model.user.User
@@ -34,7 +41,9 @@ import com.jonesl7l.carinfg.core.network.datasource.FakeReferenceRemoteDataSourc
 import com.jonesl7l.carinfg.core.network.result.ApiError
 import com.jonesl7l.carinfg.core.network.result.ApiResult
 import com.jonesl7l.carinfg.core.sync.FakeSyncScheduler
+import java.io.File
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.first
@@ -68,6 +77,13 @@ class IncidentFormViewModelTest {
             referenceRemoteDataSource = FakeReferenceRemoteDataSource(result = ApiResult.Failure(error = ApiError.NotFound)),
             applicationScope = CoroutineScope(context = Job()),
         )
+    private val context: Context = ApplicationProvider.getApplicationContext()
+    private val photoStorage =
+        PhotoStorage(
+            context = context,
+            incidentDao = database.incidentDao(),
+            ioDispatcher = Dispatchers.IO,
+        )
     private val viewModels = mutableListOf<IncidentFormViewModel>()
 
     @Before
@@ -97,6 +113,7 @@ class IncidentFormViewModelTest {
     fun tearDown() {
         viewModels.forEach { it.viewModelScope.cancel() }
         database.close()
+        File(context.filesDir, "incidents").deleteRecursively()
     }
 
     @Test
@@ -227,6 +244,103 @@ class IncidentFormViewModelTest {
         assertThat(viewModel.uiState.value.canAddPerson).isFalse()
     }
 
+    // region photos
+    @Test
+    fun pickedPhotosAreAddedAsPending() = runTest {
+        val viewModel = loadedViewModel()
+
+        viewModel.addPicked(uris = pictures(count = 2))
+
+        val photos = viewModel.photosOnceThereAre(count = 2)
+        assertThat(photos.map { it.uploadState }).containsExactly(
+            PhotoUploadState.PENDING,
+            PhotoUploadState.PENDING,
+        )
+        assertThat(photos.all { File(it.localPath.orEmpty()).exists() }).isTrue()
+        assertThat(viewModel.uiState.value.photosLeft).isEqualTo(3)
+    }
+
+    @Test
+    fun pickingMoreThanFitKeepsOnlyTheRoomLeft() = runTest {
+        val viewModel = loadedViewModel()
+
+        viewModel.addPicked(uris = pictures(count = 6))
+        viewModel.photosOnceThereAre(count = 5)
+        advanceUntilIdle()
+
+        assertThat(viewModel.uiState.value.fields?.photos.orEmpty()).hasSize(5)
+        assertThat(viewModel.uiState.value.photosLeft).isEqualTo(0)
+    }
+
+    @Test
+    fun aPhotoCanBeMadeTheCoverOrRemoved() = runTest {
+        val viewModel = loadedViewModel()
+        viewModel.addPicked(uris = pictures(count = 2))
+        val (first, second) = viewModel.photosOnceThereAre(count = 2)
+
+        viewModel.makeCover(index = 1)
+        assertThat(viewModel.uiState.value.fields?.photos.orEmpty().map { it.id }).containsExactly(
+            second.id,
+            first.id,
+        )
+
+        viewModel.removePhoto(index = 0)
+        assertThat(viewModel.uiState.value.fields?.photos.orEmpty().map { it.id }).containsExactly(first.id)
+    }
+
+    @Test
+    fun aPhotoTakenWhileTheProcessDiedIsAdded() = runTest {
+        val savedStateHandle = SavedStateHandle()
+        loadedViewModel(savedStateHandle = savedStateHandle).cameraTarget()
+        val photoId = checkNotNull(savedStateHandle.get<String>("cameraPhotoId"))
+        val incidentId = checkNotNull(savedStateHandle.get<String>("incidentId"))
+        picture(
+            file = photoStorage.photoFile(
+                incidentId = incidentId,
+                photoId = photoId,
+            ),
+        )
+        val restored = loadedViewModel(savedStateHandle = savedStateHandle)
+
+        restored.onPhotoTaken(success = true)
+
+        assertThat(restored.photosOnceThereAre(count = 1).single().id).isEqualTo(photoId)
+    }
+
+    @Test
+    fun aPhotoThatCannotBeReadIsReported() = runTest {
+        val viewModel = loadedViewModel()
+
+        viewModel.addPicked(uris = listOf(Uri.fromFile(File(context.cacheDir, "missing.jpg"))))
+
+        assertThat(viewModel.uiState.first { it.outcome != null }.outcome).isEqualTo(FormOutcome.PHOTO_NOT_SAVED)
+        assertThat(viewModel.uiState.value.fields?.photos.orEmpty()).isEmpty()
+    }
+    // endregion
+
+    private suspend fun IncidentFormViewModel.photosOnceThereAre(count: Int) =
+        uiState.first { it.fields?.photos?.size == count }.fields?.photos.orEmpty()
+
+    private fun pictures(count: Int): List<Uri> = (1..count).map {
+        Uri.fromFile(picture(file = File(context.cacheDir, "picked-$it.jpg")))
+    }
+
+    private fun picture(file: File): File {
+        val bitmap = Bitmap.createBitmap(
+            PICTURE_SIZE,
+            PICTURE_SIZE,
+            Bitmap.Config.ARGB_8888,
+        )
+        file.outputStream().use {
+            bitmap.compress(
+                Bitmap.CompressFormat.JPEG,
+                PICTURE_QUALITY,
+                it,
+            )
+        }
+        return file
+    }
+
     private suspend fun loadedViewModel(
         incidentId: String? = null,
         savedStateHandle: SavedStateHandle = SavedStateHandle(),
@@ -238,6 +352,7 @@ class IncidentFormViewModelTest {
                 incidentRepository = incidentRepository,
                 referenceRepository = referenceRepository,
                 sessionStore = FakeSessionStore(initial = technician),
+                photoStorage = photoStorage,
             )
         viewModels += viewModel
         viewModel.uiState.first { !it.isLoading && it.options.sites.isNotEmpty() }
@@ -267,6 +382,8 @@ class IncidentFormViewModelTest {
     private suspend fun storedTitle(): String? = database.incidentDao().getIncident(id = INCIDENT_ID)?.incident?.title
 
     private companion object {
+        const val PICTURE_SIZE = 100
+        const val PICTURE_QUALITY = 80
         val technician =
             User(
                 id = "u1",

@@ -6,4 +6,5 @@ enum class FormOutcome {
     CLOSED,
     INVALID,
     NOT_ALLOWED,
+    PHOTO_NOT_SAVED,
 }

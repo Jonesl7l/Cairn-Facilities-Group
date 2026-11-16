@@ -1,14 +1,18 @@
 package com.jonesl7l.carinfg.feature.incident.form
 
+import android.net.Uri
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.jonesl7l.carinfg.core.data.incident.IncidentRepository
 import com.jonesl7l.carinfg.core.data.incident.SaveResult
+import com.jonesl7l.carinfg.core.data.photo.PhotoStorage
 import com.jonesl7l.carinfg.core.data.reference.ReferenceRepository
 import com.jonesl7l.carinfg.core.data.session.SessionStore
 import com.jonesl7l.carinfg.core.domain.model.incident.Incident
 import com.jonesl7l.carinfg.core.domain.model.person.Person
+import com.jonesl7l.carinfg.core.domain.model.photo.Photo
+import com.jonesl7l.carinfg.core.domain.model.photo.PhotoUploadState
 import com.jonesl7l.carinfg.core.domain.model.sync.SyncState
 import com.jonesl7l.carinfg.core.domain.validation.IncidentValidator
 import dagger.assisted.Assisted
@@ -29,10 +33,11 @@ import kotlinx.datetime.TimeZone
 @HiltViewModel(assistedFactory = IncidentFormViewModel.Factory::class)
 class IncidentFormViewModel @AssistedInject constructor(
     @Assisted incidentId: String?,
-    savedStateHandle: SavedStateHandle,
+    private val savedStateHandle: SavedStateHandle,
     private val incidentRepository: IncidentRepository,
     private val referenceRepository: ReferenceRepository,
     private val sessionStore: SessionStore,
+    private val photoStorage: PhotoStorage,
 ) : ViewModel() {
     private val id: String = savedStateHandle[ID_KEY] ?: incidentId ?: UUID.randomUUID().toString()
     private val _uiState = MutableStateFlow(IncidentFormUiState())
@@ -67,6 +72,89 @@ class IncidentFormViewModel @AssistedInject constructor(
     fun removePerson(index: Int) {
         update { it.copy(persons = it.persons.filterIndexed { personIndex, _ -> personIndex != index }) }
     }
+
+    // region photos
+    fun cameraTarget(): Uri {
+        val photoId = UUID.randomUUID().toString()
+        savedStateHandle[CAMERA_PHOTO_KEY] = photoId
+        return photoStorage.uriFor(
+            file = photoStorage.photoFile(
+                incidentId = id,
+                photoId = photoId,
+            ),
+        )
+    }
+
+    fun onPhotoTaken(success: Boolean) {
+        val photoId = savedStateHandle.remove<String>(CAMERA_PHOTO_KEY) ?: return
+        if (!success) return
+        val file = photoStorage.photoFile(
+            incidentId = id,
+            photoId = photoId,
+        )
+        viewModelScope.launch {
+            addPhoto(
+                photoId = photoId,
+                source = Uri.fromFile(file),
+            )
+        }
+    }
+
+    fun addPicked(uris: List<Uri>) {
+        val picked = uris.take(_uiState.value.photosLeft)
+        viewModelScope.launch {
+            picked.forEach {
+                addPhoto(
+                    photoId = UUID.randomUUID().toString(),
+                    source = it,
+                )
+            }
+        }
+    }
+
+    fun makeCover(index: Int) {
+        update { fields ->
+            val photo = fields.photos.getOrNull(index) ?: return@update fields
+            fields.copy(photos = listOf(photo) + (fields.photos - photo))
+        }
+    }
+
+    fun removePhoto(index: Int) {
+        update { it.copy(photos = it.photos.filterIndexed { photoIndex, _ -> photoIndex != index }) }
+    }
+
+    private suspend fun addPhoto(
+        photoId: String,
+        source: Uri,
+    ) {
+        val target = photoStorage.photoFile(
+            incidentId = id,
+            photoId = photoId,
+        )
+        val saved = photoStorage.save(
+            source = source,
+            target = target,
+        )
+        if (!saved) {
+            _uiState.update { it.copy(outcome = FormOutcome.PHOTO_NOT_SAVED) }
+            return
+        }
+        _uiState.first { it.fields != null }
+        update { fields ->
+            if (fields.photos.size >= IncidentValidator.MAX_PHOTOS) return@update fields
+            val photo =
+                Photo(
+                    id = photoId,
+                    incidentId = id,
+                    position = fields.photos.size,
+                    localPath = target.absolutePath,
+                    remoteUrl = null,
+                    uploadState = PhotoUploadState.PENDING,
+                )
+            fields.copy(photos = fields.photos + photo)
+        }
+    }
+    // endregion
 
     fun submit() {
         val base = base ?: return
@@ -182,6 +270,7 @@ class IncidentFormViewModel @AssistedInject constructor(
                 remainingErrors = remainingErrors,
                 hasChanges = fields != base.toFormFields(),
                 canAddPerson = IncidentFormHelper.canAddPerson(persons = fields.persons),
+                photosLeft = IncidentValidator.MAX_PHOTOS - fields.photos.size,
             )
         }
     }
@@ -195,5 +284,6 @@ class IncidentFormViewModel @AssistedInject constructor(
 
     private companion object {
         const val ID_KEY = "incidentId"
+        const val CAMERA_PHOTO_KEY = "cameraPhotoId"
     }
 }

@@ -195,6 +195,7 @@
     <string name="treatment_hospital">Hospital</string>
     <string name="form_draft_saved">Saved as draft</string>
     <string name="form_not_allowed">This incident can no longer be edited</string>
+    <string name="form_photo_not_saved">Couldn\'t add the photo</string>
     <string name="discard_title">Discard changes?</string>
     <string name="discard_body">Your changes to this incident will be lost.</string>
     <string name="discard">Discard</string>

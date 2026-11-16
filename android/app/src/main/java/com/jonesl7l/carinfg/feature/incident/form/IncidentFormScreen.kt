@@ -109,6 +109,7 @@ fun IncidentFormContent(
     val sectionOffsets = remember { mutableStateMapOf<Int, Int>() }
     var isDiscarding by rememberSaveable { mutableStateOf(false) }
     val notAllowedMessage = stringResource(id = R.string.form_not_allowed)
+    val photoNotSavedMessage = stringResource(id = R.string.form_photo_not_saved)
     val currentOnFinish by rememberUpdatedState(onFinish)
     val currentOnOutcomeConsume by rememberUpdatedState(onOutcomeConsume)
     val close = {
@@ -130,6 +131,11 @@ fun IncidentFormContent(
 
             FormOutcome.NOT_ALLOWED -> {
                 snackbarHostState.showSnackbar(message = notAllowedMessage)
+                currentOnOutcomeConsume()
+            }
+
+            FormOutcome.PHOTO_NOT_SAVED -> {
+                snackbarHostState.showSnackbar(message = photoNotSavedMessage)
                 currentOnOutcomeConsume()
             }
 
