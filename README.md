@@ -25,6 +25,18 @@ Seeded accounts: `tech1`, `tech2` and `operator`, all with the password `passwor
 - **Physical device:** run `adb reverse tcp:3000 tcp:3000`.
 - **Slow or failing network:** `LATENCY_MS=1500 npm start` delays every request, and `FAILURE_RATE=0.3 npm start` answers 30% of requests with a 503, so you can see the app's pending and retry states.
 
+## Operator dashboard
+
+A deliberately small Next.js app in `dashboard/` for acting as an operator while you use the app: change an incident's status or assignee, resolve it, or delete it, and watch the app react. It needs the mock server running.
+
+```sh
+cd dashboard
+npm ci
+npm run dev        # http://localhost:3001
+```
+
+Moving a report past Assigned locks it in the app, and the table refreshes on its own when the app syncs a change. Set `NEXT_PUBLIC_API_URL` if the server is not on `127.0.0.1:3000`.
+
 ## Repo layout
 
 - `android/`: the Android app (Gradle project)
