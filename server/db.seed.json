@@ -1,0 +1,947 @@
+{
+  "meta": {
+    "changeSeq": 15,
+    "referenceCounter": 15,
+    "databaseId": "4c5397c5-9dc0-5ce5-8db3-a96ddd08e1a6"
+  },
+  "users": [
+    {
+      "id": "u1",
+      "username": "tech1",
+      "password": "password",
+      "displayName": "Tech One",
+      "role": "TECHNICIAN"
+    },
+    {
+      "id": "u2",
+      "username": "tech2",
+      "password": "password",
+      "displayName": "Tech Two",
+      "role": "TECHNICIAN"
+    },
+    {
+      "id": "u3",
+      "username": "operator",
+      "password": "password",
+      "displayName": "Operator",
+      "role": "OPERATOR"
+    }
+  ],
+  "sites": [
+    {
+      "id": "site-1",
+      "name": "Riverside Campus"
+    },
+    {
+      "id": "site-2",
+      "name": "Northgate Depot"
+    }
+  ],
+  "buildings": [
+    {
+      "id": "building-1",
+      "siteId": "site-1",
+      "name": "Main Office"
+    },
+    {
+      "id": "building-2",
+      "siteId": "site-1",
+      "name": "Engineering Block"
+    },
+    {
+      "id": "building-3",
+      "siteId": "site-1",
+      "name": "Multi-storey Car Park"
+    },
+    {
+      "id": "building-4",
+      "siteId": "site-2",
+      "name": "Warehouse A"
+    },
+    {
+      "id": "building-5",
+      "siteId": "site-2",
+      "name": "Workshop"
+    }
+  ],
+  "floors": [
+    {
+      "id": "floor-1",
+      "buildingId": "building-1",
+      "name": "Ground Floor"
+    },
+    {
+      "id": "floor-2",
+      "buildingId": "building-1",
+      "name": "First Floor"
+    },
+    {
+      "id": "floor-3",
+      "buildingId": "building-2",
+      "name": "Ground Floor"
+    },
+    {
+      "id": "floor-4",
+      "buildingId": "building-3",
+      "name": "Level 1"
+    },
+    {
+      "id": "floor-5",
+      "buildingId": "building-4",
+      "name": "Ground Floor"
+    },
+    {
+      "id": "floor-6",
+      "buildingId": "building-4",
+      "name": "Mezzanine"
+    },
+    {
+      "id": "floor-7",
+      "buildingId": "building-5",
+      "name": "Ground Floor"
+    }
+  ],
+  "rooms": [
+    {
+      "id": "room-1",
+      "floorId": "floor-1",
+      "name": "Reception"
+    },
+    {
+      "id": "room-2",
+      "floorId": "floor-1",
+      "name": "Kitchen"
+    },
+    {
+      "id": "room-3",
+      "floorId": "floor-2",
+      "name": "Open Plan Office"
+    },
+    {
+      "id": "room-4",
+      "floorId": "floor-2",
+      "name": "Meeting Room 1"
+    },
+    {
+      "id": "room-5",
+      "floorId": "floor-3",
+      "name": "Plant Room"
+    },
+    {
+      "id": "room-6",
+      "floorId": "floor-3",
+      "name": "Test Lab"
+    },
+    {
+      "id": "room-7",
+      "floorId": "floor-4",
+      "name": "Entrance Ramp"
+    },
+    {
+      "id": "room-8",
+      "floorId": "floor-5",
+      "name": "Loading Bay"
+    },
+    {
+      "id": "room-9",
+      "floorId": "floor-5",
+      "name": "Racking Aisle 1"
+    },
+    {
+      "id": "room-10",
+      "floorId": "floor-6",
+      "name": "Site Office"
+    },
+    {
+      "id": "room-11",
+      "floorId": "floor-7",
+      "name": "Workshop Floor"
+    }
+  ],
+  "assets": [
+    {
+      "id": "asset-1",
+      "roomId": "room-1",
+      "name": "Revolving Door",
+      "code": "DOOR-001"
+    },
+    {
+      "id": "asset-2",
+      "roomId": "room-2",
+      "name": "Dishwasher",
+      "code": "KIT-001"
+    },
+    {
+      "id": "asset-3",
+      "roomId": "room-3",
+      "name": "Air Conditioning Unit",
+      "code": "HVAC-001"
+    },
+    {
+      "id": "asset-4",
+      "roomId": "room-4",
+      "name": "Projector",
+      "code": "AV-001"
+    },
+    {
+      "id": "asset-5",
+      "roomId": "room-5",
+      "name": "Boiler",
+      "code": "PLANT-001"
+    },
+    {
+      "id": "asset-6",
+      "roomId": "room-5",
+      "name": "Electrical Panel",
+      "code": "ELEC-001"
+    },
+    {
+      "id": "asset-7",
+      "roomId": "room-6",
+      "name": "Fume Cupboard",
+      "code": "LAB-001"
+    },
+    {
+      "id": "asset-8",
+      "roomId": "room-7",
+      "name": "Barrier Arm",
+      "code": "PARK-001"
+    },
+    {
+      "id": "asset-9",
+      "roomId": "room-8",
+      "name": "Dock Leveller",
+      "code": "DOCK-001"
+    },
+    {
+      "id": "asset-10",
+      "roomId": "room-9",
+      "name": "Forklift",
+      "code": "FLT-001"
+    },
+    {
+      "id": "asset-11",
+      "roomId": "room-11",
+      "name": "Pillar Drill",
+      "code": "WS-001"
+    }
+  ],
+  "incidents": [
+    {
+      "id": "3ac10e59-49e0-540c-8203-62b1153e5841",
+      "referenceNumber": "INC-2026-00001",
+      "reporterId": "u1",
+      "reportedAt": "2026-11-02T08:12:00Z",
+      "title": "Exposed wiring behind reception desk",
+      "description": "Cable insulation has split behind the reception desk and copper is visible near the floor box.",
+      "occurredAt": "2026-11-02T08:00:00Z",
+      "occurredTimeZone": "Europe/London",
+      "incidentType": "ELECTRICAL",
+      "incidentTypeOther": null,
+      "severity": "HIGH",
+      "siteId": "site-1",
+      "buildingId": "building-1",
+      "floorId": "floor-1",
+      "roomId": "room-1",
+      "unlistedLocation": null,
+      "exactSpot": null,
+      "assetId": null,
+      "equipmentOutOfService": false,
+      "injuryOccurred": false,
+      "hazardStillPresent": true,
+      "immediateActions": [
+        "AREA_CORDONED_OFF",
+        "SUPERVISOR_NOTIFIED"
+      ],
+      "immediateActionsOther": null,
+      "persons": [],
+      "photos": [
+        {
+          "id": "419f4627-4a2c-520e-892d-918dc78e0dc1",
+          "url": "uploads/incidents/3ac10e59-49e0-540c-8203-62b1153e5841/419f4627-4a2c-520e-892d-918dc78e0dc1.jpg"
+        },
+        {
+          "id": "92d43105-587c-597b-8d3a-08c352823a96",
+          "url": "uploads/incidents/3ac10e59-49e0-540c-8203-62b1153e5841/92d43105-587c-597b-8d3a-08c352823a96.jpg"
+        }
+      ],
+      "additionalNotes": null,
+      "status": "OPEN",
+      "assignedTo": null,
+      "dueDate": null,
+      "rootCause": null,
+      "correctiveActions": null,
+      "regulatoryReportable": null,
+      "supervisorAcknowledged": null,
+      "createdAt": "2026-11-02T08:13:00Z",
+      "updatedAt": "2026-11-02T08:13:00Z",
+      "version": 1,
+      "changeSeq": 1,
+      "deletedAt": null,
+      "deletedBy": null
+    },
+    {
+      "id": "fe001198-2056-55aa-b0f7-9560b2b708c9",
+      "referenceNumber": "INC-2026-00002",
+      "reporterId": "u1",
+      "reportedAt": "2026-11-02T17:12:00Z",
+      "title": "Leak from ceiling above open plan office",
+      "description": "Water dripping from a ceiling tile near the windows after heavy rain. Bucket placed underneath.",
+      "occurredAt": "2026-11-02T17:00:00Z",
+      "occurredTimeZone": "Europe/London",
+      "incidentType": "WATER_LEAK",
+      "incidentTypeOther": null,
+      "severity": "MEDIUM",
+      "siteId": "site-1",
+      "buildingId": "building-1",
+      "floorId": "floor-2",
+      "roomId": "room-3",
+      "unlistedLocation": null,
+      "exactSpot": null,
+      "assetId": null,
+      "equipmentOutOfService": false,
+      "injuryOccurred": false,
+      "hazardStillPresent": true,
+      "immediateActions": [
+        "AREA_CORDONED_OFF"
+      ],
+      "immediateActionsOther": null,
+      "persons": [],
+      "photos": [
+        {
+          "id": "64a675a4-821d-5daa-8c46-cc18dfdaeeee",
+          "url": "uploads/incidents/fe001198-2056-55aa-b0f7-9560b2b708c9/64a675a4-821d-5daa-8c46-cc18dfdaeeee.jpg"
+        }
+      ],
+      "additionalNotes": null,
+      "status": "ASSIGNED",
+      "assignedTo": "u1",
+      "dueDate": "2026-11-20",
+      "rootCause": null,
+      "correctiveActions": null,
+      "regulatoryReportable": null,
+      "supervisorAcknowledged": null,
+      "createdAt": "2026-11-02T17:13:00Z",
+      "updatedAt": "2026-11-02T19:13:00Z",
+      "version": 2,
+      "changeSeq": 2,
+      "deletedAt": null,
+      "deletedBy": null
+    },
+    {
+      "id": "c2413c29-e41f-59a8-93d8-30b97275e824",
+      "referenceNumber": "INC-2026-00003",
+      "reporterId": "u1",
+      "reportedAt": "2026-11-03T02:12:00Z",
+      "title": "Boiler pressure dropping in plant room",
+      "description": "Boiler pressure falls below 0.5 bar within an hour of being topped up. Heating to the engineering block is off.",
+      "occurredAt": "2026-11-03T02:00:00Z",
+      "occurredTimeZone": "Europe/London",
+      "incidentType": "EQUIPMENT_FAILURE",
+      "incidentTypeOther": null,
+      "severity": "CRITICAL",
+      "siteId": "site-1",
+      "buildingId": "building-2",
+      "floorId": "floor-3",
+      "roomId": "room-5",
+      "unlistedLocation": null,
+      "exactSpot": null,
+      "assetId": "asset-5",
+      "equipmentOutOfService": true,
+      "injuryOccurred": false,
+      "hazardStillPresent": false,
+      "immediateActions": [
+        "EQUIPMENT_ISOLATED",
+        "SUPERVISOR_NOTIFIED"
+      ],
+      "immediateActionsOther": null,
+      "persons": [],
+      "photos": [
+        {
+          "id": "19d5cb31-966b-557e-af14-8afc046a204b",
+          "url": "uploads/incidents/c2413c29-e41f-59a8-93d8-30b97275e824/19d5cb31-966b-557e-af14-8afc046a204b.jpg"
+        }
+      ],
+      "additionalNotes": null,
+      "status": "IN_PROGRESS",
+      "assignedTo": "u1",
+      "dueDate": "2026-11-12",
+      "rootCause": null,
+      "correctiveActions": null,
+      "regulatoryReportable": null,
+      "supervisorAcknowledged": null,
+      "createdAt": "2026-11-03T02:13:00Z",
+      "updatedAt": "2026-11-03T06:13:00Z",
+      "version": 3,
+      "changeSeq": 3,
+      "deletedAt": null,
+      "deletedBy": null
+    },
+    {
+      "id": "14310cb2-7cd5-5eff-a5b7-510ed702b3d5",
+      "referenceNumber": "INC-2026-00004",
+      "reporterId": "u1",
+      "reportedAt": "2026-11-03T11:12:00Z",
+      "title": "Loose floor tile in kitchen",
+      "description": "A floor tile by the sink rocks underfoot and its edge is raised about 5 mm.",
+      "occurredAt": "2026-11-03T11:00:00Z",
+      "occurredTimeZone": "Europe/London",
+      "incidentType": "SLIP_TRIP_FALL",
+      "incidentTypeOther": null,
+      "severity": "LOW",
+      "siteId": "site-1",
+      "buildingId": "building-1",
+      "floorId": "floor-1",
+      "roomId": "room-2",
+      "unlistedLocation": null,
+      "exactSpot": null,
+      "assetId": null,
+      "equipmentOutOfService": false,
+      "injuryOccurred": false,
+      "hazardStillPresent": false,
+      "immediateActions": [
+        "NONE"
+      ],
+      "immediateActionsOther": null,
+      "persons": [],
+      "photos": [],
+      "additionalNotes": null,
+      "status": "RESOLVED",
+      "assignedTo": "u1",
+      "dueDate": null,
+      "rootCause": "Adhesive failed after a dishwasher leak.",
+      "correctiveActions": "Tile re-bedded and the dishwasher hose replaced.",
+      "regulatoryReportable": null,
+      "supervisorAcknowledged": null,
+      "createdAt": "2026-11-03T11:13:00Z",
+      "updatedAt": "2026-11-03T17:13:00Z",
+      "version": 4,
+      "changeSeq": 4,
+      "deletedAt": null,
+      "deletedBy": null
+    },
+    {
+      "id": "07a37a2a-f9ba-5618-8661-7bddc28f97a5",
+      "referenceNumber": "INC-2026-00005",
+      "reporterId": "u1",
+      "reportedAt": "2026-11-03T20:12:00Z",
+      "title": "Barrier arm struck by delivery van",
+      "description": "A delivery van clipped the exit barrier arm, which is now bent and does not close fully.",
+      "occurredAt": "2026-11-03T20:00:00Z",
+      "occurredTimeZone": "Europe/London",
+      "incidentType": "PROPERTY_DAMAGE",
+      "incidentTypeOther": null,
+      "severity": "MEDIUM",
+      "siteId": "site-1",
+      "buildingId": "building-3",
+      "floorId": "floor-4",
+      "roomId": "room-7",
+      "unlistedLocation": null,
+      "exactSpot": null,
+      "assetId": "asset-8",
+      "equipmentOutOfService": true,
+      "injuryOccurred": false,
+      "hazardStillPresent": false,
+      "immediateActions": [
+        "EQUIPMENT_ISOLATED"
+      ],
+      "immediateActionsOther": null,
+      "persons": [],
+      "photos": [
+        {
+          "id": "d9aa7617-18ba-5fb8-92f5-7b9081237e3f",
+          "url": "uploads/incidents/07a37a2a-f9ba-5618-8661-7bddc28f97a5/d9aa7617-18ba-5fb8-92f5-7b9081237e3f.jpg"
+        }
+      ],
+      "additionalNotes": null,
+      "status": "CLOSED",
+      "assignedTo": "u1",
+      "dueDate": null,
+      "rootCause": "Driver misjudged the turn into the exit lane.",
+      "correctiveActions": "Barrier arm replaced and the turn marked with hatching.",
+      "regulatoryReportable": false,
+      "supervisorAcknowledged": true,
+      "createdAt": "2026-11-03T20:13:00Z",
+      "updatedAt": "2026-11-04T04:13:00Z",
+      "version": 5,
+      "changeSeq": 5,
+      "deletedAt": null,
+      "deletedBy": null
+    },
+    {
+      "id": "91040524-e66f-5141-b543-485b63d96875",
+      "referenceNumber": "INC-2026-00006",
+      "reporterId": "u1",
+      "reportedAt": "2026-11-04T05:12:00Z",
+      "title": "Forklift reversed without a spotter",
+      "description": "Forklift reversed out of aisle 1 without a spotter and stopped about a metre from a colleague.",
+      "occurredAt": "2026-11-04T05:00:00Z",
+      "occurredTimeZone": "Europe/London",
+      "incidentType": "NEAR_MISS",
+      "incidentTypeOther": null,
+      "severity": "LOW",
+      "siteId": "site-2",
+      "buildingId": "building-4",
+      "floorId": "floor-5",
+      "roomId": "room-9",
+      "unlistedLocation": null,
+      "exactSpot": null,
+      "assetId": "asset-10",
+      "equipmentOutOfService": false,
+      "injuryOccurred": false,
+      "hazardStillPresent": false,
+      "immediateActions": [
+        "SUPERVISOR_NOTIFIED"
+      ],
+      "immediateActionsOther": null,
+      "persons": [
+        {
+          "id": "80fa1472-3f8f-5b6b-a3e5-7374f66d6af4",
+          "name": "Sam Patel",
+          "personType": "EMPLOYEE",
+          "role": "WITNESS",
+          "department": "Logistics",
+          "position": "Warehouse operative"
+        }
+      ],
+      "photos": [],
+      "additionalNotes": null,
+      "status": "OPEN",
+      "assignedTo": null,
+      "dueDate": null,
+      "rootCause": null,
+      "correctiveActions": null,
+      "regulatoryReportable": null,
+      "supervisorAcknowledged": null,
+      "createdAt": "2026-11-04T05:13:00Z",
+      "updatedAt": "2026-11-04T05:13:00Z",
+      "version": 1,
+      "changeSeq": 6,
+      "deletedAt": null,
+      "deletedBy": null
+    },
+    {
+      "id": "97aa3fe3-ac56-5f2e-af99-31b312d1f5d8",
+      "referenceNumber": "INC-2026-00007",
+      "reporterId": "u1",
+      "reportedAt": "2026-11-04T14:12:00Z",
+      "title": "Visitor slipped on wet entrance ramp",
+      "description": "A visitor slipped on the car park entrance ramp, which was wet and had no warning sign.",
+      "occurredAt": "2026-11-04T14:00:00Z",
+      "occurredTimeZone": "Europe/London",
+      "incidentType": "SLIP_TRIP_FALL",
+      "incidentTypeOther": null,
+      "severity": "MEDIUM",
+      "siteId": "site-1",
+      "buildingId": "building-3",
+      "floorId": "floor-4",
+      "roomId": "room-7",
+      "unlistedLocation": null,
+      "exactSpot": null,
+      "assetId": null,
+      "equipmentOutOfService": false,
+      "injuryOccurred": true,
+      "hazardStillPresent": true,
+      "immediateActions": [
+        "FIRST_AID_GIVEN",
+        "AREA_CORDONED_OFF"
+      ],
+      "immediateActionsOther": null,
+      "persons": [
+        {
+          "id": "720290d6-b3f3-5cdd-bf07-7b388edcba4d",
+          "name": "Alex Morgan",
+          "personType": "VISITOR",
+          "role": "INJURED",
+          "company": "Morgan Supplies",
+          "injury": {
+            "nature": "Bruising",
+            "bodyPart": "Left knee",
+            "treatment": "FIRST_AID"
+          }
+        }
+      ],
+      "photos": [],
+      "additionalNotes": null,
+      "status": "OPEN",
+      "assignedTo": null,
+      "dueDate": null,
+      "rootCause": null,
+      "correctiveActions": null,
+      "regulatoryReportable": null,
+      "supervisorAcknowledged": null,
+      "createdAt": "2026-11-04T14:13:00Z",
+      "updatedAt": "2026-11-04T14:13:00Z",
+      "version": 1,
+      "changeSeq": 7,
+      "deletedAt": null,
+      "deletedBy": null
+    },
+    {
+      "id": "fc58765b-16ea-5e7a-bf43-16ed8d889d8e",
+      "referenceNumber": "INC-2026-00008",
+      "reporterId": "u1",
+      "reportedAt": "2026-11-04T23:12:00Z",
+      "title": "Projector not powering on",
+      "description": "Projector in meeting room 1 shows no standby light. Reported twice by mistake.",
+      "occurredAt": "2026-11-04T23:00:00Z",
+      "occurredTimeZone": "Europe/London",
+      "incidentType": "EQUIPMENT_FAILURE",
+      "incidentTypeOther": null,
+      "severity": "LOW",
+      "siteId": "site-1",
+      "buildingId": "building-1",
+      "floorId": "floor-2",
+      "roomId": "room-4",
+      "unlistedLocation": null,
+      "exactSpot": null,
+      "assetId": "asset-4",
+      "equipmentOutOfService": false,
+      "injuryOccurred": false,
+      "hazardStillPresent": false,
+      "immediateActions": [
+        "NONE"
+      ],
+      "immediateActionsOther": null,
+      "persons": [],
+      "photos": [],
+      "additionalNotes": null,
+      "status": "OPEN",
+      "assignedTo": null,
+      "dueDate": null,
+      "rootCause": null,
+      "correctiveActions": null,
+      "regulatoryReportable": null,
+      "supervisorAcknowledged": null,
+      "createdAt": "2026-11-04T23:13:00Z",
+      "updatedAt": "2026-11-04T23:43:00Z",
+      "version": 2,
+      "changeSeq": 8,
+      "deletedAt": "2026-11-04T23:43:00Z",
+      "deletedBy": "u1"
+    },
+    {
+      "id": "3766b32f-0f8b-5666-b683-f95cee0f7004",
+      "referenceNumber": "INC-2026-00009",
+      "reporterId": "u2",
+      "reportedAt": "2026-11-05T08:12:00Z",
+      "title": "Chemical smell from fume cupboard",
+      "description": "Strong solvent smell in the test lab with the fume cupboard running. Airflow indicator reads low.",
+      "occurredAt": "2026-11-05T08:00:00Z",
+      "occurredTimeZone": "Europe/London",
+      "incidentType": "HAZARDOUS_SUBSTANCE",
+      "incidentTypeOther": null,
+      "severity": "HIGH",
+      "siteId": "site-1",
+      "buildingId": "building-2",
+      "floorId": "floor-3",
+      "roomId": "room-6",
+      "unlistedLocation": null,
+      "exactSpot": null,
+      "assetId": "asset-7",
+      "equipmentOutOfService": true,
+      "injuryOccurred": false,
+      "hazardStillPresent": true,
+      "immediateActions": [
+        "AREA_EVACUATED",
+        "EQUIPMENT_ISOLATED"
+      ],
+      "immediateActionsOther": null,
+      "persons": [],
+      "photos": [
+        {
+          "id": "a3640c72-8909-534d-bafa-fe2152d67da6",
+          "url": "uploads/incidents/3766b32f-0f8b-5666-b683-f95cee0f7004/a3640c72-8909-534d-bafa-fe2152d67da6.jpg"
+        }
+      ],
+      "additionalNotes": null,
+      "status": "OPEN",
+      "assignedTo": null,
+      "dueDate": null,
+      "rootCause": null,
+      "correctiveActions": null,
+      "regulatoryReportable": null,
+      "supervisorAcknowledged": null,
+      "createdAt": "2026-11-05T08:13:00Z",
+      "updatedAt": "2026-11-05T08:13:00Z",
+      "version": 1,
+      "changeSeq": 9,
+      "deletedAt": null,
+      "deletedBy": null
+    },
+    {
+      "id": "67549f4c-3387-5507-b8c5-2c1113a94399",
+      "referenceNumber": "INC-2026-00010",
+      "reporterId": "u2",
+      "reportedAt": "2026-11-05T17:12:00Z",
+      "title": "Warehouse side door found unlocked",
+      "description": "The loading bay side door was found unlocked and propped open at the start of the early shift.",
+      "occurredAt": "2026-11-05T17:00:00Z",
+      "occurredTimeZone": "Europe/London",
+      "incidentType": "SECURITY",
+      "incidentTypeOther": null,
+      "severity": "MEDIUM",
+      "siteId": "site-2",
+      "buildingId": "building-4",
+      "floorId": "floor-5",
+      "roomId": "room-8",
+      "unlistedLocation": null,
+      "exactSpot": null,
+      "assetId": null,
+      "equipmentOutOfService": false,
+      "injuryOccurred": false,
+      "hazardStillPresent": false,
+      "immediateActions": [
+        "SUPERVISOR_NOTIFIED"
+      ],
+      "immediateActionsOther": null,
+      "persons": [],
+      "photos": [],
+      "additionalNotes": null,
+      "status": "ASSIGNED",
+      "assignedTo": "u2",
+      "dueDate": "2026-11-18",
+      "rootCause": null,
+      "correctiveActions": null,
+      "regulatoryReportable": null,
+      "supervisorAcknowledged": null,
+      "createdAt": "2026-11-05T17:13:00Z",
+      "updatedAt": "2026-11-05T19:13:00Z",
+      "version": 2,
+      "changeSeq": 10,
+      "deletedAt": null,
+      "deletedBy": null
+    },
+    {
+      "id": "0aa00edf-1112-5427-8709-36b7d3d4053d",
+      "referenceNumber": "INC-2026-00011",
+      "reporterId": "u2",
+      "reportedAt": "2026-11-06T02:12:00Z",
+      "title": "Dock leveller stuck in raised position",
+      "description": "Dock leveller 2 will not lower after the last delivery. The hydraulic pump runs but the platform does not move.",
+      "occurredAt": "2026-11-06T02:00:00Z",
+      "occurredTimeZone": "Europe/London",
+      "incidentType": "EQUIPMENT_FAILURE",
+      "incidentTypeOther": null,
+      "severity": "HIGH",
+      "siteId": "site-2",
+      "buildingId": "building-4",
+      "floorId": "floor-5",
+      "roomId": "room-8",
+      "unlistedLocation": null,
+      "exactSpot": null,
+      "assetId": "asset-9",
+      "equipmentOutOfService": true,
+      "injuryOccurred": false,
+      "hazardStillPresent": true,
+      "immediateActions": [
+        "EQUIPMENT_ISOLATED",
+        "AREA_CORDONED_OFF"
+      ],
+      "immediateActionsOther": null,
+      "persons": [],
+      "photos": [
+        {
+          "id": "bd5ef2be-709c-5786-ac61-74102d622c91",
+          "url": "uploads/incidents/0aa00edf-1112-5427-8709-36b7d3d4053d/bd5ef2be-709c-5786-ac61-74102d622c91.jpg"
+        },
+        {
+          "id": "087c5aa5-c9a9-5205-8a19-348f5bd86a31",
+          "url": "uploads/incidents/0aa00edf-1112-5427-8709-36b7d3d4053d/087c5aa5-c9a9-5205-8a19-348f5bd86a31.jpg"
+        }
+      ],
+      "additionalNotes": null,
+      "status": "IN_PROGRESS",
+      "assignedTo": "u2",
+      "dueDate": "2026-11-14",
+      "rootCause": null,
+      "correctiveActions": null,
+      "regulatoryReportable": null,
+      "supervisorAcknowledged": null,
+      "createdAt": "2026-11-06T02:13:00Z",
+      "updatedAt": "2026-11-06T06:13:00Z",
+      "version": 3,
+      "changeSeq": 11,
+      "deletedAt": null,
+      "deletedBy": null
+    },
+    {
+      "id": "b55f00da-311b-56d2-b9ce-f5a99d3d13b7",
+      "referenceNumber": "INC-2026-00012",
+      "reporterId": "u2",
+      "reportedAt": "2026-11-06T11:12:00Z",
+      "title": "Birds nesting above site office window",
+      "description": "Pigeons are nesting on the ledge above the site office window and droppings are building up on the sill.",
+      "occurredAt": "2026-11-06T11:00:00Z",
+      "occurredTimeZone": "Europe/London",
+      "incidentType": "OTHER",
+      "incidentTypeOther": "Pest activity",
+      "severity": "LOW",
+      "siteId": "site-2",
+      "buildingId": "building-4",
+      "floorId": "floor-6",
+      "roomId": "room-10",
+      "unlistedLocation": null,
+      "exactSpot": null,
+      "assetId": null,
+      "equipmentOutOfService": false,
+      "injuryOccurred": false,
+      "hazardStillPresent": false,
+      "immediateActions": [
+        "NONE"
+      ],
+      "immediateActionsOther": null,
+      "persons": [],
+      "photos": [],
+      "additionalNotes": null,
+      "status": "RESOLVED",
+      "assignedTo": "u2",
+      "dueDate": null,
+      "rootCause": "Ledge had no deterrent fitted.",
+      "correctiveActions": "Ledge cleaned and bird spikes fitted.",
+      "regulatoryReportable": null,
+      "supervisorAcknowledged": null,
+      "createdAt": "2026-11-06T11:13:00Z",
+      "updatedAt": "2026-11-06T17:13:00Z",
+      "version": 4,
+      "changeSeq": 12,
+      "deletedAt": null,
+      "deletedBy": null
+    },
+    {
+      "id": "0ddb9a21-041c-5506-a761-857b59b6a67d",
+      "referenceNumber": "INC-2026-00013",
+      "reporterId": "u2",
+      "reportedAt": "2026-11-06T20:12:00Z",
+      "title": "Smoke from pillar drill motor",
+      "description": "Smoke came from the pillar drill motor housing during use. The drill was stopped and unplugged.",
+      "occurredAt": "2026-11-06T20:00:00Z",
+      "occurredTimeZone": "Europe/London",
+      "incidentType": "FIRE_SMOKE",
+      "incidentTypeOther": null,
+      "severity": "CRITICAL",
+      "siteId": "site-2",
+      "buildingId": "building-5",
+      "floorId": "floor-7",
+      "roomId": "room-11",
+      "unlistedLocation": null,
+      "exactSpot": null,
+      "assetId": "asset-11",
+      "equipmentOutOfService": true,
+      "injuryOccurred": false,
+      "hazardStillPresent": false,
+      "immediateActions": [
+        "EQUIPMENT_ISOLATED",
+        "SUPERVISOR_NOTIFIED"
+      ],
+      "immediateActionsOther": null,
+      "persons": [],
+      "photos": [
+        {
+          "id": "169a7e0f-1c40-577c-aa52-7e4e6c05cb46",
+          "url": "uploads/incidents/0ddb9a21-041c-5506-a761-857b59b6a67d/169a7e0f-1c40-577c-aa52-7e4e6c05cb46.jpg"
+        }
+      ],
+      "additionalNotes": null,
+      "status": "OPEN",
+      "assignedTo": null,
+      "dueDate": null,
+      "rootCause": null,
+      "correctiveActions": null,
+      "regulatoryReportable": null,
+      "supervisorAcknowledged": null,
+      "createdAt": "2026-11-06T20:13:00Z",
+      "updatedAt": "2026-11-06T20:13:00Z",
+      "version": 1,
+      "changeSeq": 13,
+      "deletedAt": null,
+      "deletedBy": null
+    },
+    {
+      "id": "d280e246-fb78-5834-9834-f886a2265172",
+      "referenceNumber": "INC-2026-00014",
+      "reporterId": "u2",
+      "reportedAt": "2026-11-07T05:12:00Z",
+      "title": "Breaker keeps tripping on plant room panel",
+      "description": "Circuit 7 on the plant room panel tripped three times in one morning.",
+      "occurredAt": "2026-11-07T05:00:00Z",
+      "occurredTimeZone": "Europe/London",
+      "incidentType": "ELECTRICAL",
+      "incidentTypeOther": null,
+      "severity": "MEDIUM",
+      "siteId": "site-1",
+      "buildingId": "building-2",
+      "floorId": "floor-3",
+      "roomId": "room-5",
+      "unlistedLocation": null,
+      "exactSpot": null,
+      "assetId": "asset-6",
+      "equipmentOutOfService": false,
+      "injuryOccurred": false,
+      "hazardStillPresent": false,
+      "immediateActions": [
+        "EQUIPMENT_ISOLATED"
+      ],
+      "immediateActionsOther": null,
+      "persons": [],
+      "photos": [],
+      "additionalNotes": null,
+      "status": "CLOSED",
+      "assignedTo": "u2",
+      "dueDate": null,
+      "rootCause": "Faulty immersion heater element.",
+      "correctiveActions": "Element replaced and circuit tested.",
+      "regulatoryReportable": false,
+      "supervisorAcknowledged": true,
+      "createdAt": "2026-11-07T05:13:00Z",
+      "updatedAt": "2026-11-07T13:13:00Z",
+      "version": 5,
+      "changeSeq": 14,
+      "deletedAt": null,
+      "deletedBy": null
+    },
+    {
+      "id": "b0956201-4d42-59d5-8a5e-272a3072b67a",
+      "referenceNumber": "INC-2026-00015",
+      "reporterId": "u2",
+      "reportedAt": "2026-11-07T14:12:00Z",
+      "title": "Damaged fence panel by the staff car park",
+      "description": "A fence panel on the north side of the staff car park has blown down and leaves a gap onto the road.",
+      "occurredAt": "2026-11-07T14:00:00Z",
+      "occurredTimeZone": "Europe/London",
+      "incidentType": "PROPERTY_DAMAGE",
+      "incidentTypeOther": null,
+      "severity": "LOW",
+      "siteId": "site-2",
+      "buildingId": null,
+      "floorId": null,
+      "roomId": null,
+      "unlistedLocation": "Staff car park, north fence",
+      "exactSpot": null,
+      "assetId": null,
+      "equipmentOutOfService": false,
+      "injuryOccurred": false,
+      "hazardStillPresent": true,
+      "immediateActions": [
+        "AREA_CORDONED_OFF"
+      ],
+      "immediateActionsOther": null,
+      "persons": [],
+      "photos": [],
+      "additionalNotes": null,
+      "status": "OPEN",
+      "assignedTo": null,
+      "dueDate": null,
+      "rootCause": null,
+      "correctiveActions": null,
+      "regulatoryReportable": null,
+      "supervisorAcknowledged": null,
+      "createdAt": "2026-11-07T14:13:00Z",
+      "updatedAt": "2026-11-07T14:13:00Z",
+      "version": 1,
+      "changeSeq": 15,
+      "deletedAt": null,
+      "deletedBy": null
+    }
+  ]
+}
