@@ -206,4 +206,10 @@
     <string name="resolve_keep_incident">Keep incident</string>
     <string name="resolve_discard_my_changes">Discard my changes</string>
     <string name="resolve_failed">Couldn\'t reach the server. Try again when you\'re online.</string>
+    <string name="permission_retry">Try again</string>
+    <string name="permission_not_now">Not now</string>
+    <string name="permission_open_settings">Open settings</string>
+    <string name="camera_permission_title">Camera access</string>
+    <string name="camera_permission_rationale">Taking a photo needs camera access. You can still choose photos from your library without it.</string>
+    <string name="camera_permission_settings">Camera access is turned off. Turn it on in Settings to take photos, or choose photos from your library instead.</string>
 </resources>
