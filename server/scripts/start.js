@@ -12,7 +12,8 @@ const args = [
   'db.json',
   '--middlewares', 'middlewares.js',
   '--port', process.env.PORT ?? '3000',
-  '--host', process.env.HOST ?? 'localhost',
+  // IPv4 loopback: the emulator's 10.0.2.2 reaches 127.0.0.1, and localhost can resolve to IPv6 only
+  '--host', process.env.HOST ?? '127.0.0.1',
   // Reloads the database when db.json changes, so npm run reset works while running
   '--watch',
 ]
