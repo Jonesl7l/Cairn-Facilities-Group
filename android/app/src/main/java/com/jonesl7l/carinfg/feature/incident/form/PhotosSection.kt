@@ -36,7 +36,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -48,7 +47,7 @@ import com.jonesl7l.carinfg.core.domain.model.photo.Photo
 import com.jonesl7l.carinfg.core.domain.validation.IncidentValidator
 import com.jonesl7l.carinfg.core.ui.permissions.PermissionDialogs
 import com.jonesl7l.carinfg.core.ui.permissions.rememberPermissionState
-import java.io.File
+import com.jonesl7l.carinfg.core.ui.photo.imageModel
 
 private val tileSize = 80.dp
 private val tileShape = RoundedCornerShape(size = 12.dp)
@@ -216,7 +215,7 @@ private fun PhotoTile(
                 modifier = Modifier.size(size = tileIconSize),
             )
             AsyncImage(
-                model = photo.localPath?.let { File(it) },
+                model = photo.imageModel(),
                 contentDescription = description,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier.fillMaxSize(),
@@ -253,7 +252,7 @@ private fun CoverBadge(modifier: Modifier = Modifier) {
         text = stringResource(id = R.string.photo_cover),
         style = MaterialTheme.typography.labelSmall,
         fontWeight = FontWeight.SemiBold,
-        color = Color.White,
+        color = MaterialTheme.colorScheme.inverseOnSurface,
         modifier =
             modifier
                 .padding(all = badgePadding)

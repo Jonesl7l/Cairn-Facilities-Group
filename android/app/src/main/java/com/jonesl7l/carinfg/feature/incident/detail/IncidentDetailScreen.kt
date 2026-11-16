@@ -196,6 +196,7 @@ private fun DetailBody(
         modifier = Modifier.verticalScroll(state = rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(space = sectionSpacing),
     ) {
+        if (incident.photos.isNotEmpty()) PhotoPager(photos = incident.photos)
         Header(
             incident = incident,
             names = detail.names,
