@@ -1,4 +1,4 @@
-import type { Incident, Problem, Technician } from './types'
+import type { Incident, Problem, Reference } from './types'
 
 // The mock server; 127.0.0.1 rather than localhost because the server listens on IPv4 only
 export const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? 'http://127.0.0.1:3000'
@@ -12,10 +12,10 @@ export async function fetchIncidents(): Promise<Incident[]> {
   return response.json()
 }
 
-// Technicians come from the same /reference call the app uses
-export async function fetchTechnicians(): Promise<Technician[]> {
+// Sites and technicians come from the same /reference call the app uses
+export async function fetchReference(): Promise<Reference> {
   const response = await fetch(`${apiUrl}/reference`, { cache: 'no-store' })
-  return (await response.json()).technicians
+  return response.json()
 }
 
 // Sends operator fields with the version the dashboard last saw; returns the problem if the server refuses

@@ -8,3 +8,8 @@ tr.deleted td { color: #9ca3af; text-decoration: line-through; }
 button, select { font: inherit; }
 .error { padding: 10px 12px; margin-bottom: 12px; border-radius: 8px; background: #fee2e2; color: #991b1b; }
 .live { font-size: 13px; color: #4b5563; }
+.tabs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+.tabs button { padding: 6px 12px; border: 1px solid #d1d5db; border-radius: 8px; background: #fff; cursor: pointer; }
+.tabs button.selected { background: #1d4ed8; border-color: #1d4ed8; color: #fff; }
+.filters { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+.filters input { min-width: 240px; padding: 6px 8px; }

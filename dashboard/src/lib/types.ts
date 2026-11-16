@@ -8,6 +8,7 @@ export interface Incident {
   reporterId: string
   title: string
   severity: string
+  siteId: string
   status: IncidentStatus
   assignedTo: string | null
   rootCause: string | null
@@ -22,6 +23,17 @@ export interface Incident {
 export interface Technician {
   id: string
   displayName: string
+}
+
+export interface Site {
+  id: string
+  name: string
+}
+
+// The parts of GET /reference the dashboard uses
+export interface Reference {
+  sites: Site[]
+  technicians: Technician[]
 }
 
 // RFC 9457 Problem Details, as the middlewares file sends them

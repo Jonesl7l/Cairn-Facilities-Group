@@ -70,7 +70,7 @@ npm run reset      # back to the seed; connected apps resync from scratch
 
 ## Operator dashboard
 
-A deliberately small Next.js app in `dashboard/` for acting as an operator while you use the app: change an incident's status or assignee, resolve it, or delete it, and watch the app react. It needs the mock server running.
+A deliberately small Next.js app in `dashboard/` for acting as an operator while you use the app. It opens on a Needs triage queue (open and unassigned, most severe first), has status tabs with counts, filters by severity, site and assignee, and searches by title or reference. From the table you can change an incident's status or assignee, resolve it, or delete it, and watch the app react. It needs the mock server running.
 
 ```sh
 cd dashboard
