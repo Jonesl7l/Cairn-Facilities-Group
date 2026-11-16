@@ -41,6 +41,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.jonesl7l.carinfg.R
+import com.jonesl7l.carinfg.core.ui.layout.contentWidth
 
 private val screenPadding =
     PaddingValues(
@@ -90,7 +91,8 @@ fun LoginContent(
                 .systemBarsPadding()
                 .imePadding()
                 .verticalScroll(state = rememberScrollState())
-                .padding(paddingValues = screenPadding),
+                .padding(paddingValues = screenPadding)
+                .contentWidth(),
         verticalArrangement = Arrangement.spacedBy(space = sectionSpacing),
     ) {
         LoginHeader()

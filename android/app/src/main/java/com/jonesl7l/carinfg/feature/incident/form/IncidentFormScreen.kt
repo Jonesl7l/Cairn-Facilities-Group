@@ -50,6 +50,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.jonesl7l.carinfg.R
 import com.jonesl7l.carinfg.core.domain.validation.FieldError
 import com.jonesl7l.carinfg.core.domain.validation.IncidentField
+import com.jonesl7l.carinfg.core.ui.layout.contentWidth
 import kotlin.math.roundToInt
 
 private val sectionSpacing = 10.dp
@@ -199,7 +200,11 @@ fun IncidentFormContent(
                 CircularProgressIndicator(modifier = Modifier.align(alignment = Alignment.Center))
             } else {
                 Column(
-                    modifier = Modifier.verticalScroll(state = scrollState),
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .verticalScroll(state = scrollState)
+                            .contentWidth(),
                     verticalArrangement = Arrangement.spacedBy(space = sectionSpacing),
                 ) {
                     PhotosSection(
@@ -270,7 +275,10 @@ private fun SubmitBar(
     isDraft: Boolean,
     onSubmit: () -> Unit,
 ) {
-    Surface(color = MaterialTheme.colorScheme.surface) {
+    Surface(
+        color = MaterialTheme.colorScheme.surface,
+        modifier = Modifier.fillMaxWidth(),
+    ) {
         Button(
             onClick = onSubmit,
             shape = buttonShape,
@@ -278,7 +286,7 @@ private fun SubmitBar(
                 Modifier
                     .navigationBarsPadding()
                     .padding(all = barPadding)
-                    .fillMaxWidth()
+                    .contentWidth()
                     .height(height = buttonHeight),
         ) {
             Text(text = stringResource(id = if (isDraft) R.string.form_submit else R.string.form_save))

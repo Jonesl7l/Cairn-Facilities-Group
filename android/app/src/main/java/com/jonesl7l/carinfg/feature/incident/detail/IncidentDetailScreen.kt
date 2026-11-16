@@ -57,6 +57,7 @@ import com.jonesl7l.carinfg.core.domain.model.incident.Incident
 import com.jonesl7l.carinfg.core.domain.model.incident.IncidentDetail
 import com.jonesl7l.carinfg.core.domain.model.incident.IncidentNames
 import com.jonesl7l.carinfg.core.domain.model.sync.ConflictReason
+import com.jonesl7l.carinfg.core.ui.layout.contentWidth
 import com.jonesl7l.carinfg.core.ui.theme.LocalStatusColors
 import com.jonesl7l.carinfg.feature.incident.roleLabel
 import com.jonesl7l.carinfg.feature.incident.severityLabel
@@ -224,7 +225,11 @@ private fun DetailBody(
 ) {
     val incident = detail.incident
     Column(
-        modifier = Modifier.verticalScroll(state = rememberScrollState()),
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .verticalScroll(state = rememberScrollState())
+                .contentWidth(),
         verticalArrangement = Arrangement.spacedBy(space = sectionSpacing),
     ) {
         if (incident.photos.isNotEmpty()) PhotoPager(photos = incident.photos)
@@ -712,7 +717,10 @@ private fun EditButton(onEdit: () -> Unit) {
 
 @Composable
 private fun EditBar(onEdit: () -> Unit) {
-    Surface(color = MaterialTheme.colorScheme.surface) {
+    Surface(
+        color = MaterialTheme.colorScheme.surface,
+        modifier = Modifier.fillMaxWidth(),
+    ) {
         Button(
             onClick = onEdit,
             shape = buttonShape,
@@ -720,7 +728,7 @@ private fun EditBar(onEdit: () -> Unit) {
                 Modifier
                     .navigationBarsPadding()
                     .padding(all = noteMargin)
-                    .fillMaxWidth()
+                    .contentWidth()
                     .heightIn(min = buttonHeight),
         ) {
             Icon(
