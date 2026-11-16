@@ -8,7 +8,6 @@ import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -35,6 +34,7 @@ import com.jonesl7l.carinfg.app.navigation.LoginRoute
 import com.jonesl7l.carinfg.feature.auth.LoginScreen
 import com.jonesl7l.carinfg.feature.incident.detail.DeleteOutcome
 import com.jonesl7l.carinfg.feature.incident.detail.IncidentDetailScreen
+import com.jonesl7l.carinfg.feature.incident.form.IncidentFormScreen
 import com.jonesl7l.carinfg.feature.incident.list.IncidentListScreen
 
 @Composable
@@ -101,7 +101,12 @@ private fun AppBackStack(
                             },
                         )
                     }
-                    entry<IncidentFormRoute> { PlaceholderScreen(route = it) }
+                    entry<IncidentFormRoute> { route ->
+                        IncidentFormScreen(
+                            incidentId = route.incidentId,
+                            onClose = { backStack.removeLastOrNull() },
+                        )
+                    }
                 },
         )
         SnackbarHost(
@@ -144,15 +149,5 @@ private fun LoadingScreen() {
         contentAlignment = Alignment.Center,
     ) {
         CircularProgressIndicator()
-    }
-}
-
-@Composable
-private fun PlaceholderScreen(route: NavKey) {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center,
-    ) {
-        Text(text = route.toString())
     }
 }
