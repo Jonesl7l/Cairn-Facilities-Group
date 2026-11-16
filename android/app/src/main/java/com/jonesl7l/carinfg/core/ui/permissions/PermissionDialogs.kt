@@ -1,9 +1,12 @@
 package com.jonesl7l.carinfg.core.ui.permissions
 
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import com.jonesl7l.carinfg.R
 
@@ -46,7 +49,12 @@ private fun PermissionDialog(
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(text = title) },
-        text = { Text(text = text) },
+        text = {
+            Text(
+                text = text,
+                modifier = Modifier.verticalScroll(state = rememberScrollState()),
+            )
+        },
         confirmButton = {
             TextButton(onClick = onConfirm) { Text(text = confirmLabel) }
         },

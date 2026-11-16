@@ -8,6 +8,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TimePicker
+import androidx.compose.material3.TimePickerLayoutType
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
@@ -25,6 +26,7 @@ import com.jonesl7l.carinfg.core.domain.model.incident.Severity
 import com.jonesl7l.carinfg.core.domain.validation.FieldError
 import com.jonesl7l.carinfg.core.domain.validation.IncidentField
 import com.jonesl7l.carinfg.core.domain.validation.ValidationReason
+import com.jonesl7l.carinfg.core.ui.layout.isCompactHeight
 import com.jonesl7l.carinfg.feature.incident.severityLabel
 import com.jonesl7l.carinfg.feature.incident.typeLabel
 import java.time.format.DateTimeFormatter
@@ -181,7 +183,12 @@ private fun OccurredField(
             )
         AlertDialog(
             onDismissRequest = { pickedDate = null },
-            text = { TimePicker(state = timeState) },
+            text = {
+                TimePicker(
+                    state = timeState,
+                    layoutType = if (isCompactHeight()) TimePickerLayoutType.Horizontal else TimePickerLayoutType.Vertical,
+                )
+            },
             confirmButton = {
                 TextButton(
                     onClick = {

@@ -51,8 +51,11 @@ import com.jonesl7l.carinfg.R
 import com.jonesl7l.carinfg.core.domain.validation.FieldError
 import com.jonesl7l.carinfg.core.domain.validation.IncidentField
 import com.jonesl7l.carinfg.core.ui.layout.contentWidth
+import com.jonesl7l.carinfg.core.ui.layout.isCompactHeight
 import kotlin.math.roundToInt
 
+private val topBarButtonShape = RoundedCornerShape(12.dp)
+private val topBarButtonPadding = 8.dp
 private val sectionSpacing = 10.dp
 private val barPadding = 16.dp
 private val buttonShape = RoundedCornerShape(14.dp)
@@ -123,6 +126,7 @@ fun IncidentFormContent(
     val notAllowedMessage = stringResource(id = R.string.form_not_allowed)
     val photoNotSavedMessage = stringResource(id = R.string.form_photo_not_saved)
     val currentOnFinish by rememberUpdatedState(onFinish)
+    val isCompactHeight = isCompactHeight()
     val currentOnOutcomeConsume by rememberUpdatedState(onOutcomeConsume)
     val close = {
         when {
@@ -177,10 +181,21 @@ fun IncidentFormContent(
                         )
                     }
                 },
+                actions = {
+                    if (isCompactHeight && !uiState.isLoading) {
+                        Button(
+                            onClick = onSubmit,
+                            shape = topBarButtonShape,
+                            modifier = Modifier.padding(end = topBarButtonPadding),
+                        ) {
+                            Text(text = stringResource(id = if (uiState.isDraft) R.string.form_submit_short else R.string.form_save))
+                        }
+                    }
+                },
             )
         },
         bottomBar = {
-            if (!uiState.isLoading) {
+            if (!uiState.isLoading && !isCompactHeight) {
                 SubmitBar(
                     isDraft = uiState.isDraft,
                     onSubmit = onSubmit,
@@ -302,7 +317,12 @@ private fun DiscardDialog(
     AlertDialog(
         onDismissRequest = onKeepEditing,
         title = { Text(text = stringResource(id = R.string.discard_title)) },
-        text = { Text(text = stringResource(id = R.string.discard_body)) },
+        text = {
+            Text(
+                text = stringResource(id = R.string.discard_body),
+                modifier = Modifier.verticalScroll(state = rememberScrollState()),
+            )
+        },
         confirmButton = {
             TextButton(onClick = onDiscard) { Text(text = stringResource(id = R.string.discard)) }
         },

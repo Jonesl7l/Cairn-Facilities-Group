@@ -68,6 +68,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.jonesl7l.carinfg.R
 import com.jonesl7l.carinfg.core.domain.model.incident.IncidentListItem
 import com.jonesl7l.carinfg.core.domain.model.incident.IncidentSort
+import com.jonesl7l.carinfg.core.ui.layout.isCompactHeight
 import com.jonesl7l.carinfg.core.ui.theme.LocalStatusColors
 import com.jonesl7l.carinfg.feature.account.AccountSheet
 import com.jonesl7l.carinfg.feature.incident.incidentUndoWindow
@@ -224,15 +225,17 @@ fun IncidentListContent(
             )
         },
         floatingActionButton = {
+            val isCompactHeight = isCompactHeight()
             ExtendedFloatingActionButton(
                 text = { Text(text = stringResource(id = R.string.report_incident)) },
                 icon = {
                     Icon(
                         painter = painterResource(id = R.drawable.ic_add),
-                        contentDescription = null,
+                        contentDescription = if (isCompactHeight) stringResource(id = R.string.report_incident) else null,
                     )
                 },
                 onClick = onReportIncident,
+                expanded = !isCompactHeight,
                 shape = fabShape,
             )
         },

@@ -123,6 +123,7 @@
     <string name="form_new_title">New report</string>
     <string name="form_edit_title">Edit report</string>
     <string name="form_submit">Submit report</string>
+    <string name="form_submit_short">Submit</string>
     <string name="form_save">Save changes</string>
     <string name="close">Close</string>
     <string name="ok">OK</string>
