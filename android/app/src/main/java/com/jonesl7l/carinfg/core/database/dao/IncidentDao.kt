@@ -96,4 +96,10 @@ interface IncidentDao {
 
     @Query("DELETE FROM incidents WHERE id IN (:ids)")
     suspend fun deleteIncidents(ids: List<String>)
+
+    @Query("SELECT id FROM incidents")
+    suspend fun getIncidentIds(): List<String>
+
+    @Query("SELECT localPath FROM photos WHERE localPath IS NOT NULL")
+    suspend fun getLocalPhotoPaths(): List<String>
 }

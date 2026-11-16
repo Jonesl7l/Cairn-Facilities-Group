@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.hilt.work.HiltWorkerFactory
 import androidx.lifecycle.ProcessLifecycleOwner
 import androidx.work.Configuration
+import com.jonesl7l.carinfg.core.data.photo.PhotoStorage
 import com.jonesl7l.carinfg.core.data.reference.ReferenceDataInitializer
 import com.jonesl7l.carinfg.core.di.ApplicationScope
 import com.jonesl7l.carinfg.core.sync.SseSyncTrigger
@@ -21,6 +22,9 @@ class CarinfgApp :
     lateinit var referenceDataInitializer: ReferenceDataInitializer
 
     @Inject
+    lateinit var photoStorage: PhotoStorage
+
+    @Inject
     lateinit var workerFactory: HiltWorkerFactory
 
     @Inject
@@ -34,6 +38,7 @@ class CarinfgApp :
         super.onCreate()
         if (BuildConfig.DEBUG) Timber.plant(Timber.DebugTree())
         applicationScope.launch { referenceDataInitializer.initialize() }
+        applicationScope.launch { photoStorage.sweep() }
         ProcessLifecycleOwner.get().lifecycle.addObserver(sseSyncTrigger)
     }
 
