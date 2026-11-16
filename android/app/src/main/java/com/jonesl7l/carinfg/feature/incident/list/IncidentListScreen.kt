@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -42,6 +43,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
@@ -92,6 +94,12 @@ private val listBottomPadding = 96.dp
 private val sectionHeaderSize = 13.sp
 private val avatarTextSize = 14.sp
 private val clockTick = 1.minutes
+private const val FILTERS_KEY = "filters"
+private const val LOADING_KEY = "loading"
+private const val EMPTY_KEY = "empty"
+private const val NEEDS_ATTENTION_HEADER_KEY = "header-needs-attention"
+private const val DRAFTS_HEADER_KEY = "header-drafts"
+private const val INCIDENTS_HEADER_KEY = "header-incidents"
 
 @Composable
 fun IncidentListScreen(
@@ -172,6 +180,13 @@ fun IncidentListContent(
     snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
 ) {
     var showAccount by rememberSaveable { mutableStateOf(false) }
+    val listState = rememberLazyListState()
+    var shownSort by rememberSaveable { mutableStateOf(uiState.sort) }
+    SideEffect {
+        if (uiState.sort == shownSort) return@SideEffect
+        shownSort = uiState.sort
+        listState.requestScrollToItem(index = 0)
+    }
     val now by produceState(initialValue = Clock.System.now()) {
         while (true) {
             delay(duration = clockTick)
@@ -230,10 +245,11 @@ fun IncidentListContent(
                     .padding(paddingValues = innerPadding),
         ) {
             LazyColumn(
+                state = listState,
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(bottom = listBottomPadding),
             ) {
-                item {
+                item(key = FILTERS_KEY) {
                     Filters(
                         scope = uiState.scope,
                         statusFilter = uiState.statusFilter,
@@ -242,9 +258,9 @@ fun IncidentListContent(
                     )
                 }
                 when {
-                    uiState.isLoading -> item { Loading() }
+                    uiState.isLoading -> item(key = LOADING_KEY) { Loading() }
 
-                    uiState.isEmpty -> item { Empty(scope = uiState.scope) }
+                    uiState.isEmpty -> item(key = EMPTY_KEY) { Empty(scope = uiState.scope) }
 
                     else -> sections(
                         uiState = uiState,
@@ -265,10 +281,11 @@ private fun LazyListScope.sections(
 ) {
     val sections = uiState.sections
     if (sections.needsAttention.isNotEmpty()) {
-        item {
+        item(key = NEEDS_ATTENTION_HEADER_KEY) {
             SectionHeader(
                 text = stringResource(id = R.string.section_needs_attention, sections.needsAttention.size),
                 color = LocalStatusColors.current.onAttention,
+                modifier = Modifier.animateItem(),
             )
         }
         rows(
@@ -278,10 +295,11 @@ private fun LazyListScope.sections(
         )
     }
     if (sections.drafts.isNotEmpty()) {
-        item {
+        item(key = DRAFTS_HEADER_KEY) {
             SectionHeader(
                 text = stringResource(id = R.string.section_drafts, sections.drafts.size),
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.animateItem(),
             )
         }
         rows(
@@ -291,10 +309,11 @@ private fun LazyListScope.sections(
         )
     }
     if (sections.incidents.isNotEmpty()) {
-        item {
+        item(key = INCIDENTS_HEADER_KEY) {
             SectionHeader(
                 text = stringResource(id = uiState.sort.sectionLabel()),
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.animateItem(),
             )
         }
         rows(
@@ -314,12 +333,14 @@ private fun LazyListScope.rows(
         items = items,
         key = { it.id },
     ) { item ->
-        IncidentRow(
-            item = item,
-            now = now,
-            onClick = { onOpenIncident(item.id) },
-        )
-        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+        Column(modifier = Modifier.animateItem()) {
+            IncidentRow(
+                item = item,
+                now = now,
+                onClick = { onOpenIncident(item.id) },
+            )
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+        }
     }
 }
 
@@ -458,13 +479,14 @@ private fun Filters(
 private fun SectionHeader(
     text: String,
     color: Color,
+    modifier: Modifier = Modifier,
 ) {
     Text(
         text = text.uppercase(),
         color = color,
         fontSize = sectionHeaderSize,
         fontWeight = FontWeight.SemiBold,
-        modifier = Modifier.padding(paddingValues = sectionHeaderPadding),
+        modifier = modifier.padding(paddingValues = sectionHeaderPadding),
     )
 }
 
