@@ -1,10 +1,20 @@
 // Custom server code. json-server loads this file with --middlewares and runs it
 // after its own static files, CORS and body parsing, but before its router.
+const fs = require('node:fs')
+const path = require('node:path')
 const express = require('express')
+const multer = require('multer')
 
 // Simulation settings from the environment, both off by default
 const latencyMs = Number(process.env.LATENCY_MS ?? 0)
 const failureRate = Number(process.env.FAILURE_RATE ?? 0)
+
+// Photo uploads larger than this are refused with 413
+const maxPhotoBytes = 10 * 1024 * 1024
+// Uploaded photos live under public/, which json-server serves as static files
+const publicDir = path.join(__dirname, 'public')
+// A comment line this often keeps idle event streams open through proxies
+const heartbeatMs = 20_000
 
 // Each handler below either answers the request or calls next() to pass it on
 const router = express.Router()
@@ -42,6 +52,44 @@ router.get('/reference', (req, res) => {
     technicians: db.get('users').filter({ role: 'TECHNICIAN' }).map(({ password, ...user }) => user).value(),
   })
 })
+// endregion
+
+// region GET /events
+// Open event streams, one response object per connected app
+const eventClients = new Set()
+
+// Server-sent events: the response stays open and the server writes hints into it
+router.get('/events', (req, res) => {
+  // 1. Event stream headers; no-transform stops json-server's gzip from buffering the events
+  res.set({
+    'Content-Type': 'text/event-stream',
+    'Cache-Control': 'no-cache, no-transform',
+    Connection: 'keep-alive',
+  })
+  // 2. Send the headers now, which the app sees as "connected"
+  res.flushHeaders()
+  // 3. Remember this stream so writes can hint to it
+  eventClients.add(res)
+  // 4. Send a comment line now and then so the connection is not dropped as idle
+  const heartbeat = setInterval(() => res.write(': heartbeat\n\n'), heartbeatMs)
+  // 5. Forget the stream when the app disconnects
+  req.on('close', () => {
+    clearInterval(heartbeat)
+    eventClients.delete(res)
+  })
+})
+
+// Tells every connected app that incidents changed up to this changeSeq; the app then pulls
+function broadcastChange(changeSeq) {
+  for (const client of eventClients) client.write(`event: incidents-changed\nid: ${changeSeq}\ndata: ${changeSeq}\n\n`)
+}
+
+// Sends the hint once json-server's router has saved the write and answered with success
+function hintAfterWrite(res, changeSeq) {
+  res.on('finish', () => {
+    if (res.statusCode < 300) broadcastChange(changeSeq)
+  })
+}
 // endregion
 
 // region incident rules
@@ -100,7 +148,9 @@ router.post('/incidents', (req, res, next) => {
     deletedAt: null,
     deletedBy: null,
   })
-  // 5. json-server's router saves the stamped body and answers 201
+  // 5. Once saved, hint the new change to connected apps
+  hintAfterWrite(res, req.body.changeSeq)
+  // 6. json-server's router saves the stamped body and answers 201
   next()
 })
 // endregion
@@ -132,8 +182,53 @@ router.patch('/incidents/:id', (req, res, next) => {
     changeSeq: nextCounter(req.app.db, 'changeSeq'),
     updatedAt: new Date().toISOString(),
   })
-  // 6. json-server's router merges the body into the stored incident and answers 200
+  // 6. Once saved, hint the new change to connected apps
+  hintAfterWrite(res, req.body.changeSeq)
+  // 7. json-server's router merges the body into the stored incident and answers 200
   next()
+})
+// endregion
+
+// region PUT /incidents/:id/photos/:photoId
+// Reads one multipart file part named "file" into memory, refusing big or non-JPEG files
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: maxPhotoBytes },
+  fileFilter: (req, file, accept) => {
+    if (file.mimetype === 'image/jpeg') return accept(null, true)
+    accept(Object.assign(new Error('Photo is not a JPEG'), { code: 'NOT_JPEG' }))
+  },
+})
+
+// Ids become folder and file names, so only letters, digits, - and _ are allowed
+const safeId = /^[\w-]+$/
+
+router.put('/incidents/:id/photos/:photoId', (req, res) => {
+  const { id, photoId } = req.params
+  // 1. Refuse ids that could escape the uploads folder
+  if (!safeId.test(id) || !safeId.test(photoId)) return problem(res, 422, 'VALIDATION_FAILED', 'Invalid incident or photo id')
+  // 2. The app uploads photos before it creates a new incident, so a missing incident is fine
+  const incident = findIncident(req, id)
+  // 3. A deleted incident takes no photos
+  if (incident?.deletedAt) return deleted(res, incident)
+  // 4. Photos follow the edit rule: only while Open or Assigned
+  if (incident && !editableStatuses.includes(incident.status)) {
+    return problem(res, 409, 'STATUS_LOCKED', 'Incident status no longer allows photos', { currentStatus: incident.status })
+  }
+  // 5. Read the file part, turning multer's errors into Problem Details
+  upload.single('file')(req, res, (error) => {
+    if (error?.code === 'LIMIT_FILE_SIZE') return problem(res, 413, 'PAYLOAD_TOO_LARGE', 'Photo is too large')
+    if (error?.code === 'NOT_JPEG') return problem(res, 415, 'UNSUPPORTED_MEDIA_TYPE', 'Photo must be a JPEG')
+    if (error || !req.file) return problem(res, 422, 'VALIDATION_FAILED', 'A JPEG file part named file is required')
+    // 6. Write the file where json-server serves it; the same photoId overwrites, so retries are safe
+    const url = `uploads/incidents/${id}/${photoId}.jpg`
+    const target = path.join(publicDir, url)
+    const isReplacement = fs.existsSync(target)
+    fs.mkdirSync(path.dirname(target), { recursive: true })
+    fs.writeFileSync(target, req.file.buffer)
+    // 7. 201 for a new photo, 200 for a replaced one, with the relative url the app stores
+    res.status(isReplacement ? 200 : 201).json({ id: photoId, url })
+  })
 })
 // endregion
 
